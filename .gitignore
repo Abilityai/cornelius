@@ -72,3 +72,5 @@ Brain/Document Insights/**/*.md
 !Brain/**/README.md
 !Brain/**/_SAMPLE*.md
 !Brain/**/MOC - Master Navigation.md
+!Brain/04-Output/Articles/ARTICLE-INDEX.md
+!Brain/04-Output/Articles/whats-new-*/**
