@@ -1,6 +1,6 @@
 # Local Brain Search
 
-Local vector search and connection discovery for the Brain folder, independent of Smart Connections plugin.
+Local vector search and connection discovery for the Brain folder.
 
 **Tech Stack:** FAISS + sentence-transformers + NetworkX
 
@@ -28,7 +28,7 @@ Graph edges: 9300
 ## Setup
 
 ```bash
-cd ./resources/local-brain-search
+cd /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search
 
 # Create virtual environment (if not exists)
 python3 -m venv venv
@@ -181,7 +181,7 @@ This can be wrapped as an MCP server. Tools would be:
 
 ```bash
 # Search from Claude
-cd ./resources/local-brain-search && \
+cd /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search && \
 source venv/bin/activate && \
 python search.py "your query" --json
 ```
@@ -195,18 +195,6 @@ All scripts output JSON with `--json` flag:
 python search.py "query" --json | jq '.[].title'
 python connections.py --hubs --json | jq '.[0:5]'
 ```
-
-## Differences from Smart Connections
-
-| Feature | Smart Connections | Local Brain Search |
-|---------|-------------------|-------------------|
-| Embedding model | BGE-micro-v2 | all-MiniLM-L6-v2 |
-| Vector DB | Custom | FAISS |
-| Interface | Obsidian plugin | CLI/Python |
-| Portability | Obsidian-only | Any environment |
-| MCP integration | Yes (built-in) | Can be added |
-| Graph persistence | Yes | Yes (pickle) |
-| Scriptable | No | Yes |
 
 ## Troubleshooting
 

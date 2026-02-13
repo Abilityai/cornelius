@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "mermaid-diagram": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-mermaid-diagram"]
+    },
+    "ebook-mcp": {
+      "command": "uvx",
+      "args": ["ebook-mcp"]
+    }
+  }
+}

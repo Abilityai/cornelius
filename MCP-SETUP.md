@@ -1,315 +1,167 @@
 # MCP Server Setup Guide
 
-This guide covers installation and configuration of MCP (Model Context Protocol) servers for Claude Code integration with your Obsidian vault.
+This guide covers setting up optional MCP (Model Context Protocol) servers for enhanced functionality.
 
-## Overview
+> **Note**: MCP servers are **optional**. The core functionality (semantic search, connection discovery) works with **Local Brain Search** which requires only Python. MCP servers add extra capabilities like diagram generation and ebook processing.
 
-MCP servers enable Claude Code to interact with your Obsidian vault programmatically. This template uses:
+---
 
-1. **obsidian-mcp**: Direct vault operations (CRUD, search, tags)
-2. **smart-connections**: Semantic search and similarity analysis
-3. **files-vectorstore** (optional): Broad file system search
+## Quick Overview
+
+| MCP Server | Purpose | Required? |
+|------------|---------|-----------|
+| Mermaid Diagram | Generate PNG/SVG diagrams | Optional |
+| Ebook MCP | Process EPUB/PDF files | Optional |
+
+---
 
 ## Prerequisites
 
-- Node.js 18 or higher
-- npm or yarn package manager
-- Obsidian vault with notes
-- Claude Code installed
+- Node.js 18+ (for npm-based MCP servers)
+- Claude Code installed and working
 
-## Installation
+---
 
-### 1. Install obsidian-mcp
+## Configuration File
 
-```bash
-npm install -g @modelcontextprotocol/server-obsidian
-```
-
-Or using yarn:
-```bash
-yarn global add @modelcontextprotocol/server-obsidian
-```
-
-**Verify installation:**
-```bash
-npm list -g @modelcontextprotocol/server-obsidian
-```
-
-### 2. Install smart-connections (Recommended)
-
-Smart Connections is an Obsidian plugin that provides semantic search capabilities.
-
-**Option A: Through Obsidian (Recommended)**
-1. Open Obsidian Settings
-2. Go to Community Plugins
-3. Browse and search for "Smart Connections"
-4. Install and enable
-
-**Option B: Manual Installation**
-1. Download from: https://github.com/brianpetro/obsidian-smart-connections
-2. Extract to `.obsidian/plugins/smart-connections/`
-3. Enable in Obsidian settings
-
-**Configure Smart Connections:**
-1. Open plugin settings in Obsidian
-2. Set embedding model (recommended: `TaylorAI/bge-micro-v2`)
-3. Configure folders to index
-4. Run initial indexing
-
-### 3. Install files-vectorstore (Optional)
-
-For broader file system search beyond Obsidian notes:
-
-```bash
-npm install -g @lishenxydlgzs/simple-files-vectorstore
-```
-
-## Configuration
-
-### Configure Claude Code Settings
-
-Create or edit `.claude/settings.local.json`:
-
-```json
-{
-  "permissions": {
-    "allow": [
-      "Read(//path/to/your/vault/**)",
-      "Bash(node --version:*)",
-      "WebSearch",
-      "mcp__smart-connections__get_stats",
-      "mcp__smart-connections__search_notes",
-      "mcp__smart-connections__get_similar_notes",
-      "mcp__smart-connections__get_connection_graph",
-      "mcp__smart-connections__get_note_content",
-      "mcp__obsidian-mcp__obsidian_list_notes",
-      "mcp__obsidian-mcp__obsidian_read_note",
-      "mcp__obsidian-mcp__obsidian_update_note",
-      "mcp__obsidian-mcp__obsidian_global_search",
-      "mcp__obsidian-mcp__obsidian_manage_tags",
-      "mcp__obsidian-mcp__obsidian_manage_frontmatter",
-      "Bash(mkdir:*)",
-      "Bash(tree:*)"
-    ],
-    "deny": [],
-    "ask": []
-  },
-  "enableAllProjectMcpServers": true,
-  "enabledMcpjsonServers": [
-    "obsidian-mcp",
-    "smart-connections"
-  ]
-}
-```
-
-**IMPORTANT**: Replace `//path/to/your/vault/**` with your actual vault path.
-
-### Configure MCP Server Connection
-
-Claude Code needs to know how to connect to your MCP servers. This is typically configured in your global Claude Code settings.
-
-**Location**: `~/.config/claude-code/mcp_settings.json` (or equivalent for your OS)
-
-**Example configuration:**
+MCP servers are configured in `.mcp.json` in your project root:
 
 ```json
 {
   "mcpServers": {
-    "obsidian-mcp": {
+    "mermaid-diagram": {
       "command": "npx",
-      "args": [
-        "@modelcontextprotocol/server-obsidian",
-        "/path/to/your/vault"
-      ]
+      "args": ["-y", "@anthropic/mcp-mermaid-diagram"]
     },
-    "smart-connections": {
-      "command": "node",
-      "args": [
-        "/path/to/obsidian/.obsidian/plugins/smart-connections/mcp-server.js",
-        "/path/to/your/vault"
-      ]
+    "ebook-mcp": {
+      "command": "uvx",
+      "args": ["ebook-mcp"]
     }
   }
 }
 ```
 
-## Verification
-
-### Test obsidian-mcp
+A template is provided at `.mcp.json.template` - copy and customize it:
 
 ```bash
-# List notes
-claude-mcp obsidian-mcp obsidian_list_notes '{"folder": ""}'
-
-# Read a note
-claude-mcp obsidian-mcp obsidian_read_note '{"notePath": "YourNote.md"}'
+cp .mcp.json.template .mcp.json
 ```
 
-### Test smart-connections
+---
 
-In Claude Code:
-```
-Can you search my notes for "knowledge management"?
-```
+## Server Setup
 
-Claude should use `mcp__smart-connections__search_notes` to find relevant notes.
+### 1. Mermaid Diagram Server (Optional)
 
-### Test Integration
+Generates PNG/SVG diagrams from Mermaid markdown.
 
-In Claude Code:
-```
-/search-vault knowledge management
+**Install:**
+```bash
+npm install -g @anthropic/mcp-mermaid-diagram
 ```
 
-This command uses both MCP servers to provide comprehensive search results.
+**Usage in Claude:**
+```
+Create a flowchart showing the relationship between concepts A, B, and C
+```
+
+The agent will use the Mermaid server to generate and save the diagram.
+
+---
+
+### 2. Ebook MCP Server (Optional)
+
+Process EPUB and PDF files for content extraction.
+
+**Install:**
+```bash
+pip install ebook-mcp
+# or with uvx (recommended)
+uvx ebook-mcp
+```
+
+**Usage in Claude:**
+```
+Extract chapter 3 from /path/to/book.epub
+```
+
+---
+
+## Verifying MCP Servers
+
+After configuration, restart Claude Code and check that servers are loaded:
+
+```bash
+claude
+# Type: /mcp
+# Should list configured servers
+```
+
+---
 
 ## Troubleshooting
 
-### MCP Server Not Found
+### Server not loading
 
-**Error**: `MCP server 'obsidian-mcp' not found`
+1. Check `.mcp.json` syntax (valid JSON)
+2. Verify the command exists: `which npx` or `which uvx`
+3. Check Claude Code logs for errors
 
-**Solution**:
-1. Verify installation: `npm list -g @modelcontextprotocol/server-obsidian`
-2. Check MCP settings in `~/.config/claude-code/mcp_settings.json`
-3. Restart Claude Code
+### Permission errors
 
-### Permission Denied
+Make sure you have write access to the directories where servers store data.
 
-**Error**: `Permission denied reading vault`
+### Path issues on macOS
 
-**Solution**:
-1. Check vault path in `.claude/settings.local.json`
-2. Ensure `Read(//path/to/vault/**)` is in permissions.allow
-3. Verify file system permissions on vault directory
+If using absolute paths, ensure they're correct for your system. Prefer relative paths where possible.
 
-### Smart Connections Not Indexing
+---
 
-**Problem**: Searches return no results
+## Local Brain Search (Not an MCP Server)
 
-**Solution**:
-1. Open Obsidian
-2. Go to Smart Connections settings
-3. Click "Rebuild Index"
-4. Wait for indexing to complete
-5. Check that folders are configured correctly
+The primary search functionality uses **Local Brain Search** which is a Python-based FAISS system, NOT an MCP server. It runs locally via bash scripts:
 
-### Connection Timeout
-
-**Error**: `MCP server connection timeout`
-
-**Solution**:
-1. Check that MCP server process is running
-2. Verify network/socket permissions
-3. Check server logs for errors
-4. Restart Claude Code
-
-## Performance Optimization
-
-### For Large Vaults (1000+ notes)
-
-1. **Smart Connections**:
-   - Use lighter embedding model
-   - Exclude large folders from indexing
-   - Index only markdown files
-
-2. **obsidian-mcp**:
-   - Use specific folder paths in commands
-   - Limit search results
-   - Cache frequently accessed notes
-
-3. **files-vectorstore**:
-   - Adjust chunk size (default: 1000 chars)
-   - Configure watch directories carefully
-   - Use file type filters
-
-## Advanced Configuration
-
-### Custom Similarity Thresholds
-
-Edit agent files in `.claude/agents/` to adjust:
-
-```markdown
-- connection-finder: 0.65-0.95 (moderate to strong)
-- auto-discovery: 0.50-0.70 (weak to moderate)
-```
-
-Lower threshold = more connections, less relevance
-Higher threshold = fewer connections, more relevance
-
-### Multiple Vaults
-
-To work with multiple vaults:
-
-1. Create separate `.claude/` directories in each vault
-2. Configure paths in each `settings.local.json`
-3. Switch between vaults by changing directory in Claude Code
-
-### Custom MCP Servers
-
-To add custom MCP servers:
-
-1. Install the server package
-2. Add to `mcp_settings.json`
-3. Add permissions to `.claude/settings.local.json`
-4. Reference in agent/command prompts
-
-## Security Considerations
-
-### Permissions
-
-- Grant minimal permissions needed
-- Use specific paths, not wildcards when possible
-- Review permissions regularly
-- Never commit `settings.local.json` with sensitive paths
-
-### API Keys
-
-If using external services:
-- Store API keys in environment variables
-- Never commit keys to git
-- Use `.env` files with `.gitignore`
-
-### Network Access
-
-- MCP servers run locally by default
-- No data sent to external servers (unless using cloud embedding models)
-- Review plugin code before installation
-
-## Updating
-
-### Update obsidian-mcp
 ```bash
-npm update -g @modelcontextprotocol/server-obsidian
+# Semantic search
+./resources/local-brain-search/run_search.sh "query"
+
+# Find connections
+./resources/local-brain-search/run_connections.sh "Note Name"
+
+# Re-index
+./resources/local-brain-search/run_index.sh
 ```
 
-### Update smart-connections
-1. Open Obsidian
-2. Go to Community Plugins
-3. Check for updates
-4. Update if available
-5. Restart Obsidian
+See [INSTALL.md](INSTALL.md) for Local Brain Search setup.
 
-### Update files-vectorstore
-```bash
-npm update -g @lishenxydlgzs/simple-files-vectorstore
-```
+---
+
+## Previous: Smart Connections (Deprecated)
+
+> **DEPRECATED**: Smart Connections MCP is no longer used. All semantic search functionality is now handled by **Local Brain Search** (FAISS-based, fully local).
+
+If you have Smart Connections configured in `.mcp.json`, you can safely remove it.
+
+The previous setup required:
+- Obsidian Smart Connections plugin
+- MCP server configuration
+- Plugin-based indexing
+
+The new **Local Brain Search** approach provides:
+- No Obsidian dependency for search
+- Faster indexing
+- Graph analytics (hubs, bridges)
+- Explicit vs semantic edge distinction
+- JSON output for programmatic use
+
+---
 
 ## Resources
 
 - [MCP Documentation](https://modelcontextprotocol.io/)
-- [Obsidian MCP Server](https://github.com/modelcontextprotocol/servers/tree/main/src/obsidian)
-- [Smart Connections Plugin](https://github.com/brianpetro/obsidian-smart-connections)
 - [Claude Code Documentation](https://docs.anthropic.com/claude/claude-code)
-
-## Getting Help
-
-1. Check error messages in Claude Code
-2. Review MCP server logs
-3. Verify configurations in this guide
-4. Test each component separately
-5. Check Obsidian console for plugin errors
+- [FAISS Documentation](https://github.com/facebookresearch/faiss)
 
 ---
 
-Once MCP servers are set up, return to the main README.md to continue with folder structure and usage.
+Once MCP servers are set up (if desired), return to the main README.md to continue with usage.

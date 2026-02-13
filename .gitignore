@@ -3,9 +3,31 @@
 .claude/settings.md
 .mcp.json
 
+# Claude Code session data
+.claude/history.jsonl
+.claude/cache/
+.claude/debug/
+.claude/file-history/
+.claude/projects/
+.claude/shell-snapshots/
+.claude/statsig/
+.claude/todos/
+.claude/plugins/
+.claude/.credentials.json
+
+# Local Brain Search data (generated, user-specific)
+resources/local-brain-search/data/
+resources/local-brain-search/venv/
+resources/local-brain-search/__pycache__/
+*.pyc
+
 # Obsidian workspace (personal view settings)
 .obsidian/workspace.json
 .obsidian/workspace-mobile.json
+.obsidian/
+
+# Smart Environments (deprecated)
+.smart-env/
 
 # macOS
 .DS_Store
@@ -37,3 +59,16 @@ yarn-error.log*
 # Temporary files
 *.tmp
 *.temp
+
+# Personal vault content (if using sample Brain)
+Brain/00-Inbox/*.md
+Brain/01-Sources/**/*.md
+Brain/02-Permanent/*.md
+Brain/03-MOCs/*.md
+Brain/04-Output/**/*.md
+Brain/05-Meta/Changelogs/*.md
+Brain/AI Extracted Notes/*.md
+Brain/Document Insights/**/*.md
+!Brain/**/README.md
+!Brain/**/_SAMPLE*.md
+!Brain/**/MOC - Master Navigation.md

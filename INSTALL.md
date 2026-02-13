@@ -1,14 +1,16 @@
 # Installation Guide
 
-Detailed guide to get the Claude Code Second Brain system running with your Obsidian vault.
+Detailed guide to get Project Cornelius running with your Obsidian vault.
 
 ## Prerequisites Checklist
 
 - [ ] [Claude Code](https://claude.ai/claude-code) installed
 - [ ] [Obsidian](https://obsidian.md/) with an existing vault
-- [ ] Node.js 18+ installed (`node --version`)
-- [ ] npm or yarn installed (`npm --version`)
+- [ ] Python 3.10+ installed (`python --version`)
 - [ ] Git installed (`git --version`)
+
+**Optional:**
+- [ ] Node.js 18+ (for optional MCP servers like Mermaid diagrams)
 
 ## Installation Steps
 
@@ -16,11 +18,11 @@ Detailed guide to get the Claude Code Second Brain system running with your Obsi
 
 ```bash
 # Clone this repository
-git clone https://github.com/vybe/project_cornelius.git
-cd project_cornelius
+git clone https://github.com/Abilityai/cornelius.git
+cd cornelius
 ```
 
-This creates a standalone directory that will connect to your existing Obsidian vault(s).
+This creates a standalone directory that will connect to your existing Obsidian vault.
 
 ### Step 2: Configure Vault Path
 
@@ -40,116 +42,81 @@ This creates a standalone directory that will connect to your existing Obsidian 
 3. **Update VAULT_BASE_PATH:**
    Change this line:
    ```
-   VAULT_BASE_PATH=/path/to/your/vault
+   VAULT_BASE_PATH=./Brain
    ```
 
-   To your actual vault path:
+   To your actual vault path (relative or absolute):
    ```
    VAULT_BASE_PATH=/Users/yourname/Documents/YourVault
    ```
 
-That's it! All agents and commands will use this path automatically.
+### Step 3: Set Up Local Brain Search (REQUIRED)
 
-### Step 3: Install MCP Servers
-
-#### Install obsidian-mcp
-```bash
-npm install -g @modelcontextprotocol/server-obsidian
-```
-
-Verify:
-```bash
-npm list -g @modelcontextprotocol/server-obsidian
-```
-
-#### Install smart-connections (via Obsidian)
-1. Open Obsidian
-2. Settings → Community Plugins
-3. Browse → Search "Smart Connections"
-4. Install → Enable
-5. Configure in plugin settings:
-   - Set embedding model (recommended: `TaylorAI/bge-micro-v2`)
-   - Choose folders to index
-   - Run initial indexing
-
-For detailed MCP setup, see [MCP-SETUP.md](MCP-SETUP.md)
-
-### Step 4: Configure MCP Connection
-
-Edit the `.mcp.json` file in the project directory to point to your vault:
+This is the core search engine - FAISS-based vector search that runs locally.
 
 ```bash
-# Open .mcp.json
-code .mcp.json
+# Navigate to the search system
+cd resources/local-brain-search
+
+# Create virtual environment
+python -m venv venv
+
+# Activate it
+source venv/bin/activate  # macOS/Linux
 # or
-nano .mcp.json
+venv\Scripts\activate     # Windows
+
+# Install dependencies
+pip install -r requirements.txt
 ```
 
-**Update all vault paths** (there are 3 instances):
-```json
-{
-  "mcpServers": {
-    "obsidian-mcp": {
-      "command": "npx",
-      "args": [
-        "@modelcontextprotocol/server-obsidian",
-        "/Users/yourname/Documents/YourVault"  // <- Update this
-      ]
-    },
-    "smart-connections": {
-      "command": "node",
-      "args": [
-        "/Users/yourname/Documents/YourVault/.obsidian/plugins/smart-connections/mcp-server.js",  // <- Update this
-        "/Users/yourname/Documents/YourVault"  // <- Update this
-      ]
-    }
-  }
-}
-```
+**Dependencies installed:**
+- `sentence-transformers` - Embedding model
+- `faiss-cpu` - Vector search
+- `networkx` - Graph analytics
 
-**OR use the /switch-brain command** after starting Claude Code:
-```bash
-# Start Claude Code first
-claude
-
-# Then run:
-/switch-brain /Users/yourname/Documents/YourVault
-```
-
-This will automatically update both `.claude/settings.md` and `.mcp.json` files.
-
-### Step 5: Create Folder Structure (Optional)
-
-If your vault doesn't already have a structure, create recommended folders:
+### Step 4: Index Your Vault
 
 ```bash
-# Navigate to your vault
-cd /Users/yourname/Documents/YourVault
+# Still in resources/local-brain-search with venv activated
 
-# Create core folders
-mkdir -p Inbox/Quick\ Captures
-mkdir -p Inbox/Content\ Extractions
-mkdir -p Sources/Books
-mkdir -p Sources/Articles
-mkdir -p Permanent
-mkdir -p MOCs
-mkdir -p Output/Articles
-mkdir -p Output/Frameworks
-mkdir -p Output/Insights
-mkdir -p Meta/Changelogs
-mkdir -p Meta/Templates
-mkdir -p "AI Extracted Notes"
+# Set your vault path (if different from config)
+export BRAIN_PATH=/path/to/your/vault
+
+# Run indexing
+./run_index.sh
+
+# Or manually:
+python index_brain.py
 ```
 
-Or create them in Obsidian's UI.
+This creates:
+- FAISS index for semantic search
+- Knowledge graph with explicit + semantic edges
+- Metadata for all notes
 
-For detailed folder structure, see [FOLDER-STRUCTURE.md](FOLDER-STRUCTURE.md)
+**First indexing may take a few minutes** depending on vault size.
+
+### Step 5: Test Local Brain Search
+
+```bash
+# Test semantic search
+./run_search.sh "knowledge management"
+
+# Test connection finding
+./run_connections.sh "Some Note Name"
+
+# Get graph statistics
+./run_connections.sh --stats
+```
+
+If these work, search is ready!
 
 ### Step 6: Start Claude Code
 
 ```bash
-# Navigate back to the project directory
-cd /path/to/project_cornelius
+# Navigate back to project root
+cd ../..
 
 # Start Claude Code
 claude
@@ -157,177 +124,199 @@ claude
 
 ### Step 7: Test Installation
 
-Try these commands to verify everything works:
+In Claude Code, try these commands:
 
 ```bash
 # Test semantic search
 /search-vault knowledge management
 
-# Test stats
-Can you show me statistics about my vault using smart-connections?
+# Test connection finding
+/find-connections "Note Name"
 
-# Test note listing
-Can you list some notes in my vault using obsidian-mcp?
+# Test knowledge base analysis
+/analyze-kb
 ```
 
-If any command fails, see [Troubleshooting](#troubleshooting) below.
+If these work, you're done! 🎉
 
 ## Verification Checklist
 
-- [ ] Claude Code starts in your vault directory
+- [ ] Python venv created in `resources/local-brain-search/`
+- [ ] Index created (`data/brain.faiss` exists)
+- [ ] `./run_search.sh` returns results
+- [ ] `./run_connections.sh --stats` shows statistics
+- [ ] Claude Code starts
 - [ ] `/search-vault` command works
-- [ ] Semantic search returns results
-- [ ] Can list notes with obsidian-mcp
-- [ ] Can read notes with obsidian-mcp
-- [ ] Agent prompts load (try `/find-connections`)
-- [ ] Folder structure created
+- [ ] `/find-connections` command works
+
+## Optional: MCP Servers
+
+MCP servers add extra capabilities but are **not required** for core functionality.
+
+### Mermaid Diagram Server
+
+For generating PNG/SVG diagrams:
+
+```bash
+npm install -g @anthropic/mcp-mermaid-diagram
+```
+
+### Ebook MCP
+
+For processing EPUB/PDF files:
+
+```bash
+pip install ebook-mcp
+# or
+uvx ebook-mcp
+```
+
+See [MCP-SETUP.md](MCP-SETUP.md) for configuration details.
+
+## Folder Structure
+
+If your vault doesn't have a structure yet, create recommended folders:
+
+```bash
+cd /path/to/your/vault
+
+mkdir -p 00-Inbox
+mkdir -p 01-Sources/Books
+mkdir -p 01-Sources/Articles
+mkdir -p 02-Permanent
+mkdir -p 03-MOCs
+mkdir -p "04-Output/Articles"
+mkdir -p "04-Output/Draft Posts"
+mkdir -p 05-Meta/Changelogs
+mkdir -p 05-Meta/Templates
+mkdir -p "AI Extracted Notes"
+mkdir -p "Document Insights"
+```
+
+Or create them in Obsidian's UI. See [FOLDER-STRUCTURE.md](FOLDER-STRUCTURE.md) for details.
 
 ## Troubleshooting
 
-### Claude Code Not Finding MCP Servers
+### Python/pip Issues
 
-**Issue**: `MCP server 'obsidian-mcp' not found`
+**Issue**: `python: command not found` or wrong version
 
 **Solutions**:
-1. Verify MCP servers installed: `npm list -g @modelcontextprotocol/server-obsidian`
-2. Check `~/.config/claude-code/mcp_settings.json` exists and has correct paths
+```bash
+# Check Python version
+python3 --version
+
+# Use python3 explicitly
+python3 -m venv venv
+python3 -m pip install -r requirements.txt
+```
+
+### FAISS Installation Issues
+
+**Issue**: `pip install faiss-cpu` fails
+
+**Solutions**:
+```bash
+# Try conda instead
+conda install -c pytorch faiss-cpu
+
+# Or install specific version
+pip install faiss-cpu==1.7.4
+```
+
+### Index Creation Fails
+
+**Issue**: `run_index.sh` errors
+
+**Solutions**:
+1. Check BRAIN_PATH is set correctly
+2. Verify vault contains `.md` files
+3. Check disk space (index can be large)
+4. Try with smaller test vault first
+
+### Search Returns No Results
+
+**Issue**: Searches return empty
+
+**Solutions**:
+1. Re-run indexing: `./run_index.sh`
+2. Check vault path in config.py
+3. Verify notes exist in indexed directories
+4. Check excluded folders in config.py
+
+### Skills/Commands Not Found
+
+**Issue**: `/search-vault: not found`
+
+**Solutions**:
+1. Verify `.claude/skills/` directory exists
+2. Check skill files are `.md` format
 3. Restart Claude Code
-4. Check Claude Code logs for errors
+4. Check file permissions
 
-### Permission Denied Errors
+### Permission Errors
 
-**Issue**: `Permission denied reading vault`
-
-**Solutions**:
-1. Check `VAULT_BASE_PATH` in `.claude/settings.md` is correct
-2. Verify file system permissions: `ls -la /path/to/vault`
-3. Ensure path is absolute (e.g., `/Users/name/vault`)
-
-### Smart Connections Not Working
-
-**Issue**: Searches return no results
+**Issue**: `Permission denied`
 
 **Solutions**:
-1. Open Obsidian → Smart Connections settings
-2. Click "Rebuild Index"
-3. Wait for indexing (check progress in Obsidian)
-4. Verify folders are configured in plugin settings
-5. Check plugin is enabled
+```bash
+# Fix script permissions
+chmod +x resources/local-brain-search/*.sh
 
-### Commands Not Found
-
-**Issue**: `/search-vault: command not found`
-
-**Solutions**:
-1. Verify command files exist in `.claude/commands/`
-2. Check file names are correct (e.g., `search-vault.md`, not `search-vault`)
-3. Restart Claude Code
-4. Try absolute path: check if slash command files are in the right location
-
-### Agents Not Working
-
-**Issue**: Agent prompts don't load
-
-**Solutions**:
-1. Verify agent files exist in `.claude/agents/`
-2. Check paths in agent files are updated to your vault
-3. Verify markdown syntax is correct in agent files
-4. Restart Claude Code
-
-## Post-Installation
-
-### Optional Enhancements
-
-1. **Protect local configuration** (recommended):
-   ```bash
-   cd /path/to/project_cornelius
-
-   # Create .gitignore if needed
-   echo ".claude/settings.md" >> .gitignore
-   echo ".mcp.json" >> .gitignore
-   ```
-
-   This prevents your local vault paths from being committed.
-
-2. **Install files-vectorstore** (optional, for broader search):
-   ```bash
-   npm install -g @lishenxydlgzs/simple-files-vectorstore
-   ```
-
-3. **Create templates** in `Meta/Templates/`:
-   - Permanent note template
-   - Source note template
-   - MOC template
-
-4. **Create first MOC**:
-   - `MOC - Master Navigation.md`
-   - Use example from EXAMPLES.md
-
-### Next Steps
-
-1. **Read documentation**:
-   - [README.md](README.md) - Overview and use cases
-   - [EXAMPLES.md](EXAMPLES.md) - Sample notes and workflows
-   - [FOLDER-STRUCTURE.md](FOLDER-STRUCTURE.md) - Organization guide
-
-2. **Try commands**:
-   - `/search-vault [topic]` - Search your vault
-   - `/find-connections [note]` - Discover relationships
-   - `/analyze-kb` - Generate structure report
-
-3. **Create first notes**:
-   - Add a note to `Permanent/`
-   - Try `/find-connections` on it
-   - Review the connection suggestions
-
-4. **Launch first agent**:
-   ```
-   Please launch the connection-finder agent to analyze my note on [topic]
-   ```
-
-5. **Review examples**:
-   - See EXAMPLES.md for note templates
-   - Copy and adapt to your needs
-
-## Getting Help
-
-- **Documentation errors**: Check file paths are correct
-- **MCP issues**: See MCP-SETUP.md for detailed troubleshooting
-- **Workflow questions**: See EXAMPLES.md for workflows
-- **Customization**: See CUSTOMIZATION.md (if you created it)
+# Check vault permissions
+ls -la /path/to/vault
+```
 
 ## Updating
 
-To update the system:
+### Re-index After Adding Notes
 
-1. **Backup current setup**:
-   ```bash
-   cp -r /path/to/vault/.claude /path/to/vault/.claude.backup
-   ```
+When you add or modify notes, re-index:
 
-2. **Download new version** of template
+```bash
+cd resources/local-brain-search
+source venv/bin/activate
+./run_index.sh
+```
 
-3. **Compare changes**:
-   ```bash
-   diff -r .claude.backup .claude
-   ```
+### Update Project Cornelius
 
-4. **Merge updates** carefully, preserving your customizations
+```bash
+# Backup your settings
+cp .claude/settings.md .claude/settings.md.backup
+
+# Pull updates
+git pull origin main
+
+# Restore settings
+cp .claude/settings.md.backup .claude/settings.md
+```
+
+### Update Dependencies
+
+```bash
+cd resources/local-brain-search
+source venv/bin/activate
+pip install -U -r requirements.txt
+```
 
 ## Uninstalling
 
-To remove:
-
 ```bash
 # Simply delete the project directory
-rm -rf /path/to/project_cornelius
+rm -rf /path/to/cornelius
 
 # Your vault remains untouched
-# Optionally remove any folders created in your vault
+# The FAISS index is inside the project directory
 ```
+
+## Getting Help
+
+- **Search issues**: Check `resources/local-brain-search/README.md`
+- **MCP issues**: See [MCP-SETUP.md](MCP-SETUP.md)
+- **Workflow questions**: See [EXAMPLES.md](EXAMPLES.md)
+- **Folder organization**: See [FOLDER-STRUCTURE.md](FOLDER-STRUCTURE.md)
 
 ---
 
-**Need more help?** Check the documentation files or review agent prompts in `.claude/agents/` for detailed instructions.
-
-**Ready to start?** Try: `/search-vault second brain` to see what's in your vault!
+**Ready to start?** Try `/search-vault` with any topic from your vault!

@@ -246,7 +246,7 @@ Examples:
 
 1. **Create Article Folder**
    ```bash
-   mkdir -p "/path/to/your/vault/04-Output/Articles/[Article-Title]/images"
+   mkdir -p "$VAULT_BASE_PATH/Brain/04-Output/Articles/[Article-Title]/images"
    ```
 
 2. **Generate Diagrams**
@@ -257,13 +257,13 @@ Examples:
 
 3. **Download and Save Images**
    ```bash
-   cd "/path/to/your/vault/04-Output/Articles/[Article-Title]/images"
+   cd "$VAULT_BASE_PATH/Brain/04-Output/Articles/[Article-Title]/images"
    curl -o "[descriptive-filename].png" "[diagram-url]"
    ```
 
 4. **Verify Saved Files**
    ```bash
-   ls -lh "/path/to/your/vault/04-Output/Articles/[Article-Title]/images/"
+   ls -lh "$VAULT_BASE_PATH/Brain/04-Output/Articles/[Article-Title]/images/"
    ```
 
 5. **Create Article with Image References**
@@ -275,12 +275,12 @@ Examples:
 
 1. **Check if folder exists**
    ```bash
-   ls "/path/to/your/vault/04-Output/Articles/[Article-Title]/images/"
+   ls "$VAULT_BASE_PATH/Brain/04-Output/Articles/[Article-Title]/images/"
    ```
 
 2. **Create images folder if needed**
    ```bash
-   mkdir -p "/path/to/your/vault/04-Output/Articles/[Article-Title]/images"
+   mkdir -p "$VAULT_BASE_PATH/Brain/04-Output/Articles/[Article-Title]/images"
    ```
 
 3. **Generate and save new diagrams**

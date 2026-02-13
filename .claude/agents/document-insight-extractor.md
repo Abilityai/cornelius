@@ -5,19 +5,33 @@ tools: Read, Write, Grep, Glob, Bash
 model: sonnet
 ---
 
-## ⚠️ IMPORTANT: Use Local Brain Search
+## State Dependencies
 
-**Smart Connections MCP is DEPRECATED.** Use Local Brain Search instead for all semantic search operations.
+| Source | Location | Read | Write | Description |
+|--------|----------|------|-------|-------------|
+| External Documents | User-provided file paths | ✓ | | Research papers, books, articles to analyze |
+| Permanent Notes | `Brain/02-Permanent/` | ✓ | | Check for duplicates |
+| AI Extracted Notes | `Brain/AI Extracted Notes/` | ✓ | | Check for duplicates |
+| Document Insights | `Brain/Document Insights/[session]/` | ✓ | ✓ | Session-based storage for insights |
+| Local Brain Search | `resources/local-brain-search/` | ✓ | | Semantic search for deduplication |
+| Session Changelog | `Brain/Document Insights/[session]/` | | ✓ | Changelog within session folder |
+| Master Changelog | `Brain/CHANGELOG.md` | ✓ | ✓ | Brief summary entry |
 
-**Location:** `./resources/local-brain-search/`
+---
+
+## Local Brain Search
+
+Use Local Brain Search for all semantic search operations.
+
+**Location:** `resources/local-brain-search/`
 
 **Wrapper Scripts:**
 ```bash
 # Semantic search for duplicates/similar notes
-./resources/local-brain-search/run_search.sh "query" --limit 10 --json
+resources/local-brain-search/run_search.sh "query" --limit 10 --json
 
 # Find connections for a note
-./resources/local-brain-search/run_connections.sh "Note Name" --json
+resources/local-brain-search/run_connections.sh "Note Name" --json
 ```
 
 ---
@@ -98,7 +112,7 @@ When analyzing large files:
 2. **Search existing knowledge for context**:
    ```bash
    # For each major topic/theme identified:
-   ./resources/local-brain-search/run_search.sh "topic" --limit 10 --threshold 0.60 --json
+   resources/local-brain-search/run_search.sh "topic" --limit 10 --threshold 0.60 --json
 
    # Review results to understand:
    # * Existing terminology and framing
@@ -147,7 +161,7 @@ For each potential insight, evaluate:
 1. **Search by semantic similarity**:
    ```bash
    # Search for existing notes on the concept
-   ./resources/local-brain-search/run_search.sh "main idea in 5-10 words" --limit 10 --threshold 0.65 --json
+   resources/local-brain-search/run_search.sh "main idea in 5-10 words" --limit 10 --threshold 0.65 --json
    ```
 
 2. **Read and evaluate content** (DO NOT rely solely on similarity scores):
@@ -181,8 +195,8 @@ For each potential insight, evaluate:
 ### Step 4: Connection Discovery
 - Search for related insights using local brain search:
   ```bash
-  ./resources/local-brain-search/run_search.sh "topic" --limit 10 --json
-  ./resources/local-brain-search/run_connections.sh "Note Name" --json
+  resources/local-brain-search/run_search.sh "topic" --limit 10 --json
+  resources/local-brain-search/run_connections.sh "Note Name" --json
   ```
 - Identify potential connections to existing knowledge
 - Note contrasts with conventional thinking
@@ -540,7 +554,7 @@ Provide a structured report:
 4. **For EACH potential insight**:
    - Search vault for duplicates using Local Brain Search:
      ```bash
-     ./resources/local-brain-search/run_search.sh "insight topic" --limit 5 --json
+     resources/local-brain-search/run_search.sh "insight topic" --limit 5 --json
      ```
    - Evaluate similarity scores
    - Make intelligent decision (Create / Skip / Update)
@@ -731,3 +745,18 @@ See details: [[Document Insights/[session-folder]/CHANGELOG - Document Analysis 
 ---
 
 **Every document analysis session MUST have a changelog file in its session folder. This is MANDATORY for tracking what was extracted and where.**
+
+---
+
+## Completion Checklist
+
+- [ ] Session folder name specified and created
+- [ ] Knowledge base contextualization completed (Step 0)
+- [ ] External documents fully analyzed (chunked if >2000 lines)
+- [ ] Deduplication check performed for EVERY potential insight
+- [ ] Epistemic labeling applied (research-finding, hypothesis, speculative-synthesis, etc.)
+- [ ] Unique insights created in `Brain/Document Insights/[session]/` with proper metadata
+- [ ] Connection opportunities to existing knowledge base identified
+- [ ] Dated changelog created in session folder
+- [ ] Brief summary added to master `Brain/CHANGELOG.md`
+- [ ] Extraction report generated with document analysis and statistics

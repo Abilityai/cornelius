@@ -1,12 +1,13 @@
 """
 Configuration for local brain search system.
 """
-import os
 from pathlib import Path
+import os
 
 # Paths
 PROJECT_DIR = Path(__file__).parent
 DATA_DIR = PROJECT_DIR / "data"
+
 # Brain path - relative to project root or set via environment variable
 BRAIN_PATH = Path(os.environ.get("BRAIN_PATH", PROJECT_DIR.parent.parent / "Brain"))
 

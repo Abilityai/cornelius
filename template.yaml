@@ -1,0 +1,121 @@
+# Trinity-Compatible Agent Configuration
+# Cornelius - The Insight Harvester & Second Brain Partner
+
+# Required Fields
+name: cornelius
+display_name: "Cornelius"
+description: |
+  AI Insight Harvester and Second Brain Partner designed to identify, capture, and preserve
+  unique perspectives, original thoughts, and personal insights within an Obsidian knowledge graph.
+
+  Core capabilities:
+  - Harvest Unique Insights: Detect and capture original thinking, personal frameworks, and distinctive viewpoints
+  - Enable Second Brain Interaction: Help users leverage accumulated knowledge for articles, summaries, and discoveries
+  - Knowledge Synthesis: Combine captured insights to create new content or discover patterns
+  - Content Companion: Support reading/learning sessions by capturing thoughts with proper references
+
+resources:
+  cpu: "2"
+  memory: "4g"
+
+# Optional Metadata
+version: "2.0.0"
+author: "Ability AI"
+updated: "2025-02-13"
+tagline: "Your insight harvester and second brain partner"
+
+use_cases:
+  - "Extract unique insights from conversations and transcripts"
+  - "Discover hidden connections between notes in your knowledge base"
+  - "Generate articles and content from accumulated knowledge"
+  - "Search and recall relevant knowledge using semantic search"
+  - "Analyze and understand your knowledge base structure"
+  - "Capture reading reflections with source attribution"
+
+capabilities:
+  - semantic_search
+  - insight_extraction
+  - connection_discovery
+  - knowledge_synthesis
+  - content_generation
+  - epub_processing
+  - diagram_generation
+
+# Credential Schema
+credentials:
+  env_file:
+    - VAULT_BASE_PATH
+    - DOCUMENT_INSIGHTS_PATH
+
+# Sub-Agents
+sub_agents:
+  - name: vault-manager
+    description: "CRUD operations on Obsidian vault notes with knowledge graph integrity"
+  - name: connection-finder
+    description: "Discover hidden connections and relationships between permanent notes"
+  - name: auto-discovery
+    description: "Autonomous cross-domain connection hunter using analytical reasoning"
+  - name: insight-extractor
+    description: "Extract unique insights from content, preserving authentic voice"
+  - name: document-insight-extractor
+    description: "Extract insights from external research (papers, books, articles)"
+  - name: thinking-partner
+    description: "Brainstorming and ideation support through dialogue"
+  - name: diagram-generator
+    description: "Create Mermaid diagrams and visualizations"
+  - name: local-brain-search
+    description: "Local vector search for semantic search and graph analytics"
+
+# Skills (Slash Commands)
+skills:
+  - name: recall
+    description: "Retrieve relevant knowledge using 3-layer semantic search"
+  - name: search-vault
+    description: "Quick search combining semantic and keyword approaches"
+  - name: find-connections
+    description: "Discover hidden connections around a note or topic"
+  - name: analyze-kb
+    description: "Analyze knowledge base structure and generate report"
+  - name: talk
+    description: "Interactive conversational mode for brainstorming"
+  - name: update-changelog
+    description: "Update the master CHANGELOG.md"
+  - name: create-article
+    description: "Generate article from knowledge base insights"
+  - name: get-perspective-on
+    description: "Extract unique perspective on a topic"
+  - name: synthesize-insights
+    description: "Combine multiple insights into coherent narrative"
+  - name: auto-discovery
+    description: "Run cross-domain connection discovery"
+  - name: deep-research
+    description: "Autonomous research pipeline"
+  - name: refresh-index
+    description: "Rebuild the Local Brain Search FAISS index"
+  - name: self-diagnostic
+    description: "Run health checks on the agent"
+
+# MCP Servers (Optional)
+mcp_servers:
+  - name: mermaid-diagram
+    description: "Generate Mermaid diagrams (PNG/SVG) from markdown"
+  - name: ebook-mcp
+    description: "EPUB and PDF processing for ebook content extraction"
+
+# Git Configuration
+git:
+  push_enabled: true
+  commit_paths:
+    - Brain/
+  ignore_paths:
+    - .mcp.json
+    - .env
+    - resources/local-brain-search/data/
+    - resources/local-brain-search/venv/
+
+# Planning Configuration
+planning:
+  enabled: true
+  max_active_plans: 5
+  default_task_timeout_minutes: 60
+  auto_checkpoint: true
