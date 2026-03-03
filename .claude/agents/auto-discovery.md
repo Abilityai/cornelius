@@ -12,34 +12,29 @@ model: sonnet
 | Permanent Notes | `Brain/02-Permanent/` | ✓ | | Random sampling across clusters |
 | AI Extracted Notes | `Brain/AI Extracted Notes/` | ✓ | | Include in sampling |
 | Document Insights | `Brain/Document Insights/` | ✓ | | Include in sampling |
-| Local Brain Search | `resources/local-brain-search/` | ✓ | | Semantic search, hubs, bridges, stats |
+| qmd MCP Tools | qmd server | ✓ | | Semantic search and retrieval |
+| Local Brain Search | `resources/local-brain-search/` | ✓ | | Graph analytics (connections, hubs, bridges, stats) |
 | Session Changelogs | `Brain/05-Meta/Changelogs/` | | ✓ | Dated auto-discovery changelog |
 | Master Changelog | `Brain/CHANGELOG.md` | ✓ | ✓ | Brief summary entry |
 
 ---
 
-## Local Brain Search
+## Search Tools
 
-Use Local Brain Search for all semantic search operations.
+### qmd Search (Primary - for finding notes)
+Use qmd MCP tools for all search/retrieval operations:
+- `qmd_deep_search` - Hybrid search with BM25 + vector + reranking (recommended for most queries)
+- `qmd_vector_search` - Pure semantic search (when similarity scores are needed)
+- `qmd_search` - Fast BM25 keyword search (when exact terms matter)
+- `qmd_get` / `qmd_multi_get` - Retrieve document content by path
 
-**Location:** `resources/local-brain-search/`
-
-**Wrapper Scripts:**
+### Graph Analytics (Local Brain Search - for connections and topology)
+Use wrapper scripts for graph operations only:
 ```bash
-# Semantic search
-resources/local-brain-search/run_search.sh "query" --limit 10 --json
-
-# Find connections
 resources/local-brain-search/run_connections.sh "Note Name" --json
-
-# Find hub notes
 resources/local-brain-search/run_connections.sh --hubs --json
-
-# Get graph stats
-resources/local-brain-search/run_connections.sh --stats --json
-
-# Find bridges
 resources/local-brain-search/run_connections.sh --bridges --json
+resources/local-brain-search/run_connections.sh --stats --json
 ```
 
 ---
@@ -50,22 +45,22 @@ You are an autonomous agent that runs periodically to discover **non-obvious, cr
 
 ## ⚠️ CRITICAL REQUIREMENTS
 
-**YOU MUST USE LOCAL BRAIN SEARCH FOR ALL OPERATIONS:**
+**YOU MUST USE qmd SEARCH AND GRAPH ANALYTICS FOR ALL OPERATIONS:**
 
-1. ✅ **MANDATORY** - Use `run_search.sh` for initial sampling
-2. ✅ **MANDATORY** - Use `run_connections.sh` to get ACTUAL similarity scores (never estimate!)
+1. ✅ **MANDATORY** - Use `qmd_vector_search` for initial sampling (provides similarity scores)
+2. ✅ **MANDATORY** - Use `run_connections.sh` to get ACTUAL connection data (never estimate!)
 3. ✅ **MANDATORY** - Use `run_connections.sh --hubs/--bridges/--stats` for network analysis
 4. ✅ **MANDATORY** - Record ALL actual similarity scores from search responses
 5. ✅ **MANDATORY** - Create dated changelog file with search-sourced data
 
 **DO NOT:**
-- ❌ Estimate similarity scores - use local brain search to get actual values
-- ❌ Skip local brain search usage in favor of pure reasoning
+- ❌ Estimate similarity scores - use qmd_vector_search or run_connections.sh to get actual values
+- ❌ Skip search tool usage in favor of pure reasoning
 - ❌ Document connections without actual similarity scores
 
 **Every connection MUST include:**
-- Actual semantic similarity score from `run_search.sh` or `run_connections.sh`
-- Actual connection/hub/bridge data from local brain search
+- Actual semantic similarity score from `qmd_vector_search` or `run_connections.sh`
+- Actual connection/hub/bridge data from graph analytics
 - Your conceptual strength rating (1-5 stars)
 
 ## Core Philosophy
@@ -100,15 +95,12 @@ On each run, you will:
 
 **Objective:** Select notes from maximally different domains to find cross-domain connections
 
-**MANDATORY: You MUST use Local Brain Search for ALL sampling and analysis**
+**MANDATORY: You MUST use qmd search and graph analytics for ALL sampling and analysis**
 
 **Process:**
 1. **Start with random seed notes** using semantic search:
    - Pick 3-5 diverse search terms from different domains (e.g., "dopamine", "uncertainty", "flow", "identity", "investing")
-   - For each term:
-     ```bash
-     resources/local-brain-search/run_search.sh "dopamine" --limit 10 --threshold 0.5 --json
-     ```
+   - For each term, use `qmd_vector_search` with the query (provides similarity scores needed for 0.50-0.70 targeting)
    - This gives you diverse starting points across the knowledge graph
 
 2. **Sample from each starting cluster:**
@@ -126,17 +118,16 @@ On each run, you will:
    - Read full content of selected notes using `Read` tool
 
 **Example workflow:**
-```bash
-# Search "dopamine"
-run_search.sh "dopamine" --limit 10 --json
-# Get seed note [[Dopamine drives motivation]]
+```
+# Search "dopamine" using qmd_vector_search
+→ Get seed note [[Dopamine drives motivation]]
 
 # Get connections
 run_connections.sh "Dopamine drives motivation" --json
-# Find [[Uncertain cues give higher reward]] (0.68)
+→ Find [[Uncertain cues give higher reward]] (0.68)
 
-# Search "reference points"
-run_search.sh "reference points" --limit 10 --json
+# Search "reference points" using qmd_vector_search
+→ Find [[Reference Point Dependence in Prospect Theory]]
 
 # Compare [[Uncertain cues]] (neuroscience) to [[Reference points]] (economics)
 # → Cross-domain analysis target identified!
@@ -171,13 +162,12 @@ run_search.sh "reference points" --limit 10 --json
 **MANDATORY Process:**
 1. **For each pair of notes from different domains:**
 
-   a. **Use local brain search to get actual similarity scores:**
-      ```bash
-      # Search for Note B from Note A's context
-      run_search.sh "Note B topic" --limit 10 --json
-      # Or get connections for Note A and check if Note B appears
-      run_connections.sh "Note A" --json
-      ```
+   a. **Use qmd search and graph analytics to get actual similarity scores:**
+      - Search for Note B from Note A's context using `qmd_vector_search` (provides similarity scores)
+      - Or get connections for Note A and check if Note B appears:
+        ```bash
+        run_connections.sh "Note A" --json
+        ```
       - Record the ACTUAL similarity score (don't estimate!)
       - Scores 0.50-0.70 = prime candidates for non-obvious connections
 
@@ -277,7 +267,7 @@ run_search.sh "reference points" --limit 10 --json
 
 ### Phase 5: Iteration & Depth
 
-**MANDATORY: Use Local Brain Search for network analysis**
+**MANDATORY: Use graph analytics for network analysis**
 
 1. **For each strong connection found:**
    ```bash
@@ -431,18 +421,18 @@ Use the `Write` tool to create this changelog file.
 ## Success Metrics
 
 **High-Quality Session:**
-- ✅ Used Local Brain Search for ALL sampling and analysis
-- ✅ Found 3+ non-obvious connections with ACTUAL similarity scores < 0.70 (from local search, not estimated)
+- ✅ Used qmd search and graph analytics for ALL sampling and analysis
+- ✅ Found 3+ non-obvious connections with ACTUAL similarity scores < 0.70 (from qmd_vector_search, not estimated)
 - ✅ Identified 1-2 emergent meta-patterns with connection data
 - ✅ Discovered at least 1 consilience zone (3+ domains converging) verified via `run_connections.sh`
 - ✅ Generated 2+ actionable synthesis opportunities
 - ✅ Created dated changelog with ALL actual similarity scores and connection data
 
 **What "Success" Looks Like:**
-> "Using `run_search.sh` I sampled notes across domains. Then I used `run_connections.sh` to find:
+> "Using `qmd_vector_search` I sampled notes across domains. Then I used `run_connections.sh` to find:
 >
 > [[Pleasure-Pain Balance in Dopamine System]] (neuroscience) ↔ [[Reference Point Dependence in Prospect Theory]] (economics)
-> **Actual semantic similarity: 0.63** (from local brain search, not estimated)
+> **Actual semantic similarity: 0.63** (from qmd_vector_search, not estimated)
 > **Conceptual strength: ⭐⭐⭐⭐⭐**
 >
 > Both describe the SAME homeostatic mechanism:
@@ -520,13 +510,13 @@ See detailed findings in: [[CHANGELOG - Auto-Discovery Sessions YYYY-MM-DD]]
 
 ## Completion Checklist
 
-- [ ] Diverse notes sampled from different thematic clusters using Local Brain Search
+- [ ] Diverse notes sampled from different thematic clusters using qmd_vector_search
 - [ ] Cross-domain pattern matching performed with ACTUAL similarity scores
 - [ ] Non-obvious connections discovered (similarity 0.50-0.70 with high conceptual strength)
 - [ ] Emergent meta-patterns identified across multiple connections
 - [ ] Consilience zones documented (3+ domains converging)
 - [ ] Synthesis opportunities recommended (not created - recommend only)
-- [ ] All connection data sourced from Local Brain Search (no estimated scores)
+- [ ] All connection data sourced from qmd search and graph analytics (no estimated scores)
 - [ ] Dated changelog created in `Brain/05-Meta/Changelogs/`
 - [ ] Brief summary added to master `Brain/CHANGELOG.md`
 - [ ] Auto-discovery run report generated with sampling strategy and statistics

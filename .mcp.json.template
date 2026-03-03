@@ -1,5 +1,9 @@
 {
   "mcpServers": {
+    "qmd": {
+      "command": "qmd",
+      "args": ["mcp"]
+    },
     "mermaid-diagram": {
       "command": "npx",
       "args": ["-y", "@anthropic/mcp-mermaid-diagram"]

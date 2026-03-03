@@ -2,28 +2,27 @@
 name: find-connections
 description: Discover hidden connections and relationships between notes in the knowledge base
 argument-hint: <note name or topic to start from>
-allowed-tools: Read, Grep, Glob, Bash
+allowed-tools: Read, Grep, Glob, Bash, mcp__qmd__qmd_deep_search, mcp__qmd__qmd_get
 ---
 
-## Local Brain Search
+## Search Tools
 
-Use Local Brain Search for all semantic search and connection discovery.
+### qmd Search (for finding notes by topic)
+- `qmd_deep_search` - Hybrid search with BM25 + vector + reranking (primary search tool)
+- `qmd_get` - Retrieve full document content by path
 
-**Scripts:**
+### Graph Analytics (for connections, hubs, bridges, topology)
 ```bash
-# Semantic search
-resources/local-brain-search/run_search.sh "query" --limit 10 --json
-
-# Find connections
+# Find connections for a specific note
 resources/local-brain-search/run_connections.sh "Note Name" --json
 
-# Find hubs
+# Find hub notes (most connected)
 resources/local-brain-search/run_connections.sh --hubs --json
 
-# Find bridges
+# Find bridge notes (cross-cluster connectors)
 resources/local-brain-search/run_connections.sh --bridges --json
 
-# Get stats
+# Get graph statistics
 resources/local-brain-search/run_connections.sh --stats --json
 ```
 
@@ -52,10 +51,8 @@ Map the conceptual network around the specified note or topic, revealing:
    ```
    grep -r "# $ARGUMENTS" $VAULT_BASE_PATH/Brain --include="*.md"
    ```
-2. If given a topic, search using Local Brain Search:
-   ```bash
-   resources/local-brain-search/run_search.sh "$ARGUMENTS" --limit 5 --json
-   ```
+2. If given a topic, search using qmd:
+   - Call `qmd_deep_search` with query "$ARGUMENTS", collection "brain", limit 5
 3. Read the anchor note's full content using `Read` tool
 4. Get the exact file path for subsequent operations
 
@@ -238,8 +235,8 @@ Structure your findings as follows:
 ## 📝 Methodology Note
 
 **How This Analysis Was Generated:**
-- Semantic embeddings: all-MiniLM-L6-v2 (384 dimensions)
-- Similarity algorithm: Cosine similarity between note embeddings
+- Search: qmd hybrid search (BM25 keyword + vector semantic + LLM reranking)
+- Graph: NetworkX with explicit (wiki-link) and semantic (FAISS cosine similarity) edges
 - Connection graph: Multi-hop traversal with threshold filtering
 - Pattern detection: AI interpretation of semantic clusters
 - All findings are computational approximations requiring human validation
@@ -287,8 +284,8 @@ High-quality notes with few connections need integration:
 | Source | Location | Read | Write | Description |
 |--------|----------|------|-------|-------------|
 | Brain notes | `Brain/**/*.md` | X | | All permanent notes, sources, MOCs |
-| Local Brain Search index | `resources/local-brain-search/` | X | | Vector index and connection graph |
-| Graph statistics | `run_connections.sh --stats` | X | | Network topology data |
+| qmd index | `~/.cache/qmd/index.sqlite` | X | | Hybrid search index (BM25 + vector) |
+| FAISS graph | `resources/local-brain-search/data/` | X | | Connection graph and topology |
 
 ## Completion Checklist
 

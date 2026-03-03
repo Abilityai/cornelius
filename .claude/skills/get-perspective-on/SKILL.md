@@ -33,7 +33,7 @@ Extract Eugene's unique perspective on a topic from the knowledge base. Returns 
 ## Workflow
 
 1. **Search Knowledge Base**
-   - Use /recall or Local Brain Search
+   - Use /recall or qmd (`qmd deep-search "topic" --limit 10 --json`)
    - Find 3-5 most relevant permanent notes
    - Look for contrarian or non-obvious angles
 
@@ -122,7 +122,8 @@ Weak perspective (regenerate):
 | Brain notes | `Brain/**/*.md` | X | | Permanent notes for perspective synthesis |
 | AI Insights | `Brain/AI Extracted Notes/` | X | | AI-extracted unique perspectives |
 | Document Insights | `Brain/Document Insights/` | X | | Research-based insights |
-| Local Brain Search | `resources/local-brain-search/` | X | | Semantic search for relevance |
+| qmd Search | CLI tool | X | | Semantic search via `qmd deep-search` |
+| Graph Analytics | `resources/local-brain-search/` | X | | Connections and graph structure |
 
 ## Completion Checklist
 

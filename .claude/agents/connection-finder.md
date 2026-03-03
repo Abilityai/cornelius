@@ -15,34 +15,29 @@ model: sonnet
 | Source Materials | `Brain/01-Sources/` | ✓ | | Trace influence |
 | MOCs | `Brain/03-MOCs/` | ✓ | | Existing navigation maps |
 | Articles | `Brain/04-Output/Articles/` | ✓ | | Existing synthesis |
-| Local Brain Search | `resources/local-brain-search/` | ✓ | | Semantic search and connections |
+| qmd MCP Tools | qmd server | ✓ | | Semantic search and retrieval |
+| Local Brain Search | `resources/local-brain-search/` | ✓ | | Graph analytics (connections, hubs, bridges) |
 | Session Changelogs | `Brain/05-Meta/Changelogs/` | | ✓ | Dated session changelog |
 | Master Changelog | `Brain/CHANGELOG.md` | ✓ | ✓ | Brief summary entry |
 
 ---
 
-## Local Brain Search
+## Search Tools
 
-Use Local Brain Search for all semantic search and connection discovery.
+### qmd Search (Primary - for finding notes)
+Use qmd MCP tools for all search/retrieval operations:
+- `qmd_deep_search` - Hybrid search with BM25 + vector + reranking (recommended for most queries)
+- `qmd_vector_search` - Pure semantic search (when similarity scores are needed)
+- `qmd_search` - Fast BM25 keyword search (when exact terms matter)
+- `qmd_get` / `qmd_multi_get` - Retrieve document content by path
 
-**Location:** `resources/local-brain-search/`
-
-**Wrapper Scripts:**
+### Graph Analytics (Local Brain Search - for connections and topology)
+Use wrapper scripts for graph operations only:
 ```bash
-# Semantic search
-resources/local-brain-search/run_search.sh "query" --limit 10 --json
-
-# Find connections for a note
 resources/local-brain-search/run_connections.sh "Note Name" --json
-
-# Get hub notes
 resources/local-brain-search/run_connections.sh --hubs --json
-
-# Get graph statistics
-resources/local-brain-search/run_connections.sh --stats --json
-
-# Find bridge notes
 resources/local-brain-search/run_connections.sh --bridges --json
+resources/local-brain-search/run_connections.sh --stats --json
 ```
 
 ---
@@ -68,17 +63,16 @@ Discover and document:
 
 **Starting Point Identification**:
 - Begin with specified note(s) or explore high-centrality hubs
-- Use local brain search to find connections:
-  ```bash
-  # Search for notes by topic
-  resources/local-brain-search/run_search.sh "dopamine" --limit 10 --json
-
-  # Get connections for a specific note
-  resources/local-brain-search/run_connections.sh "02-Permanent/Dopamine.md" --json
-
-  # Find hub notes (most connected)
-  resources/local-brain-search/run_connections.sh --hubs --json
-  ```
+- Use qmd search and graph analytics to find connections:
+  - Search for notes by topic: `qmd_deep_search` with query "dopamine"
+  - Get connections for a specific note:
+    ```bash
+    resources/local-brain-search/run_connections.sh "02-Permanent/Dopamine.md" --json
+    ```
+  - Find hub notes (most connected):
+    ```bash
+    resources/local-brain-search/run_connections.sh --hubs --json
+    ```
 - Identify notes with high similarity scores (0.75+) to starting point
 
 **Network Expansion**:
@@ -324,7 +318,7 @@ Discover and document:
 **Process**:
 1. List notes in Cluster A using `Glob` (e.g., `Brain/02-Permanent/*dopamine*.md`)
 2. List notes in Cluster B using `Bash` find (e.g., `find Brain/02-Permanent -name "*buddhism*.md"`)
-3. For each note in A, search for similar notes: `run_search.sh "note topic" --limit 10 --json`
+3. For each note in A, search for similar notes using `qmd_deep_search` with the note topic
 4. Rank by similarity score
 5. Use `Read` to analyze high-scoring pairs for structural parallels
 
@@ -332,14 +326,14 @@ Discover and document:
 **Task**: Find where independent domains converge on similar principles
 **Process**:
 1. Identify core concepts in Domain 1 using `Read`
-2. Search semantically similar notes in Domain 2: `run_search.sh "concept" --limit 10 --json`
+2. Search semantically similar notes in Domain 2 using `qmd_deep_search` with the concept
 3. Analyze for shared principles vs. surface similarity
 4. Document convergence points
 
 ### Mode 4: Synthesis Scanning
 **Task**: Find sets of notes that should be combined into articles/MOCs
 **Process**:
-1. Identify thematic clusters via search: `run_search.sh "theme" --limit 15 --json`
+1. Identify thematic clusters via `qmd_deep_search` with the theme
 2. Retrieve full content for each note using `Read`
 3. Assess complementarity and synthesis potential
 4. Propose article structures with note mapping
@@ -348,7 +342,7 @@ Discover and document:
 **Task**: Find valuable connections that should exist but don't
 **Process**:
 1. Analyze high-value notes with few connections
-2. Search for semantically similar content: `run_search.sh "topic" --limit 10 --json`
+2. Search for semantically similar content using `qmd_deep_search` with the topic
 3. Use `Grep` to check for existing wikilinks
 4. Identify why connection isn't explicit
 5. Propose bridge notes or direct links

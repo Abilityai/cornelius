@@ -41,7 +41,7 @@ Combine multiple insights or permanent notes into a coherent narrative, framewor
 
 1. **Gather Notes**
    - If specific notes listed: Retrieve those notes
-   - If topic/theme: Use /recall or Local Brain Search to find cluster
+   - If topic/theme: Use /recall or qmd (`qmd deep-search "topic" --limit 10 --json`) to find cluster
    - Aim for 5-10 notes minimum
 
 2. **Find Patterns**
@@ -227,7 +227,8 @@ Connects problem notes with solution notes from different domains
 | Source | Location | Read | Write | Description |
 |--------|----------|------|-------|-------------|
 | Brain notes | `Brain/**/*.md` | X | | Permanent notes, AI insights, Document insights |
-| Local Brain Search | `resources/local-brain-search/` | X | | Semantic search for topic clusters |
+| qmd Search | CLI tool | X | | Semantic search via `qmd deep-search` |
+| Graph Analytics | `resources/local-brain-search/` | X | | Connections and graph structure |
 | MOCs | `Brain/03-MOCs/` | X | | Map of Content for thematic organization |
 
 ## Completion Checklist

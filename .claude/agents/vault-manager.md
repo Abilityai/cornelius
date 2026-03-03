@@ -15,24 +15,30 @@ model: sonnet
 | MOCs | `Brain/03-MOCs/` | ✓ | ✓ | Navigation hubs |
 | Source Materials | `Brain/01-Sources/` | ✓ | ✓ | Source documentation |
 | Output Content | `Brain/04-Output/` | ✓ | ✓ | Articles, posts, frameworks |
-| Local Brain Search | `resources/local-brain-search/` | ✓ | | Semantic search for operations |
+| qmd MCP Tools | qmd server | ✓ | | Semantic search for operations |
+| Local Brain Search | `resources/local-brain-search/` | ✓ | | Graph analytics (connections) |
 | Session Changelogs | `Brain/05-Meta/Changelogs/` | | ✓ | Dated session changelog |
 | Master Changelog | `Brain/CHANGELOG.md` | ✓ | ✓ | Brief summary entry |
 | Tone of Voice Profiles | Google Drive (external) | ✓ | | Social media post creation |
 
 ---
 
-## Local Brain Search
+## Search Tools
 
-Use Local Brain Search for semantic search operations.
+### qmd Search (Primary - for finding notes)
+Use qmd MCP tools for all search/retrieval operations:
+- `qmd_deep_search` - Hybrid search with BM25 + vector + reranking (recommended for most queries)
+- `qmd_vector_search` - Pure semantic search (when similarity scores are needed)
+- `qmd_search` - Fast BM25 keyword search (when exact terms matter)
+- `qmd_get` / `qmd_multi_get` - Retrieve document content by path
 
-**Wrapper Scripts:**
+### Graph Analytics (Local Brain Search - for connections and topology)
+Use wrapper scripts for graph operations only:
 ```bash
-# Semantic search
-resources/local-brain-search/run_search.sh "query" --limit 10 --json
-
-# Find connections
 resources/local-brain-search/run_connections.sh "Note Name" --json
+resources/local-brain-search/run_connections.sh --hubs --json
+resources/local-brain-search/run_connections.sh --bridges --json
+resources/local-brain-search/run_connections.sh --stats --json
 ```
 
 ---
@@ -68,10 +74,7 @@ Content here with [[wikilinks]] to other notes.
 - List files in directories using `Glob` pattern matching or `Bash` ls/find commands
 - Search vault content using `Grep` for text search
 - Retrieve file metadata using `Bash` stat commands
-- Use semantic search via Local Brain Search:
-  ```bash
-  resources/local-brain-search/run_search.sh "query" --limit 10 --json
-  ```
+- Use semantic search via `qmd_deep_search` with your query
 
 **Reading notes:**
 - `Read` with file_path: `$VAULT_BASE_PATH/Brain/02-Permanent/Note.md`
@@ -166,7 +169,7 @@ rm "$VAULT_BASE_PATH/Brain/path/to/note.md"
 ## Workflow Patterns
 
 ### Creating a New Note
-1. Search for existing notes on the topic to avoid duplicates (`Grep` or `run_search.sh "topic"`)
+1. Search for existing notes on the topic to avoid duplicates (`Grep` or `qmd_deep_search`)
 2. Identify the appropriate directory
 3. Draft content with frontmatter, tags, and backlinks
 4. Create the note using `Write` tool
@@ -214,10 +217,9 @@ find $VAULT_BASE_PATH/Brain -name "*.md" | wc -l
 ```
 
 ### Knowledge Discovery
-1. Use semantic search via Local Brain Search to find related notes:
+1. Use semantic search via `qmd_deep_search` to find related notes, and graph analytics for connections:
    ```bash
-   run_search.sh "topic" --limit 10 --json
-   run_connections.sh "Note Name" --json
+   resources/local-brain-search/run_connections.sh "Note Name" --json
    ```
 2. Suggest connections and backlinks
 3. Identify gaps in knowledge coverage

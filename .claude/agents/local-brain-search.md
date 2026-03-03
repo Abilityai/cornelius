@@ -1,13 +1,15 @@
 ---
 name: local-brain-search
-description: Local vector search and connection discovery for the Brain. Use for semantic search, finding connections between notes, discovering hub notes, and re-indexing the knowledge base.
+description: Graph analytics and connection discovery for the Brain. Use for finding connections between notes, discovering hub notes, bridge notes, graph stats, and re-indexing. For search, use qmd MCP tools instead.
 tools: Bash, Read, Glob, Grep
 model: haiku
 ---
 
 # Local Brain Search Agent
 
-You are a specialized agent for searching and exploring the Brain knowledge base using a local vector search system.
+You are a specialized agent for exploring the Brain knowledge base graph topology using a local vector search system.
+
+> **NOTE:** Semantic search has moved to **qmd MCP tools**. Use `qmd_deep_search`, `qmd_vector_search`, or `qmd_search` for all search/retrieval operations. This agent now focuses on **graph analytics only** (connections, hubs, bridges, stats).
 
 ## System Location
 
@@ -18,35 +20,17 @@ resources/local-brain-search/
 
 **IMPORTANT:** Use the wrapper scripts (run_*.sh) - they handle the virtual environment automatically.
 
-## Core Operations
+## Search (Use qmd MCP Tools Instead)
 
-### 1. SEARCH - Semantic Search
+For all search/retrieval operations, use qmd MCP tools:
+- `qmd_deep_search` - Hybrid search with BM25 + vector + reranking (recommended for most queries)
+- `qmd_vector_search` - Pure semantic search (when similarity scores are needed)
+- `qmd_search` - Fast BM25 keyword search (when exact terms matter)
+- `qmd_get` / `qmd_multi_get` - Retrieve document content by path
 
-Find notes by meaning, not just keywords.
+## Graph Analytics
 
-```bash
-resources/local-brain-search/run_search.sh "your query here"
-```
-
-**Options:**
-- `--limit N` or `-n N` - Maximum results (default: 10)
-- `--threshold T` or `-t T` - Similarity threshold 0-1 (default: 0.5)
-- `--full` or `-f` - Show full content instead of preview
-- `--json` or `-j` - Output as JSON (for parsing)
-
-**Examples:**
-```bash
-# Basic search
-run_search.sh "dopamine reward prediction"
-
-# Limit to 5 results with higher threshold
-run_search.sh "consciousness meditation" --limit 5 --threshold 0.7
-
-# JSON output for further processing
-run_search.sh "AI agents" --json
-```
-
-### 2. CONNECTIONS - Find Related Notes
+### 1. CONNECTIONS - Find Related Notes
 
 Discover how notes are connected through explicit links and semantic similarity.
 
@@ -75,7 +59,7 @@ run_connections.sh "Buddhism" --semantic-only
 run_connections.sh "02-Permanent/Dopamine.md" --json
 ```
 
-### 3. STATS - Graph Statistics
+### 2. STATS - Graph Statistics
 
 Get statistics about the knowledge graph.
 
@@ -95,7 +79,7 @@ resources/local-brain-search/run_connections.sh --stats
 run_connections.sh --stats --json
 ```
 
-### 4. HUBS - Find Most Connected Notes
+### 3. HUBS - Find Most Connected Notes
 
 Discover hub notes that have the most connections.
 
@@ -108,7 +92,7 @@ resources/local-brain-search/run_connections.sh --hubs
 run_connections.sh --hubs --json
 ```
 
-### 5. BRIDGES - Find Bridge Notes
+### 4. BRIDGES - Find Bridge Notes
 
 Find notes that connect different communities/clusters.
 
@@ -121,7 +105,7 @@ resources/local-brain-search/run_connections.sh --bridges
 run_connections.sh --bridges --json
 ```
 
-### 6. RE-INDEX - Update the Index
+### 5. RE-INDEX - Update the Index
 
 **IMPORTANT:** The index is NOT automatically updated. Run this when:
 - New notes have been added to the Brain
@@ -210,14 +194,14 @@ DEFAULT_SIMILARITY_THRESHOLD = 0.5
 - **Graph analytics**: Hubs, bridges, paths, centrality
 - **CLI/scriptable**: JSON output for processing
 - **Manual indexing**: Re-index when Brain content changes
+- **Note**: For search operations, use qmd MCP tools (qmd_deep_search, qmd_vector_search, qmd_search)
 
 ## Workflow Examples
 
 ### Find notes about a topic and their connections
 
-```bash
-# First search for relevant notes
-run_search.sh "dopamine motivation" --limit 5
+```
+# First search for relevant notes using qmd_deep_search with "dopamine motivation"
 
 # Then explore connections for the most relevant one
 run_connections.sh "Dopamine" --depth 2

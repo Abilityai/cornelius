@@ -39,8 +39,8 @@ Create publication-ready long-form articles by synthesizing insights from Eugene
 Search the knowledge base for relevant insights:
 
 ```bash
-# Semantic search for topic
-resources/local-brain-search/run_search.sh "your topic" --limit 15 --json
+# Deep search for topic (semantic search with context expansion)
+qmd deep-search "your topic" --limit 15 --json
 
 # Find connections to existing notes
 resources/local-brain-search/run_connections.sh "Related Note Name" --json

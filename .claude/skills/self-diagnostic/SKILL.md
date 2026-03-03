@@ -30,7 +30,8 @@ Run specific test category:
 | Vault Path | `Brain/` | ✓ | | Verify vault exists |
 | Permanent Notes Dir | `Brain/02-Permanent/` | ✓ | | Verify directory exists |
 | Article Index | `Brain/04-Output/Articles/ARTICLE-INDEX.md` | ✓ | | Verify index exists |
-| Local Brain Search | `resources/local-brain-search/` | ✓ | | Search scripts and index |
+| qmd CLI | System binary | ✓ | | Semantic search tool |
+| Graph Analytics | `resources/local-brain-search/` | ✓ | | Connection scripts and index |
 | Skills Directory | `.claude/skills/*/SKILL.md` | ✓ | | Skill configurations |
 | Commands Directory | `.claude/commands/*.md` | ✓ | | Command configurations |
 | Agents Directory | `.claude/agents/*.md` | ✓ | | Agent configurations |
@@ -232,12 +233,32 @@ Use the Skill tool to invoke `get-perspective-on` with args "AI agents"
 - Returns perspective text with [[note citations]]
 - Does NOT create any files
 
-### Test: Local Brain Search Direct
+### Test: qmd CLI Health Check
 
-Tests local brain search scripts directly:
+Tests qmd search tool:
 
 ```bash
-# Run semantic search
+# Test qmd binary exists
+which qmd && echo "PASS: qmd binary found" || echo "FAIL: qmd binary not found"
+
+# Test qmd status returns data
+qmd status 2>/dev/null && echo "PASS: qmd status operational" || echo "FAIL: qmd status failed"
+
+# Test qmd search returns results
+qmd search "test" --json 2>/dev/null && echo "PASS: qmd search returns results" || echo "FAIL: qmd search failed"
+```
+
+**Success criteria:**
+- `which qmd` resolves to an executable path
+- `qmd status` returns data without error
+- `qmd search "test" --json` returns valid JSON with results
+
+### Test: Graph Analytics (Local Brain Search)
+
+Tests graph analytics scripts directly:
+
+```bash
+# Run semantic search (legacy, for graph analytics verification)
 resources/local-brain-search/run_search.sh "consciousness" --limit 3 --json
 
 # Run connections query
@@ -362,6 +383,6 @@ Based on $ARGUMENTS:
 - [ ] Skills validation completed (frontmatter, name, description for all skills)
 - [ ] Commands validation completed (frontmatter, description for all commands)
 - [ ] Agents validation completed (frontmatter, name/description for all agents)
-- [ ] Functional tests executed (search-vault, recall, find-connections, get-perspective-on, Local Brain Search)
+- [ ] Functional tests executed (search-vault, recall, find-connections, get-perspective-on, qmd, graph analytics)
 - [ ] Summary report generated with pass/fail/skip counts
 - [ ] Recommendations provided for any failures

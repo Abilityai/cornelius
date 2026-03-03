@@ -2,26 +2,25 @@
 name: recall
 description: Retrieve relevant knowledge from Obsidian vault using 3-layer semantic search based on conversation context
 argument-hint: <search query or topic>
-allowed-tools: Read, Bash, Grep
+allowed-tools: Read, Bash, Grep, mcp__qmd__qmd_deep_search, mcp__qmd__qmd_get
 ---
 
 # Semantic Knowledge Retrieval
 
-You are tasked with retrieving relevant knowledge from the Obsidian vault using multi-layer semantic search.
+You are tasked with retrieving relevant knowledge from the Obsidian vault using multi-layer search combining qmd hybrid search and graph analytics.
 
-## Local Brain Search
+## Search Tools
 
-Use Local Brain Search for all semantic search operations.
+### qmd Search (for finding notes by topic)
+- `qmd_deep_search` - Hybrid search with BM25 + vector + reranking (primary search tool)
+- `qmd_get` - Retrieve full document content by path
 
-**Scripts:**
+### Graph Analytics (for connections and topology)
 ```bash
-# Semantic search
-resources/local-brain-search/run_search.sh "query" --limit 10 --json
-
-# Find connections
+# Find connections for a specific note
 resources/local-brain-search/run_connections.sh "Note Name" --json
 
-# Find hubs
+# Find hub notes (most connected)
 resources/local-brain-search/run_connections.sh --hubs --json
 ```
 
@@ -31,21 +30,18 @@ $ARGUMENTS
 ## Instructions
 
 1. **First Layer - Initial Search**:
-   - Use local brain search:
-     ```bash
-     resources/local-brain-search/run_search.sh "$ARGUMENTS" --limit 5 --json
-     ```
+   - Call `qmd_deep_search` with query "$ARGUMENTS", collection "brain", limit 5
    - Use `Read` tool to read the full content of the top 2 results
 
 2. **Second Layer - Direct Associations**:
-   - For the top result from layer 1, get connections:
+   - For the top result from layer 1, get graph connections:
      ```bash
      resources/local-brain-search/run_connections.sh "Top Result Note" --json
      ```
    - Use `Read` tool to read the full content of the top 2 connected notes
 
 3. **Third Layer - Extended Network**:
-   - For additional context, check hub notes and bridges:
+   - For additional context, check hub notes:
      ```bash
      resources/local-brain-search/run_connections.sh --hubs --json
      ```
@@ -59,7 +55,7 @@ Present the findings in this structured format:
 # Knowledge Recall: [Query Topic]
 
 ## Layer 1: Direct Matches
-[List notes found with similarity scores and key excerpts]
+[List notes found with relevance scores and key excerpts]
 
 ## Layer 2: First-Degree Associations
 [List connected notes with their relationships and excerpts]
@@ -85,12 +81,13 @@ Present the findings in this structured format:
 | Source | Location | Read | Write | Description |
 |--------|----------|------|-------|-------------|
 | Brain notes | `Brain/**/*.md` | X | | Search permanent notes, sources, MOCs |
-| Local Brain Search index | `resources/local-brain-search/` | X | | Vector index for semantic search |
+| qmd index | `~/.cache/qmd/index.sqlite` | X | | Hybrid search index |
+| FAISS graph | `resources/local-brain-search/data/` | X | | Graph for connections and hubs |
 
 ## Completion Checklist
 
-- [ ] Layer 1 search executed and top results read
-- [ ] Layer 2 connections retrieved for top result
+- [ ] Layer 1 qmd search executed and top results read
+- [ ] Layer 2 graph connections retrieved for top result
 - [ ] Layer 3 hub notes checked for context
 - [ ] Key insights synthesized from findings
 - [ ] Relevant excerpts included in output

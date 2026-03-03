@@ -13,25 +13,29 @@ model: sonnet
 | Permanent Notes | `Brain/02-Permanent/` | ✓ | | Check for duplicates |
 | AI Extracted Notes | `Brain/AI Extracted Notes/` | ✓ | ✓ | Storage for extracted insights |
 | Document Insights | `Brain/Document Insights/` | ✓ | | Check for duplicates |
-| Local Brain Search | `resources/local-brain-search/` | ✓ | | Semantic search for deduplication |
+| qmd MCP Tools | qmd server | ✓ | | Semantic search for deduplication |
+| Local Brain Search | `resources/local-brain-search/` | ✓ | | Graph analytics (connections) |
 | Session Changelogs | `Brain/05-Meta/Changelogs/` | | ✓ | Dated session changelog |
 | Master Changelog | `Brain/CHANGELOG.md` | ✓ | ✓ | Brief summary entry |
 
 ---
 
-## Local Brain Search
+## Search Tools
 
-Use Local Brain Search for all semantic search operations.
+### qmd Search (Primary - for finding notes)
+Use qmd MCP tools for all search/retrieval operations:
+- `qmd_deep_search` - Hybrid search with BM25 + vector + reranking (recommended for most queries)
+- `qmd_vector_search` - Pure semantic search (when similarity scores are needed)
+- `qmd_search` - Fast BM25 keyword search (when exact terms matter)
+- `qmd_get` / `qmd_multi_get` - Retrieve document content by path
 
-**Location:** `resources/local-brain-search/`
-
-**Wrapper Scripts:**
+### Graph Analytics (Local Brain Search - for connections and topology)
+Use wrapper scripts for graph operations only:
 ```bash
-# Semantic search for duplicates/similar notes
-resources/local-brain-search/run_search.sh "query" --limit 10 --json
-
-# Find connections for a note
 resources/local-brain-search/run_connections.sh "Note Name" --json
+resources/local-brain-search/run_connections.sh --hubs --json
+resources/local-brain-search/run_connections.sh --bridges --json
+resources/local-brain-search/run_connections.sh --stats --json
 ```
 
 ---
@@ -85,16 +89,13 @@ When analyzing large files:
    - Note 3-5 primary themes or keywords
 
 2. **Search existing knowledge for context**:
-   ```bash
-   For each major topic/theme identified:
-   resources/local-brain-search/run_search.sh "topic" --limit 10 --threshold 0.60 --json
+   For each major topic/theme identified, use `qmd_deep_search` with the topic.
 
    Review results to understand:
-   * Existing terminology and framing
-   * Current frameworks and mental models
-   * Gaps or underexplored angles
-   * Dominant perspectives
-   ```
+   - Existing terminology and framing
+   - Current frameworks and mental models
+   - Gaps or underexplored angles
+   - Dominant perspectives
 
 3. **Build extraction context**:
    - What terminology does the vault use for these concepts?
@@ -134,10 +135,7 @@ For each potential insight, evaluate:
 **CRITICAL: Similarity scores are GUIDELINES, not rules. Always read the actual content and use judgment.**
 
 1. **Search by semantic similarity**:
-   ```bash
-   # Search for existing notes on the concept
-   resources/local-brain-search/run_search.sh "main idea in 5-10 words" --limit 10 --threshold 0.65 --json
-   ```
+   Use `qmd_vector_search` with the main idea in 5-10 words (provides similarity scores needed for dedup thresholds)
 
 2. **Read and evaluate content** (DO NOT rely solely on similarity scores):
 
@@ -186,9 +184,9 @@ For each potential insight, evaluate:
    - When in doubt, lean toward CREATE if there's a distinct angle
 
 ### Step 4: Connection Discovery
-- Search for related insights using local brain search:
+- Search for related insights using `qmd_deep_search` with the topic
+- Explore graph connections:
   ```bash
-  resources/local-brain-search/run_search.sh "topic" --limit 10 --json
   resources/local-brain-search/run_connections.sh "Note Name" --json
   ```
 - Identify potential connections to existing knowledge
@@ -375,10 +373,7 @@ Provide a structured report:
 2. Read the complete file with knowledge base context in mind
 3. Perform initial analysis and identify potential insights (cross-referencing existing knowledge)
 4. **For EACH potential insight**:
-   - Search vault for duplicates using Local Brain Search:
-     ```bash
-     resources/local-brain-search/run_search.sh "insight topic" --limit 5 --json
-     ```
+   - Search vault for duplicates using `qmd_vector_search` with the insight topic (provides similarity scores)
    - Evaluate similarity scores (see Step 3 criteria)
    - If duplicate exists (>0.85 similarity): Skip creation, note in report
    - If very similar (0.75-0.85): Read existing note, decide if unique angle exists
@@ -849,7 +844,7 @@ See detailed findings in: [[CHANGELOG - Insight Extraction Session YYYY-MM-DD]]
 - [ ] Knowledge base contextualization completed (Step 0)
 - [ ] Source content fully analyzed (chunked if >2000 lines)
 - [ ] Deduplication check performed for EVERY potential insight
-- [ ] Similarity scores recorded from Local Brain Search (not estimated)
+- [ ] Similarity scores recorded from qmd_vector_search (not estimated)
 - [ ] Unique insights created in `Brain/AI Extracted Notes/` with proper metadata
 - [ ] Connection opportunities identified and documented
 - [ ] Dated changelog created in `Brain/05-Meta/Changelogs/`

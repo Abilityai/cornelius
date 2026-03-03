@@ -21,13 +21,14 @@ Find **non-obvious, cross-domain connections** - notes with low semantic similar
 | Permanent Notes | `Brain/02-Permanent/` | ✓ | | Sampling source |
 | AI Extracted Notes | `Brain/AI Extracted Notes/` | ✓ | | Sampling source |
 | Document Insights | `Brain/Document Insights/` | ✓ | | Sampling source |
-| Local Brain Search | `resources/local-brain-search/` | ✓ | | Similarity scores, connections |
+| qmd Search | CLI tool | ✓ | | Semantic search with similarity scores |
+| Graph Analytics | `resources/local-brain-search/` | ✓ | | Connections, hubs, bridges |
 | Session Changelogs | `Brain/05-Meta/Changelogs/` | | ✓ | Dated discovery log |
 | Master Changelog | `Brain/CHANGELOG.md` | ✓ | ✓ | Summary entry |
 
 ## Prerequisites
 
-- Local Brain Search index up-to-date (`/refresh-index`)
+- qmd CLI installed and operational (`qmd status`)
 - Brain vault accessible
 
 ## Process
@@ -42,15 +43,15 @@ Use for changelog filename.
 
 ### Step 2: Strategic Sampling
 
-Sample from 3-5 diverse domains using Local Brain Search:
+Sample from 3-5 diverse domains using qmd vector search (provides similarity scores needed for 0.50-0.70 targeting):
 
 ```bash
-resources/local-brain-search/run_search.sh "dopamine" --limit 5 --json
-resources/local-brain-search/run_search.sh "uncertainty" --limit 5 --json
-resources/local-brain-search/run_search.sh "identity" --limit 5 --json
+qmd search "dopamine" --limit 5 --json
+qmd search "uncertainty" --limit 5 --json
+qmd search "identity" --limit 5 --json
 ```
 
-Pick seed notes from different clusters.
+Pick seed notes from different clusters. Use `--json` output to get exact similarity scores for filtering.
 
 ### Step 3: Get Connections for Seeds
 

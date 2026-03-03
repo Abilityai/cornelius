@@ -269,23 +269,22 @@ You have access to specialized sub-agents and commands configured in the `.claud
    - Tools: Mermaid diagram generation
 
 8. **Local Brain Search Agent** (`local-brain-search`)
-   - **Local vector search using FAISS** for semantic search and connection discovery
-   - Semantic search across Brain notes with similarity scores
+   - **Graph analytics only** - search has moved to qmd MCP tools
    - Connection discovery with **two edge types**: explicit (wiki-links) AND semantic (similarity)
    - Graph analytics: find hubs, bridges, paths, statistics
-   - **Must manually re-index** when Brain content changes
+   - **Must manually re-index** when Brain content changes (for graph edges)
    - **Location**: `./resources/local-brain-search/`
    - **Use when**:
      - Need explicit vs semantic edge distinction
      - Want graph analytics (hubs, bridges, centrality)
-     - Need CLI/scriptable access with JSON output
+     - Need connection/path traversal between notes
    - **Key commands**:
-     - `python search.py "query"` - Semantic search
-     - `python connections.py "Note"` - Find connections
-     - `python connections.py --hubs` - Find hub notes
-     - `python connections.py --stats` - Graph statistics
-     - `python index_brain.py` - Re-index (required after changes)
-   - Tools: Bash (for running Python scripts)
+     - `run_connections.sh "Note"` - Find connections
+     - `run_connections.sh --hubs` - Find hub notes
+     - `run_connections.sh --bridges` - Find bridge notes
+     - `run_connections.sh --stats` - Graph statistics
+     - `run_index.sh` - Re-index FAISS + graph (required after changes)
+   - Tools: Bash (for running wrapper scripts)
 
 9. **Research Specialist Agent** (`research-specialist`)
    - Deep research using web search and content fetching
@@ -411,7 +410,7 @@ Skills are modular capabilities that can be invoked with `/skill-name`. Key skil
     - Identifies synthesis opportunities
 
 12. **Refresh Index** (`/refresh-index`)
-    - Rebuild the Local Brain Search FAISS index
+    - Rebuild both qmd and FAISS indexes
     - Required after adding/modifying notes
 
 13. **Self-Diagnostic** (`/self-diagnostic`)
@@ -424,15 +423,31 @@ Skills are modular capabilities that can be invoked with `/skill-name`. Key skil
 
 Your environment includes MCP servers that provide additional capabilities:
 
-**1. Local Brain Search (REQUIRED - Primary Search):**
+**1. qmd Search (REQUIRED - Primary Search):**
+
+Hybrid search engine combining BM25 keyword + vector semantic + LLM reranking.
+
+**MCP Tools:**
+- `qmd_deep_search` - Hybrid search with reranking (recommended for most queries)
+- `qmd_vector_search` - Pure semantic search (when similarity scores are needed)
+- `qmd_search` - Fast BM25 keyword search (when exact terms matter)
+- `qmd_get` / `qmd_multi_get` - Retrieve document content by path
+- `qmd_status` - Index health check
+
+**Collection:** "brain" (maps to `./Brain` directory)
+
+**CLI commands (for indexing):**
+```bash
+qmd update && qmd embed    # Re-index after Brain changes
+qmd status                  # Check index health
+```
+
+**2. Local Brain Search (REQUIRED - Graph Analytics Only):**
 
 Location: `./resources/local-brain-search/`
 
-**Wrapper Scripts (use these):**
+**Use for graph operations only (NOT search):**
 ```bash
-# Semantic search
-./resources/local-brain-search/run_search.sh "query" --limit 10 --json
-
 # Find connections for a note
 ./resources/local-brain-search/run_connections.sh "Note Name" --json
 
@@ -445,38 +460,31 @@ Location: `./resources/local-brain-search/`
 # Find bridge notes (cross-domain connectors)
 ./resources/local-brain-search/run_connections.sh --bridges --json
 
-# Re-index (required when Brain content changes)
+# Re-index FAISS + graph (required when Brain content changes)
 ./resources/local-brain-search/run_index.sh
 ```
 
 **Key Features:**
-- FAISS-based vector search (fast, local, no external dependencies)
 - Distinguishes between explicit (wiki-links) and semantic connections
-- Graph analytics: hubs, bridges, statistics
+- Graph analytics: hubs, bridges, statistics, multi-hop paths
 - JSON output for programmatic use
-- Sub-second search performance
 
-**IMPORTANT:** Index is NOT automatically updated. Run `run_index.sh` when Brain content changes.
+**IMPORTANT:** Both indexes must be kept in sync. Run `/refresh-index` when Brain content changes.
 
-**2. Mermaid Diagram Server (Optional):**
+**3. Mermaid Diagram Server (Optional):**
 - Generate PNG/SVG diagrams from Mermaid markdown
 - Visualize knowledge graph structures
 - Create flowcharts, mind maps, network diagrams
 
-**3. Ebook MCP (Optional):**
+**4. Ebook MCP (Optional):**
 - EPUB and PDF processing
 - Extract chapters and content from ebooks
 - Useful for literature note creation
 
-**Search Strategy Decision Tree:**
+**Search Strategy:**
 
-- **Use Local Brain Search** when:
-  - Searching specifically for permanent notes and insights
-  - Building connection graphs between notes
-  - Finding semantically similar notes for synthesis
-  - Discovering hub notes and bridges
-  - Need explicit vs semantic edge distinction
-  - Working with Zettelkasten structure
+- **Use qmd** for all search/retrieval operations (finding notes, deduplication, topic discovery)
+- **Use Local Brain Search** for graph analytics only (connections, hubs, bridges, stats, multi-hop paths)
 
 ---
 

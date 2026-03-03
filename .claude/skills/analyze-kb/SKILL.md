@@ -6,15 +6,18 @@ allowed-tools: Read, Bash, Glob, Grep
 
 Analyze the Obsidian knowledge base structure and regenerate a **condensed, manageable** analysis report.
 
-## Local Brain Search
+## Search Tools
 
-Use Local Brain Search for all semantic search operations.
+Use qmd for semantic search and graph analytics scripts for structural analysis.
 
-**Scripts:**
+**Semantic Search (qmd):**
 ```bash
-# Semantic search
-resources/local-brain-search/run_search.sh "query" --limit 10 --json
+# Deep search with context expansion
+qmd deep-search "query" --limit 10 --json
+```
 
+**Graph Analytics (run_connections.sh):**
+```bash
 # Find connections
 resources/local-brain-search/run_connections.sh "Note Name" --json
 
@@ -30,7 +33,7 @@ resources/local-brain-search/run_connections.sh --bridges --json
 
 Follow these steps:
 
-1. Get vault statistics using Local Brain Search:
+1. Get vault statistics using graph analytics:
    ```bash
    resources/local-brain-search/run_connections.sh --stats --json
    ```
@@ -48,7 +51,7 @@ Follow these steps:
 
 4. Read key hub notes from major clusters using `Read` tool (Dopamine, Self/Buddhism, Decision-Making, Flow, etc.)
 
-5. Use Local Brain Search to identify hub notes and bridges:
+5. Use graph analytics to identify hub notes and bridges:
    ```bash
    resources/local-brain-search/run_connections.sh --hubs --json
    resources/local-brain-search/run_connections.sh --bridges --json
@@ -87,12 +90,13 @@ Generate a **condensed, scannable, high-signal** report that reveals the knowled
 | AI Insights | `Brain/AI Extracted Notes/` | X | | AI-extracted notes |
 | Document Insights | `Brain/Document Insights/` | X | | Research session notes |
 | Changelogs | `Brain/05-Meta/Changelogs/` | X | | Session logs |
-| Local Brain Search | `resources/local-brain-search/` | X | | Graph statistics, hubs, bridges |
+| qmd Search | CLI tool | X | | Semantic search via `qmd deep-search` |
+| Graph Analytics | `resources/local-brain-search/` | X | | Graph statistics, hubs, bridges |
 | Knowledge base analysis | `knowledge-base-analysis.md` | X | X | Output report |
 
 ## Completion Checklist
 
-- [ ] Vault statistics retrieved from Local Brain Search
+- [ ] Vault statistics retrieved from graph analytics
 - [ ] Directory structure explored with Glob
 - [ ] Key hub notes read (Dopamine, Buddhism, Decision-Making, Flow, AI)
 - [ ] Hub notes and bridges identified
