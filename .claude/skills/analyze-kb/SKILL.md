@@ -1,6 +1,7 @@
 ---
 name: analyze-kb
 description: Analyze knowledge base structure and update the knowledge-base-analysis.md report
+automation: gated
 allowed-tools: Read, Bash, Glob, Grep
 ---
 

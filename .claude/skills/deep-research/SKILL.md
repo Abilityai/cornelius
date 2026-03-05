@@ -2,6 +2,7 @@
 name: deep-research
 description: Autonomous research pipeline - discover, extract, and integrate cutting-edge insights into knowledge base
 argument-hint: [optional topic or "auto" for autonomous selection]
+automation: gated
 allowed-tools: Task, Read, Bash, Glob, Grep
 ---
 
@@ -186,7 +187,7 @@ EXTRACTION GUIDELINES:
 
 2. **Bridge to Existing Knowledge Base:**
    - Connect to the 6 primary hubs: Consciousness, Dopamine, Decision-Making, Identity, AI Agents, Flow States
-   - Reference Eugene's existing frameworks (Folder Paradigm, Mental Models Taxonomy, etc.)
+   - Reference the user's existing frameworks (Folder Paradigm, Mental Models Taxonomy, etc.)
    - Identify consilience opportunities (3+ domains converging)
    - Find validation or challenges to current thinking
    - Look for applications of Buddhist/neuroscience principles
@@ -553,7 +554,7 @@ Generate a comprehensive session report including:
 
 ---
 
-**Remember:** This is a knowledge base expansion engine. Your goal is to systematically grow Eugene's second brain with cutting-edge, well-integrated insights that enhance his intellectual capabilities and content creation potential.
+**Remember:** This is a knowledge base expansion engine. Your goal is to systematically grow the user's second brain with cutting-edge, well-integrated insights that enhance his intellectual capabilities and content creation potential.
 
 ## State Dependencies
 

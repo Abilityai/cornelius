@@ -1,7 +1,9 @@
 # Claude Code Settings (contains personal paths)
 .claude/settings.local.json
 .claude/settings.md
+.claude/claude_desktop_config.json
 .mcp.json
+.mcp.backup.json
 
 # Claude Code session data
 .claude/history.jsonl
@@ -14,16 +16,30 @@
 .claude/todos/
 .claude/plugins/
 .claude/.credentials.json
+.claude/stats-cache.json
+
+# Trinity platform-managed directories
+.trinity/
+.claude/commands/trinity/
 
 # Local Brain Search data (generated, user-specific)
 resources/local-brain-search/data/
 resources/local-brain-search/venv/
 resources/local-brain-search/__pycache__/
+resources/local-brain-search/tmp/
 *.pyc
 
+# Python virtual environments
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# Build outputs
+dist/
+build/
+
 # Obsidian workspace (personal view settings)
-.obsidian/workspace.json
-.obsidian/workspace-mobile.json
 .obsidian/
 
 # Smart Environments (deprecated)
@@ -43,6 +59,12 @@ $RECYCLE.BIN/
 # Linux
 *~
 
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
 # Node modules (if any)
 node_modules/
 
@@ -59,6 +81,9 @@ yarn-error.log*
 # Temporary files
 *.tmp
 *.temp
+
+# Large files
+*.pdf
 
 # Personal vault content (if using sample Brain)
 Brain/00-Inbox/*.md

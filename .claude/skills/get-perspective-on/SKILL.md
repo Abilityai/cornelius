@@ -1,11 +1,11 @@
 ---
 name: get-perspective-on
-description: Extract Eugene's perspective on a topic (called by Ruby or user)
+description: Extract the user's perspective on a topic (called by Ruby or user)
 ---
 
 # Get Perspective On
 
-Extract Eugene's unique perspective on a topic from the knowledge base. Returns brief, focused insights (not full article). Can be called directly by user or via Ruby agent in headless mode.
+Extract the user's unique perspective on a topic from the knowledge base. Returns brief, focused insights (not full article). Can be called directly by user or via Ruby agent in headless mode.
 
 ## Usage
 
@@ -50,7 +50,7 @@ Extract Eugene's unique perspective on a topic from the knowledge base. Returns 
 ## Output Format
 
 ```
-🧠 Eugene's Perspective: [Topic]
+🧠 the user's Perspective: [Topic]
 
 [1-3 paragraphs synthesizing unique insights from permanent notes]
 
@@ -72,7 +72,7 @@ Why this matters:
 
 When Ruby calls via headless mode:
 ```bash
-# Navigate to agent directory
+cd .
 claude -p "/get-perspective-on 'AI adoption barriers'" --output-format json
 ```
 
@@ -91,7 +91,7 @@ Good perspective:
 ✅ Highlights contrarian or non-obvious angles
 ✅ Connects to broader themes
 ✅ Includes concrete examples
-✅ Authentic Eugene voice
+✅ Authentic the user voice
 
 Weak perspective (regenerate):
 ❌ Generic AI knowledge
@@ -110,7 +110,7 @@ Weak perspective (regenerate):
 ## Notes
 
 - Keep brief (1-3 paragraphs)
-- Focus on what's unique to Eugene's thinking
+- Focus on what's unique to the user's thinking
 - Always cite permanent notes
 - Emphasize non-obvious connections
 - Cost: ~$0.30-0.40 per call
