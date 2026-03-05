@@ -11,7 +11,11 @@ Search the Obsidian vault using both semantic and keyword-based search.
 
 ## Local Brain Search
 
-Use Local Brain Search for all semantic search operations.
+Use Local Brain Search for all semantic search operations. Supports two modes:
+- **static**: Fast vector similarity (default)
+- **spreading**: SYNAPSE-inspired graph traversal (better for connections)
+
+**Note:** Usage-based learning is active - searches are tracked and rankings improve over time.
 
 ## Query
 $ARGUMENTS
@@ -20,12 +24,16 @@ $ARGUMENTS
 
 1. **Semantic Search** - Use Local Brain Search:
    ```bash
+   # For quick lookups, use static mode
    resources/local-brain-search/run_search.sh "$ARGUMENTS" --limit 5 --json
+
+   # For finding connections, use spreading mode
+   resources/local-brain-search/run_search.sh "$ARGUMENTS" --mode spreading --limit 5 --json
    ```
 
 2. **Keyword Search** - Use `Grep`:
    - Pattern: $ARGUMENTS
-   - Path: $VAULT_BASE_PATH/Brain
+   - Path: `Brain/`
    - Output mode: "files_with_matches" to get file list
    - Then use output mode: "content" with -C flag for context
 
@@ -38,7 +46,7 @@ $ARGUMENTS
 # Search Results: "$ARGUMENTS"
 
 ## Semantic Matches
-[Top 5 notes with similarity scores]
+[Top 5 notes with similarity/activation scores]
 
 ## Keyword Matches
 [Top 5 notes with context snippets from Grep]
@@ -55,6 +63,7 @@ Keep results concise and actionable. Highlight the most relevant findings.
 |--------|----------|------|-------|-------------|
 | Brain notes | `Brain/**/*.md` | X | | All vault notes for search |
 | Local Brain Search index | `resources/local-brain-search/` | X | | Vector index for semantic search |
+| Memory config | `resources/local-brain-search/memory_config.py` | X | | Tunable memory parameters |
 
 ## Completion Checklist
 

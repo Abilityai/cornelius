@@ -1,6 +1,7 @@
 ---
 name: self-diagnostic
 description: Run self-diagnostics on Cornelius agent to verify skills, commands, agents, and integrations are working. Use when troubleshooting, after configuration changes, or for regular health checks.
+automation: manual
 allowed-tools: Read, Bash, Grep, Glob, Skill, Task
 ---
 
@@ -221,7 +222,7 @@ Tests perspective extraction:
 
 ```
 Invoke /get-perspective-on with query: "AI agents"
-Expected: Returns Eugene's perspective with note citations
+Expected: Returns the user's perspective with note citations
 ```
 
 **Run this test:**

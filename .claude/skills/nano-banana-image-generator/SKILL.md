@@ -77,11 +77,11 @@ with 4-5 supporting elements. Use white text, DM Sans font, bold titles.
 LinkedIn post, gradient, red, white, large text, 15 boxes, arrows everywhere
 ```
 
-### Brand Styling (Eugene's)
+### Brand Styling (the user's)
 
 Include in prompts for brand consistency:
 ```
-Use Eugene's brand style: black background (#000000), white text (#ffffff),
+Use the user's brand style: black background (#000000), white text (#ffffff),
 DM Sans font, bold 700 weight for titles, clean minimal design.
 ```
 

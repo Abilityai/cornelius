@@ -7,12 +7,18 @@ allowed-tools: Read, Grep, Glob, Bash
 
 ## Local Brain Search
 
-Use Local Brain Search for all semantic search and connection discovery.
+Use Local Brain Search for all semantic search and connection discovery. **Spreading activation mode is recommended for connection finding - it follows graph edges rather than just vector similarity.**
 
 **Scripts:**
 ```bash
-# Semantic search
+# Spreading activation search (recommended for connection discovery)
+resources/local-brain-search/run_search.sh "query" --mode spreading --limit 10 --json
+
+# Static search (for exact lookups)
 resources/local-brain-search/run_search.sh "query" --limit 10 --json
+
+# Force synthesis intent (maximum graph exploration)
+resources/local-brain-search/run_search.sh "query" --mode spreading --intent synthesis --json
 
 # Find connections
 resources/local-brain-search/run_connections.sh "Note Name" --json
@@ -241,8 +247,10 @@ Structure your findings as follows:
 - Semantic embeddings: all-MiniLM-L6-v2 (384 dimensions)
 - Similarity algorithm: Cosine similarity between note embeddings
 - Connection graph: Multi-hop traversal with threshold filtering
+- **Spreading activation**: SYNAPSE-inspired graph traversal (when using `--mode spreading`)
 - Pattern detection: AI interpretation of semantic clusters
 - All findings are computational approximations requiring human validation
+- Configuration: `resources/local-brain-search/memory_config.py`
 
 ```
 

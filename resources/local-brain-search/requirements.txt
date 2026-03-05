@@ -1,3 +1,5 @@
 sentence-transformers>=2.2.0
 faiss-cpu>=1.7.0
 networkx>=3.0
+numpy>=1.21.0
+scipy>=1.9.0

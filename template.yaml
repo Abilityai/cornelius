@@ -19,9 +19,9 @@ resources:
   memory: "4g"
 
 # Optional Metadata
-version: "2.0.0"
+version: "3.0.0"
 author: "Ability AI"
-updated: "2025-02-13"
+updated: "2026-03-04"
 tagline: "Your insight harvester and second brain partner"
 
 use_cases:
@@ -31,9 +31,14 @@ use_cases:
   - "Search and recall relevant knowledge using semantic search"
   - "Analyze and understand your knowledge base structure"
   - "Capture reading reflections with source attribution"
+  - "Continuous autonomous learning and knowledge expansion"
+  - "Dialectical analysis to stress-test ideas"
 
 capabilities:
   - semantic_search
+  - spreading_activation
+  - usage_based_learning
+  - intent_classification
   - insight_extraction
   - connection_discovery
   - knowledge_synthesis
@@ -94,6 +99,26 @@ skills:
     description: "Rebuild the Local Brain Search FAISS index"
   - name: self-diagnostic
     description: "Run health checks on the agent"
+  - name: extract-insights
+    description: "Extract insights from personal content"
+  - name: extract-document-insights
+    description: "Extract insights from external documents"
+  - name: graduate-insights
+    description: "Review and promote notes to permanent status"
+  - name: git-commit-push
+    description: "Stage, commit, and push with approval gate"
+  - name: dialectic
+    description: "Stress-test ideas through structured argumentation"
+  - name: learn-new-things
+    description: "Continuous learning heartbeat"
+  - name: scheduled-run
+    description: "Wrapper for scheduled skills with git sync"
+  - name: benchmark-memory
+    description: "Benchmark Local Brain Search system"
+  - name: test-memory-system
+    description: "Test memory system improvements"
+  - name: update-dashboard
+    description: "Update dashboard metrics for Trinity"
 
 # MCP Servers (Optional)
 mcp_servers:

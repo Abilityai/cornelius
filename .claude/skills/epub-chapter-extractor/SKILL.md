@@ -19,13 +19,13 @@ If `output_dir` is omitted, creates a folder named after the EPUB in the same di
 
 ## Example
 
-User: "Extract chapters from /path/to/book.epub"
+User: "Extract chapters from /path/to/your/book.epub"
 
 ```bash
-cd ~/.claude/skills/epub-chapter-extractor && uv run --with ebooklib --with beautifulsoup4 --with html2text --with lxml python extract_chapters.py "/path/to/book.epub"
+cd ~/.claude/skills/epub-chapter-extractor && uv run --with ebooklib --with beautifulsoup4 --with html2text --with lxml python extract_chapters.py "/path/to/your/book.epub"
 ```
 
-Output files will be at `./book-output/`:
+Output files will be at `/path/to/your/book/`:
 - `01_introduction.md`
 - `02_chapter_one.md`
 - etc.
@@ -33,7 +33,7 @@ Output files will be at `./book-output/`:
 After extraction, open the output folder:
 
 ```bash
-open ./book-output
+open /path/to/your/book
 ```
 
 ## Output Format

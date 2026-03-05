@@ -11,12 +11,15 @@ You are tasked with retrieving relevant knowledge from the Obsidian vault using 
 
 ## Local Brain Search
 
-Use Local Brain Search for all semantic search operations.
+Use Local Brain Search for all semantic search operations. **Spreading activation mode recommended for synthesis queries.**
 
 **Scripts:**
 ```bash
-# Semantic search
+# Static search (fast, exact matches)
 resources/local-brain-search/run_search.sh "query" --limit 10 --json
+
+# Spreading activation search (follows graph connections)
+resources/local-brain-search/run_search.sh "query" --mode spreading --limit 10 --json
 
 # Find connections
 resources/local-brain-search/run_connections.sh "Note Name" --json
@@ -31,9 +34,9 @@ $ARGUMENTS
 ## Instructions
 
 1. **First Layer - Initial Search**:
-   - Use local brain search:
+   - Use spreading activation for better context:
      ```bash
-     resources/local-brain-search/run_search.sh "$ARGUMENTS" --limit 5 --json
+     resources/local-brain-search/run_search.sh "$ARGUMENTS" --mode spreading --limit 5 --json
      ```
    - Use `Read` tool to read the full content of the top 2 results
 
@@ -59,7 +62,7 @@ Present the findings in this structured format:
 # Knowledge Recall: [Query Topic]
 
 ## Layer 1: Direct Matches
-[List notes found with similarity scores and key excerpts]
+[List notes found with similarity/activation scores and key excerpts]
 
 ## Layer 2: First-Degree Associations
 [List connected notes with their relationships and excerpts]
@@ -75,10 +78,13 @@ Present the findings in this structured format:
 ```
 
 ## Important Notes
+- Use `--mode spreading` for synthesis and connection-finding queries
+- Use static mode for exact factual lookups
 - Focus on quality over quantity
 - Highlight unexpected connections
 - Provide enough context for the user to understand the relevance
 - If search returns no results, try broader terms or related concepts
+- **Learning active**: Searches are tracked and rankings improve over time based on usage
 
 ## State Dependencies
 
@@ -86,10 +92,11 @@ Present the findings in this structured format:
 |--------|----------|------|-------|-------------|
 | Brain notes | `Brain/**/*.md` | X | | Search permanent notes, sources, MOCs |
 | Local Brain Search index | `resources/local-brain-search/` | X | | Vector index for semantic search |
+| Memory config | `resources/local-brain-search/memory_config.py` | X | | Tunable memory parameters |
 
 ## Completion Checklist
 
-- [ ] Layer 1 search executed and top results read
+- [ ] Layer 1 search executed (spreading mode for synthesis queries)
 - [ ] Layer 2 connections retrieved for top result
 - [ ] Layer 3 hub notes checked for context
 - [ ] Key insights synthesized from findings
