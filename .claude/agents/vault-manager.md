@@ -29,10 +29,10 @@ Use Local Brain Search for semantic search operations.
 **Wrapper Scripts:**
 ```bash
 # Semantic search
-resources/local-brain-search/run_search.sh "query" --limit 10 --json
+/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_search.sh "query" --limit 10 --json
 
 # Find connections
-resources/local-brain-search/run_connections.sh "Note Name" --json
+/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh "Note Name" --json
 ```
 
 ---
@@ -70,7 +70,7 @@ Content here with [[wikilinks]] to other notes.
 - Retrieve file metadata using `Bash` stat commands
 - Use semantic search via Local Brain Search:
   ```bash
-  resources/local-brain-search/run_search.sh "query" --limit 10 --json
+  /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_search.sh "query" --limit 10 --json
   ```
 
 **Reading notes:**
@@ -304,9 +304,9 @@ Always provide clear, structured responses:
 
 **When creating social media posts, ALWAYS read the appropriate tone of voice profile FIRST:**
 
-- LinkedIn: `.claude/skills/create-article/tone-of-voice.md`
-- Twitter/X: `.claude/skills/create-article/tone-of-voice.md`
-- Threads/Instagram: `.claude/skills/create-article/tone-of-voice.md`
+- LinkedIn: `/Users/eugene/Library/CloudStorage/GoogleDrive-eugene@ability.ai/My Drive/Eugene Personal Brand/Prompts/Eugene_LinkedIn_Tone_of_Voice_Profile.md`
+- Twitter/X: `/Users/eugene/Library/CloudStorage/GoogleDrive-eugene@ability.ai/My Drive/Eugene Personal Brand/Prompts/Eugene_Twitter_Tone_of_Voice_Profile.md`
+- Threads/Instagram: `/Users/eugene/Library/CloudStorage/GoogleDrive-eugene@ability.ai/My Drive/Eugene Personal Brand/Prompts/Eugene_Text_Post_Tone_of_Voice_Profile.md`
 
 This is MANDATORY before writing any social media content.
 

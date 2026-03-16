@@ -25,24 +25,24 @@ model: sonnet
 
 Use Local Brain Search for all semantic search and connection discovery.
 
-**Location:** `resources/local-brain-search/`
+**Location:** `/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/`
 
 **Wrapper Scripts:**
 ```bash
 # Semantic search
-resources/local-brain-search/run_search.sh "query" --limit 10 --json
+/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_search.sh "query" --limit 10 --json
 
 # Find connections for a note
-resources/local-brain-search/run_connections.sh "Note Name" --json
+/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh "Note Name" --json
 
 # Get hub notes
-resources/local-brain-search/run_connections.sh --hubs --json
+/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh --hubs --json
 
 # Get graph statistics
-resources/local-brain-search/run_connections.sh --stats --json
+/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh --stats --json
 
 # Find bridge notes
-resources/local-brain-search/run_connections.sh --bridges --json
+/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh --bridges --json
 ```
 
 ---
@@ -71,13 +71,13 @@ Discover and document:
 - Use local brain search to find connections:
   ```bash
   # Search for notes by topic
-  resources/local-brain-search/run_search.sh "dopamine" --limit 10 --json
+  /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_search.sh "dopamine" --limit 10 --json
 
   # Get connections for a specific note
-  resources/local-brain-search/run_connections.sh "02-Permanent/Dopamine.md" --json
+  /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh "02-Permanent/Dopamine.md" --json
 
   # Find hub notes (most connected)
-  resources/local-brain-search/run_connections.sh --hubs --json
+  /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh --hubs --json
   ```
 - Identify notes with high similarity scores (0.75+) to starting point
 

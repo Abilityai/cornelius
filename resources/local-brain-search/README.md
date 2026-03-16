@@ -27,7 +27,7 @@ Graph edges: 10,870
 ## Quick Start
 
 ```bash
-cd resources/local-brain-search
+cd /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search
 
 # Basic search (static mode)
 ./run_search.sh "dopamine and motivation"

@@ -1,101 +1,176 @@
-# Claude Code Settings (contains personal paths)
-.claude/settings.local.json
-.claude/settings.md
-.claude/claude_desktop_config.json
+# =============================================================================
+# TRINITY PLATFORM - REQUIRED EXCLUSIONS
+# =============================================================================
+
+# Credentials and secrets (NEVER commit these)
 .mcp.json
 .mcp.backup.json
+.env
+*.pem
+*.key
+*.p12
+*.pfx
 
-# Claude Code session data
-.claude/history.jsonl
-.claude/cache/
+# User-specific Claude settings
+.claude/settings.local.json
+.claude/claude_desktop_config.json
+settings.local.json
+
+# Claude runtime state (NOT agent value - these are ephemeral)
+# Agent value (.claude/skills/, rules/, agents/, commands/, memory/) MUST be tracked
 .claude/debug/
-.claude/file-history/
 .claude/projects/
-.claude/shell-snapshots/
-.claude/statsig/
-.claude/todos/
-.claude/plugins/
-.claude/.credentials.json
-.claude/stats-cache.json
+.claude/cache/
+.claude/credentials/
+
+# Obsidian app settings (user-specific)
+.obsidian/
 
 # Trinity platform-managed directories
 .trinity/
 .claude/commands/trinity/
 
-# Local Brain Search data (generated, user-specific)
-resources/local-brain-search/data/
-resources/local-brain-search/venv/
-resources/local-brain-search/__pycache__/
-resources/local-brain-search/tmp/
-*.pyc
-
-# Python virtual environments
-.venv/
-venv/
-__pycache__/
-*.py[cod]
-
-# Build outputs
-dist/
-build/
-
-# Obsidian workspace (personal view settings)
-.obsidian/
-
-# Smart Environments (deprecated)
-.smart-env/
+# =============================================================================
+# SYSTEM FILES
+# =============================================================================
 
 # macOS
 .DS_Store
 .AppleDouble
 .LSOverride
+._*
+.Spotlight-V100
+.Trashes
 
 # Windows
 Thumbs.db
 ehthumbs.db
 Desktop.ini
-$RECYCLE.BIN/
 
 # Linux
 *~
+.directory
 
-# IDE
+# =============================================================================
+# IDE AND EDITOR
+# =============================================================================
+
+# VSCode
 .vscode/
+*.code-workspace
+
+# JetBrains
 .idea/
+*.iml
+*.ipr
+*.iws
+
+# Vim
 *.swp
 *.swo
+*~
+.netrwhist
 
-# Node modules (if any)
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+
+# =============================================================================
+# DEVELOPMENT
+# =============================================================================
+
+# Node.js
 node_modules/
-
-# Logs
-*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.npm
+.yarn-integrity
 
-# Environment variables
-.env
-.env.local
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+.eggs/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
 
-# Temporary files
-*.tmp
-*.temp
+# =============================================================================
+# BUILD OUTPUTS
+# =============================================================================
 
-# Large files
+# General
+dist/
+build/
+*.log
+
+# Quartz (static site generator)
+quartz-site/public/
+quartz-site/.quartz-cache/
+
+# =============================================================================
+# LARGE FILES (Consider using Git LFS)
+# =============================================================================
+
+# PDF documents (large)
 *.pdf
 
-# Personal vault content (if using sample Brain)
-Brain/00-Inbox/*.md
-Brain/01-Sources/**/*.md
-Brain/02-Permanent/*.md
-Brain/03-MOCs/*.md
-Brain/04-Output/**/*.md
-Brain/05-Meta/Changelogs/*.md
-Brain/AI Extracted Notes/*.md
-Brain/Document Insights/**/*.md
-!Brain/**/README.md
-!Brain/**/_SAMPLE*.md
-!Brain/**/MOC - Master Navigation.md
-!Brain/04-Output/Articles/ARTICLE-INDEX.md
-!Brain/04-Output/Articles/whats-new-*/**
+# Backup files
+*.bak
+*.backup
+
+# =============================================================================
+# AGENT-SPECIFIC
+# =============================================================================
+
+# Smart Connections plugin environment
+.smart-env/
+
+# Local search index (regenerated on demand)
+resources/local-brain-search/*.faiss
+resources/local-brain-search/*.pkl
+resources/local-brain-search/embeddings/
+
+# Python virtual environments
+resources/pdf_env/
+resources/local-brain-search/venv/
+
+# Temporary workspace files
+resources/temp/
+resources/scratch/
+
+# Session-specific outputs (if not needed in version control)
+# outputs/temp/
+# outputs/draft/
+
+# Temporary extraction scripts (one-off utilities)
+extract_*.py
+list_epub_contents.py
+call_abliterated.py
+test_abliterated.py
+final_extraction.py
+run_extraction.sh
+test_with_token.sh
+EPUB_EXTRACTION_*.md
+EXTRACTION_COMPLETE.md
+
+# External reference folders (symlinks or copies)
+Eugene Personal Brand/
+.local/
+content/
+
+# Claude runtime state (ephemeral, should not be tracked)
+.claude/statsig/
+.claude/todos/
+.claude/shell-snapshots/
+.claude/stats-cache.json
+.cache/

@@ -35,9 +35,9 @@ New notes often sit unconnected. This playbook identifies notes from the last 14
 Find notes modified in the last 14 days:
 
 ```bash
-find Brain/02-Permanent -name "*.md" -mtime -14 -type f
-find Brain/AI\ Extracted\ Notes -name "*.md" -mtime -14 -type f
-find Brain/Document\ Insights -name "*.md" -mtime -14 -type f
+find /Users/eugene/Dropbox/Agents/Cornelius/Brain/02-Permanent -name "*.md" -mtime -14 -type f
+find /Users/eugene/Dropbox/Agents/Cornelius/Brain/AI\ Extracted\ Notes -name "*.md" -mtime -14 -type f
+find /Users/eugene/Dropbox/Agents/Cornelius/Brain/Document\ Insights -name "*.md" -mtime -14 -type f
 ```
 
 Compile list of recent notes.
@@ -55,7 +55,7 @@ For each recent note:
 1. Extract note title from filename
 2. Run connection discovery:
    ```bash
-   resources/local-brain-search/run_connections.sh "Note Title" --json
+   /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh "Note Title" --json
    ```
 3. Record top 5 connections with similarity scores
 

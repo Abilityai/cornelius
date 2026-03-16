@@ -14,26 +14,26 @@ Use Local Brain Search for all semantic search operations.
 **Scripts:**
 ```bash
 # Semantic search
-resources/local-brain-search/run_search.sh "query" --limit 10 --json
+/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_search.sh "query" --limit 10 --json
 
 # Find connections
-resources/local-brain-search/run_connections.sh "Note Name" --json
+/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh "Note Name" --json
 
 # Get graph statistics
-resources/local-brain-search/run_connections.sh --stats --json
+/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh --stats --json
 
 # Find hub notes
-resources/local-brain-search/run_connections.sh --hubs --json
+/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh --hubs --json
 
 # Find bridge notes
-resources/local-brain-search/run_connections.sh --bridges --json
+/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh --bridges --json
 ```
 
 Follow these steps:
 
 1. Get vault statistics using Local Brain Search:
    ```bash
-   resources/local-brain-search/run_connections.sh --stats --json
+   /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh --stats --json
    ```
 
 2. List all notes with full directory tree using `Bash` find:
@@ -51,8 +51,8 @@ Follow these steps:
 
 5. Use Local Brain Search to identify hub notes and bridges:
    ```bash
-   resources/local-brain-search/run_connections.sh --hubs --json
-   resources/local-brain-search/run_connections.sh --bridges --json
+   /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh --hubs --json
+   /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh --bridges --json
    ```
 
 6. Analyze thematic clusters, hierarchical organization, and conceptual architecture

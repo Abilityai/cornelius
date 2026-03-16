@@ -10,7 +10,7 @@ user-invocable: false
 
 ## File Location & Naming
 
-- **Directory:** `Brain/05-Meta/Changelogs/`
+- **Directory:** `/Users/eugene/Dropbox/Agents/Cornelius/Brain/05-Meta/Changelogs/`
 - **Naming Format:** `CHANGELOG - [Session Type] YYYY-MM-DD.md`
 - **Examples:**
   - `CHANGELOG - Auto-Discovery Sessions 2025-10-25.md`

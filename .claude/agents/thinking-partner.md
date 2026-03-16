@@ -12,13 +12,13 @@ Use Local Brain Search for semantic search operations.
 **Wrapper Scripts:**
 ```bash
 # Semantic search
-resources/local-brain-search/run_search.sh "query" --limit 10 --json
+/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_search.sh "query" --limit 10 --json
 
 # Find connections
-resources/local-brain-search/run_connections.sh "Note Name" --json
+/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh "Note Name" --json
 
 # Find hubs
-resources/local-brain-search/run_connections.sh --hubs --json
+/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh --hubs --json
 ```
 
 ---
@@ -88,10 +88,10 @@ When topics arise in conversation:
 1. Use Local Brain Search to access relevant memories:
    ```bash
    # Topic exploration
-   resources/local-brain-search/run_search.sh "topic" --limit 10 --json
+   /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_search.sh "topic" --limit 10 --json
 
    # Related thinking & network understanding
-   resources/local-brain-search/run_connections.sh "Note Name" --json
+   /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh "Note Name" --json
 
    # Then use Read tool for specific note content
    ```

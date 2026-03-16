@@ -408,9 +408,14 @@ def main():
     print(f"(threshold: {args.threshold}, mode: {args.mode})")
 
     if meta:
-        print(f"\nIntent: {meta['intent']} ({meta['confidence']:.0%} confidence)")
-        print(f"Spreading: {meta['iterations']} iterations, converged: {meta['converged']}")
-        print(f"Seeds: {meta['seed_count']} notes")
+        if "intent" in meta:
+            # Spreading mode metadata
+            print(f"\nIntent: {meta['intent']} ({meta['confidence']:.0%} confidence)")
+            print(f"Spreading: {meta['iterations']} iterations, converged: {meta['converged']}")
+            print(f"Seeds: {meta['seed_count']} notes")
+        elif "mode" in meta:
+            # Static mode metadata
+            print(f"\nMode: {meta['mode']} (learning: {'enabled' if meta.get('learning_enabled') else 'disabled'})")
 
     for result in results:
         print(format_result(result, show_full=args.full, mode=args.mode))

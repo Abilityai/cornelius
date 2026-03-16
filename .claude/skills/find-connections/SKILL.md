@@ -12,25 +12,25 @@ Use Local Brain Search for all semantic search and connection discovery. **Sprea
 **Scripts:**
 ```bash
 # Spreading activation search (recommended for connection discovery)
-resources/local-brain-search/run_search.sh "query" --mode spreading --limit 10 --json
+/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_search.sh "query" --mode spreading --limit 10 --json
 
 # Static search (for exact lookups)
-resources/local-brain-search/run_search.sh "query" --limit 10 --json
+/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_search.sh "query" --limit 10 --json
 
 # Force synthesis intent (maximum graph exploration)
-resources/local-brain-search/run_search.sh "query" --mode spreading --intent synthesis --json
+/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_search.sh "query" --mode spreading --intent synthesis --json
 
 # Find connections
-resources/local-brain-search/run_connections.sh "Note Name" --json
+/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh "Note Name" --json
 
 # Find hubs
-resources/local-brain-search/run_connections.sh --hubs --json
+/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh --hubs --json
 
 # Find bridges
-resources/local-brain-search/run_connections.sh --bridges --json
+/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh --bridges --json
 
 # Get stats
-resources/local-brain-search/run_connections.sh --stats --json
+/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh --stats --json
 ```
 
 ---
@@ -60,7 +60,7 @@ Map the conceptual network around the specified note or topic, revealing:
    ```
 2. If given a topic, search using Local Brain Search:
    ```bash
-   resources/local-brain-search/run_search.sh "$ARGUMENTS" --limit 5 --json
+   /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_search.sh "$ARGUMENTS" --limit 5 --json
    ```
 3. Read the anchor note's full content using `Read` tool
 4. Get the exact file path for subsequent operations
@@ -68,7 +68,7 @@ Map the conceptual network around the specified note or topic, revealing:
 ### Phase 2: Immediate Network Mapping
 1. Use Local Brain Search to get connections:
    ```bash
-   resources/local-brain-search/run_connections.sh "Note Name" --json
+   /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh "Note Name" --json
    ```
 2. Identify the top 3-5 most connected notes (both explicit and semantic)
 3. Use `Read` to examine their content and understand connection nature
@@ -76,9 +76,9 @@ Map the conceptual network around the specified note or topic, revealing:
 ### Phase 3: Deep Network Analysis
 1. Get graph statistics and hub notes:
    ```bash
-   resources/local-brain-search/run_connections.sh --stats --json
-   resources/local-brain-search/run_connections.sh --hubs --json
-   resources/local-brain-search/run_connections.sh --bridges --json
+   /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh --stats --json
+   /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh --hubs --json
+   /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh --bridges --json
    ```
 2. Map the multi-hop network structure
 3. Identify clusters and bridges

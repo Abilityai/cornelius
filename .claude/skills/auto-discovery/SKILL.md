@@ -45,9 +45,9 @@ Use for changelog filename.
 Sample from 3-5 diverse domains using Local Brain Search:
 
 ```bash
-resources/local-brain-search/run_search.sh "dopamine" --limit 5 --json
-resources/local-brain-search/run_search.sh "uncertainty" --limit 5 --json
-resources/local-brain-search/run_search.sh "identity" --limit 5 --json
+/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_search.sh "dopamine" --limit 5 --json
+/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_search.sh "uncertainty" --limit 5 --json
+/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_search.sh "identity" --limit 5 --json
 ```
 
 Pick seed notes from different clusters.
@@ -57,7 +57,7 @@ Pick seed notes from different clusters.
 For each seed note:
 
 ```bash
-resources/local-brain-search/run_connections.sh "Note Name" --json
+/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh "Note Name" --json
 ```
 
 Identify notes with similarity 0.50-0.70 from DIFFERENT domains.

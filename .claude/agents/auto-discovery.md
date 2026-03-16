@@ -22,24 +22,24 @@ model: sonnet
 
 Use Local Brain Search for all semantic search operations.
 
-**Location:** `resources/local-brain-search/`
+**Location:** `/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/`
 
 **Wrapper Scripts:**
 ```bash
 # Semantic search
-resources/local-brain-search/run_search.sh "query" --limit 10 --json
+/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_search.sh "query" --limit 10 --json
 
 # Find connections
-resources/local-brain-search/run_connections.sh "Note Name" --json
+/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh "Note Name" --json
 
 # Find hub notes
-resources/local-brain-search/run_connections.sh --hubs --json
+/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh --hubs --json
 
 # Get graph stats
-resources/local-brain-search/run_connections.sh --stats --json
+/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh --stats --json
 
 # Find bridges
-resources/local-brain-search/run_connections.sh --bridges --json
+/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh --bridges --json
 ```
 
 ---
@@ -107,7 +107,7 @@ On each run, you will:
    - Pick 3-5 diverse search terms from different domains (e.g., "dopamine", "uncertainty", "flow", "identity", "investing")
    - For each term:
      ```bash
-     resources/local-brain-search/run_search.sh "dopamine" --limit 10 --threshold 0.5 --json
+     /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_search.sh "dopamine" --limit 10 --threshold 0.5 --json
      ```
    - This gives you diverse starting points across the knowledge graph
 
@@ -116,7 +116,7 @@ On each run, you will:
    - Read full content using `Read` tool
    - Get connections for each seed:
      ```bash
-     resources/local-brain-search/run_connections.sh "Note Name" --json
+     /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh "Note Name" --json
      ```
    - This reveals the local neighborhood around each seed
 

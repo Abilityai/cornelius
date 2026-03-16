@@ -41,12 +41,12 @@ Analyze knowledge base to identify research opportunities:
 
 1. **Read knowledge base analysis:**
    ```bash
-   cat knowledge-base-analysis.md
+   cat /Users/eugene/Dropbox/Agents/Cornelius/knowledge-base-analysis.md
    ```
 
 2. **Check recent activity:**
    ```bash
-   ls -lt Brain/Document\ Insights/ | head -10
+   ls -lt /Users/eugene/Dropbox/Agents/Cornelius/Brain/Document\ Insights/ | head -10
    ```
 
 3. **Identify gaps based on:**
@@ -130,7 +130,7 @@ RESEARCH REQUIREMENTS:
    - Critical analysis and synthesis
 
 4. **Save Location:**
-   resources/[Topic-Slug]-Research-Report-YYYY-MM-DD.md
+   /Users/eugene/Dropbox/Agents/Cornelius/resources/[Topic-Slug]-Research-Report-YYYY-MM-DD.md
 
 VERIFICATION: Before finalizing, verify that 80%+ of papers are from 2024-2025. If not, search again with more explicit recency filters.
 
@@ -160,7 +160,7 @@ Format: `YYYY-MM-DD [Topic Description]`
 
 Example: `2025-11-20 Neuroscience of Habits and Behavior Change`
 
-**Path:** `Brain/Document Insights/[Session-Folder]/`
+**Path:** `/Users/eugene/Dropbox/Agents/Cornelius/Brain/Document Insights/[Session-Folder]/`
 
 ### Launch Document Insight Extractor
 
@@ -187,7 +187,7 @@ EXTRACTION GUIDELINES:
 
 2. **Bridge to Existing Knowledge Base:**
    - Connect to the 6 primary hubs: Consciousness, Dopamine, Decision-Making, Identity, AI Agents, Flow States
-   - Reference the user's existing frameworks (Folder Paradigm, Mental Models Taxonomy, etc.)
+   - Reference Eugene's existing frameworks (Folder Paradigm, Mental Models Taxonomy, etc.)
    - Identify consilience opportunities (3+ domains converging)
    - Find validation or challenges to current thinking
    - Look for applications of Buddhist/neuroscience principles
@@ -215,7 +215,7 @@ EXTRACTION GUIDELINES:
 
 CRITICAL:
 - ALWAYS search for duplicates before creating notes
-- Store ALL extracted notes in: Brain/Document Insights/[Session-Folder]/
+- Store ALL extracted notes in: /Users/eugene/Dropbox/Agents/Cornelius/Brain/Document Insights/[Session-Folder]/
 - Create comprehensive changelog documenting extraction process
 ```
 
@@ -255,7 +255,7 @@ Use Task tool with subagent_type='connection-finder':
 Discover connections between newly extracted insights and existing knowledge base.
 
 STARTING POINTS:
-All notes in session folder: Brain/Document Insights/[Session-Folder]/
+All notes in session folder: /Users/eugene/Dropbox/Agents/Cornelius/Brain/Document Insights/[Session-Folder]/
 
 Or specify individual notes if doing targeted passes.
 
@@ -291,8 +291,8 @@ CONNECTION DISCOVERY GOALS:
    - Identify bridge notes connecting multiple domains
    - Highlight consilience zones and synthesis opportunities
    - Create dated changelog: CHANGELOG - Connection Discovery Session YYYY-MM-DD.md
-   - Store changelog in: Brain/05-Meta/Changelogs/
-   - Update master changelog: Brain/CHANGELOG.md
+   - Store changelog in: /Users/eugene/Dropbox/Agents/Cornelius/Brain/05-Meta/Changelogs/
+   - Update master changelog: /Users/eugene/Dropbox/Agents/Cornelius/Brain/CHANGELOG.md
    - Suggest concrete article topics or framework extensions
 
 Begin comprehensive connection mapping.
@@ -554,7 +554,7 @@ Generate a comprehensive session report including:
 
 ---
 
-**Remember:** This is a knowledge base expansion engine. Your goal is to systematically grow the user's second brain with cutting-edge, well-integrated insights that enhance his intellectual capabilities and content creation potential.
+**Remember:** This is a knowledge base expansion engine. Your goal is to systematically grow Eugene's second brain with cutting-edge, well-integrated insights that enhance his intellectual capabilities and content creation potential.
 
 ## State Dependencies
 

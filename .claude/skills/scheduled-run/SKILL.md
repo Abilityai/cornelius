@@ -25,7 +25,7 @@ Ensures scheduled playbooks on Trinity stay in sync with the GitHub repository.
 ### Step 1: Pull Latest Changes
 
 ```bash
-cd . && git pull --rebase
+cd /Users/eugene/Dropbox/Agents/Cornelius && git pull --rebase
 ```
 
 If conflicts, abort and log error.
@@ -43,7 +43,7 @@ Wait for completion.
 ### Step 3: Check for Changes
 
 ```bash
-cd . && git status --porcelain
+cd /Users/eugene/Dropbox/Agents/Cornelius && git status --porcelain
 ```
 
 If no changes, skip to completion.
@@ -51,7 +51,7 @@ If no changes, skip to completion.
 ### Step 4: Commit Changes
 
 ```bash
-cd . && git add -A && git commit -m "$(cat <<'EOF'
+cd /Users/eugene/Dropbox/Agents/Cornelius && git add -A && git commit -m "$(cat <<'EOF'
 Scheduled: $ARGUMENTS $(date '+%Y-%m-%d %H:%M')
 
 Automated execution via /scheduled-run
@@ -64,7 +64,7 @@ EOF
 ### Step 5: Push to Remote
 
 ```bash
-cd . && git push
+cd /Users/eugene/Dropbox/Agents/Cornelius && git push
 ```
 
 ## Error Handling

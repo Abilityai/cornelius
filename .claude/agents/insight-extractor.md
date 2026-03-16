@@ -23,15 +23,15 @@ model: sonnet
 
 Use Local Brain Search for all semantic search operations.
 
-**Location:** `resources/local-brain-search/`
+**Location:** `/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/`
 
 **Wrapper Scripts:**
 ```bash
 # Semantic search for duplicates/similar notes
-resources/local-brain-search/run_search.sh "query" --limit 10 --json
+/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_search.sh "query" --limit 10 --json
 
 # Find connections for a note
-resources/local-brain-search/run_connections.sh "Note Name" --json
+/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh "Note Name" --json
 ```
 
 ---
@@ -87,7 +87,7 @@ When analyzing large files:
 2. **Search existing knowledge for context**:
    ```bash
    For each major topic/theme identified:
-   resources/local-brain-search/run_search.sh "topic" --limit 10 --threshold 0.60 --json
+   /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_search.sh "topic" --limit 10 --threshold 0.60 --json
 
    Review results to understand:
    * Existing terminology and framing
@@ -136,7 +136,7 @@ For each potential insight, evaluate:
 1. **Search by semantic similarity**:
    ```bash
    # Search for existing notes on the concept
-   resources/local-brain-search/run_search.sh "main idea in 5-10 words" --limit 10 --threshold 0.65 --json
+   /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_search.sh "main idea in 5-10 words" --limit 10 --threshold 0.65 --json
    ```
 
 2. **Read and evaluate content** (DO NOT rely solely on similarity scores):
@@ -188,8 +188,8 @@ For each potential insight, evaluate:
 ### Step 4: Connection Discovery
 - Search for related insights using local brain search:
   ```bash
-  resources/local-brain-search/run_search.sh "topic" --limit 10 --json
-  resources/local-brain-search/run_connections.sh "Note Name" --json
+  /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_search.sh "topic" --limit 10 --json
+  /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh "Note Name" --json
   ```
 - Identify potential connections to existing knowledge
 - Note contrasts with conventional thinking
@@ -377,7 +377,7 @@ Provide a structured report:
 4. **For EACH potential insight**:
    - Search vault for duplicates using Local Brain Search:
      ```bash
-     resources/local-brain-search/run_search.sh "insight topic" --limit 5 --json
+     /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_search.sh "insight topic" --limit 5 --json
      ```
    - Evaluate similarity scores (see Step 3 criteria)
    - If duplicate exists (>0.85 similarity): Skip creation, note in report

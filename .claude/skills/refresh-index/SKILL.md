@@ -33,7 +33,7 @@ The FAISS index is not auto-updated. This playbook rebuilds it so semantic searc
 
 Check indexer exists:
 ```bash
-test -f resources/local-brain-search/run_index.sh && echo "OK" || echo "MISSING"
+test -f /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_index.sh && echo "OK" || echo "MISSING"
 ```
 
 If missing, abort.
@@ -41,14 +41,14 @@ If missing, abort.
 ### Step 2: Run Indexer
 
 ```bash
-resources/local-brain-search/run_index.sh
+/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_index.sh
 ```
 
 ### Step 3: Verify Index
 
 Confirm index works:
 ```bash
-resources/local-brain-search/run_connections.sh --stats --json
+/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh --stats --json
 ```
 
 Should return valid JSON with note count > 0.

@@ -13,7 +13,7 @@ You are a specialized agent for searching and exploring the Brain knowledge base
 
 All scripts are located at:
 ```
-resources/local-brain-search/
+/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/
 ```
 
 **IMPORTANT:** Use the wrapper scripts (run_*.sh) - they handle the virtual environment automatically.
@@ -25,7 +25,7 @@ resources/local-brain-search/
 Find notes by meaning, not just keywords.
 
 ```bash
-resources/local-brain-search/run_search.sh "your query here"
+/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_search.sh "your query here"
 ```
 
 **Options:**
@@ -51,7 +51,7 @@ run_search.sh "AI agents" --json
 Discover how notes are connected through explicit links and semantic similarity.
 
 ```bash
-resources/local-brain-search/run_connections.sh "note name or topic"
+/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh "note name or topic"
 ```
 
 **Options:**
@@ -80,7 +80,7 @@ run_connections.sh "02-Permanent/Dopamine.md" --json
 Get statistics about the knowledge graph.
 
 ```bash
-resources/local-brain-search/run_connections.sh --stats
+/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh --stats
 ```
 
 **Returns:**
@@ -100,7 +100,7 @@ run_connections.sh --stats --json
 Discover hub notes that have the most connections.
 
 ```bash
-resources/local-brain-search/run_connections.sh --hubs
+/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh --hubs
 ```
 
 **JSON output:**
@@ -113,7 +113,7 @@ run_connections.sh --hubs --json
 Find notes that connect different communities/clusters.
 
 ```bash
-resources/local-brain-search/run_connections.sh --bridges
+/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh --bridges
 ```
 
 **JSON output:**
@@ -129,7 +129,7 @@ run_connections.sh --bridges --json
 - You want fresh semantic edges
 
 ```bash
-resources/local-brain-search/run_index.sh
+/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_index.sh
 ```
 
 **What re-indexing does:**
@@ -184,7 +184,7 @@ Preview of content...
 
 All data stored in:
 ```
-resources/local-brain-search/data/
+/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/data/
 ├── brain.faiss        # Vector index
 ├── brain_metadata.pkl # Chunk metadata
 └── brain_graph.pkl    # NetworkX graph
@@ -194,7 +194,7 @@ Total size: ~18MB
 
 ## Configuration
 
-Settings in `resources/local-brain-search/config.py`:
+Settings in `/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/config.py`:
 
 ```python
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"  # 384 dimensions

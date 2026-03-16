@@ -7,7 +7,7 @@ allowed-tools: Read, Grep, Glob, Write, Bash, Task
 
 # Create Article Skill
 
-Create publication-ready long-form articles by synthesizing insights from the user's knowledge base, following established tone of voice and structural patterns.
+Create publication-ready long-form articles by synthesizing insights from Eugene's knowledge base, following established tone of voice and structural patterns.
 
 ## Quick Start
 
@@ -41,10 +41,10 @@ Search the knowledge base for relevant insights:
 
 ```bash
 # Semantic search for topic
-resources/local-brain-search/run_search.sh "your topic" --limit 15 --json
+/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_search.sh "your topic" --limit 15 --json
 
 # Find connections to existing notes
-resources/local-brain-search/run_connections.sh "Related Note Name" --json
+/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh "Related Note Name" --json
 ```
 
 **Key locations to search:**
@@ -107,7 +107,7 @@ For detailed guidance, see:
 
 ### Voice Summary
 
-the user's long-form voice transforms complex research into actionable business insights through methodical, evidence-based teaching. He challenges assumptions with data while maintaining accessibility, creating structured learning experiences that bridge academic rigor with practical application.
+Eugene's long-form voice transforms complex research into actionable business insights through methodical, evidence-based teaching. He challenges assumptions with data while maintaining accessibility, creating structured learning experiences that bridge academic rigor with practical application.
 
 ### Essential Do's
 
@@ -166,7 +166,7 @@ Adjust content based on target platform:
 This skill can be called headlessly by Ruby agent for content production:
 
 ```bash
-cd .
+cd /Users/eugene/Dropbox/Agents/Cornelius
 claude -p "/create-article <topic> for <platform>" --output-format json
 ```
 
@@ -185,7 +185,7 @@ claude -p "/create-article <topic> for <platform>" --output-format json
 When called by Ruby:
 - Return article text directly (don't save to file)
 - Include cited notes list
-- Focus on the user's unique/contrarian perspectives
+- Focus on Eugene's unique/contrarian perspectives
 
 ---
 
