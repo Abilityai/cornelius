@@ -1,0 +1,2180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<title>Maritime Surveillance Economics Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false});"></script>
+<style>
+  :root {
+    --black: #000000;
+    --grey: #808080;
+    --white: #FFFFFF;
+    --green: #B3BCB5;
+    --green-75: #C9D0CB;
+    --green-50: #D9DDDA;
+    --blue: #B4BACC;
+    --blue-75: #C8CDD9;
+    --blue-50: #DADCE6;
+    --bg: #FAFAFA;
+    --card-bg: #FFFFFF;
+    --border: #E5E5E5;
+    --font: 'Inter', -apple-system, system-ui, 'Segoe UI', sans-serif;
+    --tracking-tight: -0.015em;
+    --leading-body: 1.6;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--black);
+    font-weight: 600;
+    letter-spacing: 0;
+    line-height: var(--leading-body);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* --- NAV --- */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--black);
+    color: var(--white);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    height: 56px;
+    gap: 2rem;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  nav .brand {
+    font-weight: 500;
+    font-size: 0.8125rem;
+    letter-spacing: var(--tracking-tight);
+    text-transform: uppercase;
+    opacity: 0.5;
+    flex-shrink: 0;
+  }
+  nav a {
+    color: var(--white);
+    text-decoration: none;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    opacity: 0.6;
+    transition: opacity 0.15s;
+    flex-shrink: 0;
+  }
+  nav a:hover, nav a.active { opacity: 1; }
+  nav a.nav-logo { opacity: 0.85; }
+  nav a.nav-logo:hover { opacity: 1; }
+
+  /* --- LAYOUT --- */
+  .hero {
+    padding: 4rem 2rem 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .hero h1 {
+    font-size: 2.5rem;
+    font-weight: 500;
+    letter-spacing: var(--tracking-tight);
+    line-height: 1.1;
+    margin-bottom: 0.75rem;
+  }
+  .hero p {
+    color: var(--grey);
+    font-size: 1rem;
+    max-width: 640px;
+  }
+
+  section {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 3rem 2rem;
+  }
+  section h2 {
+    font-size: 1.5rem;
+    font-weight: 500;
+    letter-spacing: var(--tracking-tight);
+    margin-bottom: 0.25rem;
+  }
+  section .subtitle {
+    color: var(--grey);
+    font-size: 0.875rem;
+    margin-bottom: 2rem;
+  }
+
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  /* --- FILTER PILLS --- */
+  .pills {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+  }
+  .pill {
+    padding: 0.375rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    font-family: var(--font);
+    cursor: pointer;
+    background: var(--white);
+    color: var(--black);
+    transition: all 0.15s;
+  }
+  .pill:hover { border-color: var(--grey); }
+  .pill.active {
+    background: var(--black);
+    color: var(--white);
+    border-color: var(--black);
+  }
+
+  /* --- CHART CONTAINERS --- */
+  .chart-wrap {
+    position: relative;
+    width: 100%;
+    height: 480px;
+    margin-bottom: 1rem;
+  }
+  .chart-wrap canvas { width: 100% !important; height: 100% !important; }
+
+  /* --- DETAIL CARD --- */
+  .detail-card {
+    display: none;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-top: 1rem;
+  }
+  .detail-card.visible { display: block; }
+  .detail-card h3 {
+    font-size: 1.125rem;
+    font-weight: 500;
+    letter-spacing: var(--tracking-tight);
+    margin-bottom: 0.75rem;
+  }
+  .detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+  }
+  .detail-item label {
+    display: block;
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    color: var(--grey);
+    letter-spacing: 0.05em;
+    margin-bottom: 0.25rem;
+  }
+  .detail-item span {
+    font-size: 1.25rem;
+    font-weight: 500;
+  }
+  .source-link {
+    display: inline-block;
+    color: var(--blue);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.8125rem;
+    border-bottom: 1px solid transparent;
+    margin-right: 1rem;
+    transition: border-color 0.15s;
+  }
+  .source-link:hover { border-bottom-color: var(--blue); }
+  [data-theme="dark"] .source-link { color: #A8B0CC; }
+
+  /* --- FORM CONTROLS --- */
+  .form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .form-group label {
+    display: block;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: var(--grey);
+    letter-spacing: 0.05em;
+    margin-bottom: 0.375rem;
+  }
+  .form-group input,
+  .form-group select {
+    width: 100%;
+    padding: 0.625rem 0.875rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-family: var(--font);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    background: var(--white);
+    color: var(--black);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .form-group input:focus,
+  .form-group select:focus { border-color: var(--black); }
+
+  .preset-btns {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+  }
+  .preset-btn {
+    padding: 0.375rem 0.875rem;
+    border: 1px solid var(--green);
+    border-radius: 6px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    font-family: var(--font);
+    cursor: pointer;
+    background: var(--green-50);
+    color: var(--black);
+    transition: all 0.15s;
+  }
+  .preset-btn:hover { background: var(--green); }
+
+  /* --- RESULTS --- */
+  .results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+  }
+  .result-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+    text-align: center;
+  }
+  .result-card .value {
+    font-size: 2rem;
+    font-weight: 500;
+    letter-spacing: var(--tracking-tight);
+    margin-bottom: 0.25rem;
+  }
+  .result-card .label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: var(--grey);
+    letter-spacing: 0.05em;
+  }
+  .result-card.highlight {
+    background: var(--black);
+    color: var(--white);
+    border-color: var(--black);
+  }
+  .result-card.highlight .label { color: rgba(255,255,255,0.5); }
+
+  /* --- COMPARISON TABLE --- */
+  .comp-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+    margin-top: 1rem;
+  }
+  .comp-table th {
+    text-align: left;
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    color: var(--grey);
+    letter-spacing: 0.05em;
+    padding: 0.75rem 1rem;
+    border-bottom: 2px solid var(--black);
+  }
+  .comp-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .comp-table tr:last-child td { border-bottom: none; }
+  .comp-table .best { color: var(--black); font-weight: 700; }
+
+  /* --- SLIDER --- */
+  .slider-group {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .slider-group label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: var(--grey);
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+  }
+  .slider-group input[type="range"] {
+    flex: 1;
+    accent-color: var(--black);
+    height: 4px;
+  }
+  .slider-group .val {
+    font-size: 1.25rem;
+    font-weight: 500;
+    min-width: 3rem;
+    text-align: right;
+  }
+
+  /* --- TOGGLE --- */
+  .toggle-row {
+    display: flex;
+    gap: 0;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    width: fit-content;
+  }
+  .toggle-btn {
+    padding: 0.5rem 1.25rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    font-family: var(--font);
+    border: none;
+    cursor: pointer;
+    background: var(--white);
+    color: var(--grey);
+    transition: all 0.15s;
+  }
+  .toggle-btn.active {
+    background: var(--black);
+    color: var(--white);
+  }
+
+  /* --- PHYSICS CARDS --- */
+  .physics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 1rem;
+  }
+  .physics-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .physics-card-header {
+    padding: 1.25rem 1.5rem 0.75rem;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .physics-card-header h3 {
+    font-size: 1rem;
+    font-weight: 500;
+    letter-spacing: var(--tracking-tight);
+  }
+  .physics-card-header .arrow {
+    font-size: 1rem;
+    transition: transform 0.2s;
+    color: var(--grey);
+  }
+  .physics-card.open .arrow { transform: rotate(180deg); }
+  .physics-card-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+  }
+  .physics-card.open .physics-card-body { max-height: 600px; }
+  .physics-card-body-inner {
+    padding: 0 1.5rem 1.5rem;
+  }
+  .equation {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1rem 1.25rem;
+    margin: 0.75rem 0;
+    overflow-x: auto;
+    text-align: center;
+  }
+  .equation .katex { font-size: 1.15em; }
+  .katex { font-size: 1em; }
+  .physics-card-body p {
+    font-size: 0.875rem;
+    color: var(--grey);
+    line-height: 1.5;
+  }
+  .physics-card-body p strong { color: var(--black); }
+
+  /* --- ASW --- */
+  .asw-results {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+  .asw-card {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    background: var(--card-bg);
+  }
+  .asw-card h4 {
+    font-size: 0.9375rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+  }
+  .asw-card .cost {
+    font-size: 2rem;
+    font-weight: 500;
+    letter-spacing: var(--tracking-tight);
+    margin-bottom: 0.5rem;
+  }
+  .asw-card .meta {
+    font-size: 0.8125rem;
+    color: var(--grey);
+  }
+  .asw-card.cheapest {
+    border-color: var(--black);
+    border-width: 2px;
+  }
+  .cost-ratio {
+    margin-top: 1.5rem;
+    padding: 1.25rem;
+    background: var(--bg);
+    border-radius: 8px;
+    font-size: 0.9375rem;
+  }
+  .cost-ratio strong { font-size: 1.125rem; }
+
+  /* --- FOOTER --- */
+  footer {
+    text-align: center;
+    padding: 3rem 2rem;
+    font-size: 0.75rem;
+    color: var(--grey);
+    border-top: 1px solid var(--border);
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  /* --- NAV LOGO & TOGGLE --- */
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    color: var(--white);
+  }
+  .nav-logo svg { display: block; }
+  .nav-spacer { flex: 1; }
+  .theme-toggle {
+    flex-shrink: 0;
+    background: none;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 6px;
+    color: rgba(255,255,255,0.6);
+    cursor: pointer;
+    padding: 0.375rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+  .theme-toggle:hover { color: #fff; border-color: rgba(255,255,255,0.4); }
+  .theme-toggle .icon-sun { display: none; }
+  .theme-toggle .icon-moon { display: block; }
+  [data-theme="dark"] .theme-toggle .icon-sun { display: block; }
+  [data-theme="dark"] .theme-toggle .icon-moon { display: none; }
+
+  /* --- RESPONSIVE --- */
+  @media (max-width: 1024px) {
+    .hero h1 { font-size: 2rem; }
+    .chart-wrap { height: 400px; }
+  }
+  @media (max-width: 768px) {
+    nav { padding: 0 1rem; gap: 1rem; }
+    .hero { padding: 2.5rem 1rem 1.5rem; }
+    .hero h1 { font-size: 1.5rem; }
+    section { padding: 2rem 1rem; }
+    .chart-wrap { height: 320px; }
+    .physics-grid { grid-template-columns: 1fr; }
+  }
+
+  /* --- DARK MODE --- */
+  [data-theme="dark"] {
+    color-scheme: dark;
+    --black: #E8E8E8;
+    --grey: #888888;
+    --white: #1A1A1A;
+    --bg: #0D0D0D;
+    --card-bg: #161616;
+    --border: #2A2A2A;
+    --green: #7A8A7D;
+    --green-75: #2A3A2D;
+    --green-50: #1A231C;
+    --blue: #8A92AA;
+  }
+  [data-theme="dark"] nav {
+    background: #0D0D0D;
+    border-bottom: 1px solid #2A2A2A;
+  }
+  [data-theme="dark"] nav a { color: #F0F0F0; }
+  [data-theme="dark"] nav .nav-logo { color: #B3BCB5; }
+  [data-theme="dark"] .result-card.highlight {
+    background: #E8E8E8;
+    color: #0D0D0D;
+    border-color: #E8E8E8;
+  }
+  [data-theme="dark"] .result-card.highlight .label { color: rgba(0,0,0,0.5); }
+  [data-theme="dark"] .pill.active {
+    background: #E8E8E8;
+    color: #0D0D0D;
+    border-color: #E8E8E8;
+  }
+  [data-theme="dark"] .toggle-btn.active {
+    background: #E8E8E8;
+    color: #0D0D0D;
+  }
+  [data-theme="dark"] .comp-table th { border-bottom-color: #555; }
+  [data-theme="dark"] .comp-table .best { color: #E8E8E8; }
+  [data-theme="dark"] .asw-card.cheapest { border-color: #E8E8E8; }
+  [data-theme="dark"] .slider-group input[type="range"] { accent-color: #E8E8E8; }
+  [data-theme="dark"] .form-group input:focus,
+  [data-theme="dark"] .form-group select:focus { border-color: #888; }
+  [data-theme="dark"] .physics-card-body p strong { color: #E8E8E8; }
+  [data-theme="dark"] .katex { color: #E8E8E8; }
+  [data-theme="dark"] .preset-btn { border-color: #3A4A3D; background: #1A231C; }
+  [data-theme="dark"] .preset-btn:hover { background: #2A3A2D; }
+  [data-theme="dark"] footer { border-top-color: #2A2A2A; }
+
+  /* --- MARKET SEGMENT STYLES --- */
+  .wedge-metrics {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border);
+  }
+  .wedge-metric {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+  }
+  .wedge-metric-label {
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    color: var(--grey);
+    letter-spacing: 0.05em;
+  }
+  .wedge-metric-value {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--black);
+  }
+  [data-theme="dark"] .wedge-metric-value { color: #F0F0F0; }
+  [data-theme="dark"] .wedge-phase strong { color: #F0F0F0 !important; }
+  .fit-cell {
+    width: 20px;
+    height: 20px;
+    border-radius: 3px;
+    display: inline-block;
+    margin: 0 auto;
+  }
+  #platformFitTable td { text-align: center; padding: 0.5rem; }
+  #platformFitTable td:first-child { text-align: left; }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="#physics" class="active">Physics</a>
+  <a href="#comparator">Platforms</a>
+  <a href="#chokepoint">Chokepoints</a>
+  <a href="#fleet">Fleet Builder</a>
+  <a href="#matryoshka">Matryoshka</a>
+  <a href="#asw">ASW</a>
+  <a href="#markets">Markets</a>
+  <a href="https://open.substack.com/pub/svrgn/p/observations-from-earth?r=15k85k&utm_campaign=post&utm_medium=web&showWelcomeOnShare=true" target="_blank" rel="noopener" style="opacity:0.85;">Blog Post</a>
+  <span class="nav-spacer"></span>
+  <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode">
+    <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12"/></svg>
+  </button>
+  <a href="https://inflection.fund" target="_blank" rel="noopener" class="nav-logo" aria-label="Inflection">
+    <svg height="22" viewBox="170 400 1575 220" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><g><g><path d="m551.11,439.1v-31.88h31.31v31.88h-31.31Zm1.71,175.9v-150h27.89v150h-27.89Z"/><path d="m609.74,615v-150h27.89v19.92h.85c8.26-14.23,26.19-22.77,45.82-22.77,36.43,0,53.51,23.91,53.51,58.35v94.5h-27.89v-94.21c0-24.19-13.09-35.58-33.02-35.58-25.33,0-39.28,20.21-39.28,50.66v79.13h-27.89Z"/><path d="m777.39,615v-126.94h-26.47v-23.06h26.47v-19.92c0-27.04,17.65-40.7,45.26-40.7,4.84,0,11.67.57,16.22,1.71v24.19c-24.76-2.56-33.58,2.56-33.58,21.06v13.66h33.58v23.06h-33.58v126.94h-27.89Zm79.41,0v-207.78h27.61v207.78h-27.61Z"/><path d="m903.47,539.57c0-46.68,29.03-77.42,71.16-77.42s69.45,29.03,69.45,72.58c0,2.85,0,6.55-.29,11.67h-110.43c0,29.89,17.36,48.39,42.69,48.39,21.06,0,31.88-8.82,38.14-26.76h27.61c-5.12,29.6-32.16,49.81-66.03,49.81-42.98,0-72.3-32.16-72.3-78.27Zm110.44-13.95c-1.14-24.76-16.22-40.42-39.28-40.42s-39.28,16.22-41.27,40.42h80.55Z"/><path d="m1058.88,539.29c0-46.4,29.03-77.14,72.58-77.14,35.58,0,63.19,22.2,66.03,52.94h-29.6c-3.42-19.35-17.65-29.89-36.43-29.89-27.61,0-42.69,21.63-42.69,54.08,0,35.86,16.79,55.5,42.13,55.5,20.49,0,33.87-11.95,37-30.17h29.6c-3.13,30.74-29.32,53.22-66.6,53.22-45.54,0-72.01-31.31-72.01-78.56Z"/><path d="m1229.37,582.27v-94.21h-24.19v-23.06h24.19v-42.12h27.89v42.12h28.18v23.06h-28.18v85.96c0,13.38,3.42,17.36,20.5,17.36,3.13,0,6.26-.29,7.68-.57v24.19c-4.27.85-9.68,1.42-16.79,1.42-26.19,0-39.28-11.38-39.28-34.16Z"/><path d="m1306.79,439.1v-31.88h31.31v31.88h-31.31Zm1.71,175.9v-150h27.89v150h-27.89Z"/><path d="m1358.3,539.86c0-46.96,29.6-77.7,73.44-77.7s73.43,30.74,73.43,77.7-29.32,77.99-73.43,77.99-73.44-31.02-73.44-77.99Zm116.98,0c0-35.01-17.36-54.65-43.55-54.65-27.89,0-43.55,21.92-43.55,54.65,0,35.29,17.36,54.93,43.55,54.93,27.89,0,43.55-21.92,43.55-54.93Z"/><path d="m1524.24,615v-150h27.89v19.92h.85c8.26-14.23,26.19-22.77,45.82-22.77,36.43,0,53.51,23.91,53.51,58.35v94.5h-27.89v-94.21c0-24.19-13.09-35.58-33.02-35.58-25.33,0-39.28,20.21-39.28,50.66v79.13h-27.89Z"/></g><path d="m1673.38,496.55c0-18.99,15.32-34.4,34.4-34.4s34.4,15.41,34.4,34.4-15.23,34.4-34.4,34.4-34.4-15.41-34.4-34.4Zm63.3,0c0-15.87-13.03-28.9-28.9-28.9s-28.9,13.03-28.9,28.9,12.94,28.9,28.9,28.9,28.9-13.03,28.9-28.9Zm-46.14,0c0-12.2,7.06-19.08,17.89-19.08,8.99,0,15.6,5.6,16.51,14.04h-8.44c-.64-4.86-3.85-7.16-8.07-7.16-6.42,0-9.54,4.86-9.54,12.2,0,8.35,3.85,12.29,9.63,12.29,4.77,0,7.52-2.94,8.26-7.16h8.35c-.64,8.35-7.34,14.03-16.6,14.03-11.56,0-17.98-7.71-17.98-19.17Z"/></g><path d="m477.82,468v-3H177.82v3c82.01,0,148.5,32.24,148.5,72s-66.49,72-148.5,72v3h300v-3c-82.01,0-148.5-32.24-148.5-72s66.49-72,148.5-72Z"/></svg>
+  </a>
+</nav>
+
+<div class="hero">
+  <h1>Maritime Surveillance Economics</h1>
+  <p>First-principles cost analysis across 15 surveillance platform types. Explore cost-effectiveness, build chokepoint barriers, compare ASW approaches, and map platform economics to the buyers who pay for maritime surveillance.</p>
+</div>
+
+<!-- ====== 1. WHY OCEAN SURVEILLANCE IS HARD ====== -->
+<section id="physics">
+  <h2>Why Ocean Surveillance Is Hard</h2>
+  <p class="subtitle">361 million km2 of ocean. ~100,000 vessels in transit. A ship unobserved for 6 hours could be anywhere in a 160 km radius. Every sensor faces the same core physics problem: the target must produce a signal that exceeds the environmental background. The ocean makes this hard in every domain.</p>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:2rem;">
+    <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1.25rem;text-align:center;">
+      <div style="font-size:2rem;font-weight:500;letter-spacing:var(--tracking-tight);">361M km<sup style="font-size:0.875rem;">2</sup></div>
+      <div style="font-size:0.75rem;color:var(--grey);margin-top:0.25rem;">Ocean surface area</div>
+    </div>
+    <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1.25rem;text-align:center;">
+      <div style="font-size:2rem;font-weight:500;letter-spacing:var(--tracking-tight);">16x</div>
+      <div style="font-size:0.75rem;color:var(--grey);margin-top:0.25rem;">Power needed to double radar range</div>
+    </div>
+    <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1.25rem;text-align:center;">
+      <div style="font-size:2rem;font-weight:500;letter-spacing:var(--tracking-tight);">~67%</div>
+      <div style="font-size:0.75rem;color:var(--grey);margin-top:0.25rem;">Cloud cover blocking optical sensors</div>
+    </div>
+    <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1.25rem;text-align:center;">
+      <div style="font-size:2rem;font-weight:500;letter-spacing:var(--tracking-tight);">3,300+</div>
+      <div style="font-size:0.75rem;color:var(--grey);margin-top:0.25rem;">Dark fleet vessels evading AIS</div>
+    </div>
+  </div>
+
+  <div class="physics-grid">
+    <div class="physics-card">
+      <div class="physics-card-header" onclick="togglePhysics(this)">
+        <h3>Radar: The R<sup>4</sup> Problem <a href="physics.html#radar" style="font-size:0.6875rem;font-weight:400;color:var(--grey);text-decoration:none;margin-left:0.5rem;" onclick="event.stopPropagation()">Explore &rarr;</a></h3>
+        <span class="arrow">&#9660;</span>
+      </div>
+      <div class="physics-card-body"><div class="physics-card-body-inner">
+        <div class="equation">$$R_{\max} = \left[\frac{P_t \, G^2 \, \lambda^2 \, \sigma}{(4\pi)^3 \, S_{\min}}\right]^{1/4}$$</div>
+        <p>
+          Range scales as the <strong>fourth root</strong> of power - doubling detection range requires 16x more power. But the ocean makes this worse: sea surface backscatter (clutter) is often stronger than the target return itself. Maritime radar is almost never noise-limited - it is <strong>clutter-limited</strong>. The K-distribution clutter penalty can be 12 dB, meaning a small boat at 25 km range may be invisible even to a 100 kW X-band radar.
+        </p>
+        <p style="margin-top:0.75rem;">
+          This is why a ship-mounted radar at 30m height covers only ~1,250 km2, while a HALE UAV at 15 km altitude covers 7 million km2 per sortie. Altitude buys radar horizon. <strong>Cost per km2-hr varies by 3+ orders of magnitude</strong> across platforms.
+        </p>
+      </div></div>
+    </div>
+
+    <div class="physics-card">
+      <div class="physics-card-header" onclick="togglePhysics(this)">
+        <h3>Underwater: Sound Is All You Have <a href="physics.html#sonar" style="font-size:0.6875rem;font-weight:400;color:var(--grey);text-decoration:none;margin-left:0.5rem;" onclick="event.stopPropagation()">Explore &rarr;</a></h3>
+        <span class="arrow">&#9660;</span>
+      </div>
+      <div class="physics-card-body"><div class="physics-card-body-inner">
+        <div class="equation">$$\text{SE} = \text{SL} - \text{TL} - (\text{NL} - \text{DI}) - \text{DT}$$</div>
+        <p>
+          Electromagnetic signals attenuate within meters in seawater. Only sound propagates at useful range. Detection requires signal excess > 0 dB. Modern quiet submarines radiate 90-120 dB - 30-40 dB quieter than Cold War boats, partially negating the ocean's acoustic advantages.
+        </p>
+        <p style="margin-top:0.75rem;">
+          <strong>The SOFAR channel is unique physics.</strong> At ~1000m depth, sound energy is trapped by refraction, converting spherical spreading ($20\log R$) to cylindrical spreading ($10\log R$) - a 30 dB advantage at 1,000 km. This is why seabed nodes and deep-towed arrays can detect at hundreds of km, but submarines that stay above the channel can avoid detection entirely.
+        </p>
+      </div></div>
+    </div>
+
+    <div class="physics-card">
+      <div class="physics-card-header" onclick="togglePhysics(this)">
+        <h3>Resolution vs. Coverage: You Can't Have Both <a href="physics.html#infocapacity" style="font-size:0.6875rem;font-weight:400;color:var(--grey);text-decoration:none;margin-left:0.5rem;" onclick="event.stopPropagation()">Explore &rarr;</a></h3>
+        <span class="arrow">&#9660;</span>
+      </div>
+      <div class="physics-card-body"><div class="physics-card-body-inner">
+        <div class="equation">$$\dot{A}_{\text{coverage}} = \frac{V \times W_{\text{swath}}}{t_{\text{resolution}}}$$</div>
+        <p>
+          Every sensor has finite information capacity per unit time. SAR satellites achieve ~1m resolution but revisit only every 1-12 days. OTHR covers 13 million km2 but at 50 km resolution - you can't tell a tanker from a warship. Optical sensors are blocked by cloud cover ~67% of the time.
+        </p>
+        <p style="margin-top:0.75rem;">
+          <strong>This is information theory, not engineering failure.</strong> The layered architecture (wide-area cueing + narrow-area classification) is a consequence of physics. Three sensors at $P_d = 0.3$ each give $P_d = 0.66$ combined - the mathematical basis for why no single platform works.
+        </p>
+      </div></div>
+    </div>
+
+    <div class="physics-card">
+      <div class="physics-card-header" onclick="togglePhysics(this)">
+        <h3>AIS: A Cooperative System With No Authentication</h3>
+        <span class="arrow">&#9660;</span>
+      </div>
+      <div class="physics-card-body"><div class="physics-card-body-inner">
+        <p>
+          AIS is the backbone of vessel tracking - but it can be spoofed (false position), impersonated (false identity), or simply turned off. As of 2025: <strong>3,300+ dark fleet tankers operate with AIS disabled</strong>. Spoofing incidents up 200%+ since 2022. 24,000+ vessels experienced GPS jamming in Q1-Q3 2025 alone.
+        </p>
+        <p style="margin-top:0.75rem;">
+          90% of fishing vessels in marine protected areas are invisible to AIS (Science, 2025). The dark fleet grew to 3,300 vessels <em>despite</em> satellite monitoring. <strong>Detection without enforcement does not deter</strong> - the technology problem is being solved, but the governance problem is not.
+        </p>
+      </div></div>
+    </div>
+  </div>
+
+  <p style="font-size:0.8125rem;color:var(--grey);margin-top:1rem;">These constraints define the economics below. <a href="physics.html" style="color:var(--blue);text-decoration:none;font-weight:600;border-bottom:1px solid transparent;transition:border-color 0.15s;" onmouseover="this.style.borderBottomColor='var(--blue)'" onmouseout="this.style.borderBottomColor='transparent'">Explore interactive physics visualizations &rarr;</a></p>
+</section>
+
+<!-- ====== ASSUMPTIONS PANEL ====== -->
+<section id="assumptions" style="padding-top:0;padding-bottom:1rem;">
+  <div class="card" style="margin-bottom:0;">
+    <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onclick="toggleAssumptions()">
+      <div>
+        <h2 style="font-size:1rem;font-weight:500;letter-spacing:var(--tracking-tight);margin-bottom:0;">Assumptions</h2>
+        <p style="font-size:0.75rem;color:var(--grey);margin-top:0.25rem;">Editable parameters update all calculators and the comparator chart in real time. Platforms without inputs (satellites, manned aircraft) use fixed reference data from the report.</p>
+      </div>
+      <span id="assumptionsArrow" style="font-size:1rem;color:var(--grey);transition:transform 0.2s;">&#9660;</span>
+    </div>
+    <div id="assumptionsBody" style="max-height:0;overflow:hidden;transition:max-height 0.3s ease;">
+      <div style="padding-top:1.25rem;">
+        <h3 style="font-size:0.8125rem;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--grey);margin-bottom:0.75rem;">Low-cost radar USV (surface surveillance)</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Daily OpEx ($/day)</label>
+            <input type="number" id="aRadarOpex" value="2000" min="100" max="100000" oninput="onAssumptionChange()">
+          </div>
+          <div class="form-group">
+            <label>CapEx per unit ($)</label>
+            <input type="number" id="aRadarCapex" value="63000" min="10000" max="100000000" oninput="onAssumptionChange()">
+          </div>
+          <div class="form-group">
+            <label>Coverage per unit (km2)</label>
+            <input type="number" id="aRadarCoverage" value="158" min="10" max="10000" oninput="onAssumptionChange()">
+          </div>
+          <div class="form-group">
+            <label>Barrier spacing (km)</label>
+            <input type="number" id="aRadarSpacing" value="14" min="1" max="100" step="0.5" oninput="onAssumptionChange()">
+          </div>
+        </div>
+        <h3 style="font-size:0.8125rem;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--grey);margin-bottom:0.75rem;margin-top:1rem;">Low-cost ASW USV (towed hydrophone)</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Daily OpEx ($/day)</label>
+            <input type="number" id="aASWOpex" value="2500" min="100" max="100000" oninput="onAssumptionChange()">
+          </div>
+          <div class="form-group">
+            <label>CapEx per unit ($)</label>
+            <input type="number" id="aASWCapex" value="250000" min="10000" max="100000000" oninput="onAssumptionChange()">
+          </div>
+          <div class="form-group">
+            <label>Coverage per unit (km2)</label>
+            <input type="number" id="aASWCoverage" value="240" min="10" max="50000" oninput="onAssumptionChange()">
+          </div>
+          <div class="form-group">
+            <label>Barrier spacing (km)</label>
+            <input type="number" id="aASWSpacing" value="15" min="1" max="100" step="0.5" oninput="onAssumptionChange()">
+          </div>
+        </div>
+        <h3 style="font-size:0.8125rem;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--grey);margin-bottom:0.75rem;margin-top:1rem;">Traditional benchmarks</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Frigate daily cost ($)</label>
+            <input type="number" id="aFrigateCost" value="150000" min="10000" max="1000000" oninput="onAssumptionChange()">
+          </div>
+          <div class="form-group">
+            <label>Frigate CapEx ($)</label>
+            <input type="number" id="aFrigateCapex" value="1000000000" min="100000000" max="10000000000" oninput="onAssumptionChange()">
+          </div>
+          <div class="form-group">
+            <label>OPV daily cost ($)</label>
+            <input type="number" id="aOPVCost" value="40000" min="5000" max="500000" oninput="onAssumptionChange()">
+          </div>
+          <div class="form-group">
+            <label>Destroyer CapEx ($)</label>
+            <input type="number" id="aDestroyerCapex" value="2200000000" min="500000000" max="20000000000" oninput="onAssumptionChange()">
+          </div>
+        </div>
+        <h3 style="font-size:0.8125rem;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--grey);margin-bottom:0.75rem;margin-top:1rem;">Stratospheric UAV (custom platform)</h3>
+        <p style="font-size:0.75rem;color:var(--grey);margin-bottom:0.75rem;">Solar-powered autonomous stratospheric aircraft. Edits update the bubble chart in real time.</p>
+        <div class="form-row">
+          <div class="form-group">
+            <label>CapEx ($)</label>
+            <input type="number" id="aStratoCapex" value="350000" min="50000" max="50000000" oninput="updateStratoPlatform()">
+          </div>
+          <div class="form-group">
+            <label>Daily OpEx ($)</label>
+            <input type="number" id="aStratoOpex" value="875" min="50" max="50000" oninput="updateStratoPlatform()">
+          </div>
+          <div class="form-group">
+            <label>Coverage - EO/IR (km2)</label>
+            <input type="number" id="aStratoCoverage" value="5000" min="100" max="1000000" oninput="updateStratoPlatform()">
+          </div>
+          <div class="form-group">
+            <label>Endurance (months)</label>
+            <input type="number" id="aStratoEndurance" value="6" min="1" max="24" step="0.5" oninput="updateStratoPlatform()">
+          </div>
+        </div>
+        <div style="margin-top:0.75rem;">
+          <button class="preset-btn" onclick="resetAssumptions()">Reset to Defaults</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== 1. PLATFORM COST COMPARATOR ====== -->
+<section id="comparator">
+  <h2>Platform Cost Comparator</h2>
+  <p class="subtitle">Cost per km2-hr (x-axis) vs persistence (y-axis). Bubble size represents coverage area - larger bubbles monitor more km2. Click a platform for details and example companies.</p>
+
+  <div class="pills">
+    <button class="pill active" data-filter="all">All</button>
+    <button class="pill" data-filter="space">Space</button>
+    <button class="pill" data-filter="airborne">Airborne</button>
+    <button class="pill" data-filter="surface">Surface</button>
+    <button class="pill" data-filter="subsurface">Subsurface</button>
+  </div>
+
+  <div class="card">
+    <div class="chart-wrap">
+      <canvas id="bubbleChart"></canvas>
+    </div>
+  </div>
+
+  <div id="platformDetail" class="detail-card">
+    <h3 id="detailName">-</h3>
+    <div class="detail-grid">
+      <div class="detail-item"><label>Category</label><span id="detailCat">-</span></div>
+      <div class="detail-item"><label>Cost / km2-hr</label><span id="detailCost">-</span></div>
+      <div class="detail-item"><label>Persistence</label><span id="detailPersist">-</span></div>
+      <div class="detail-item"><label>Coverage</label><span id="detailCoverage">-</span></div>
+      <div class="detail-item"><label>Notes</label><span id="detailNotes">-</span></div>
+      <div class="detail-item" style="grid-column:1/-1"><label>Example Companies / Programs</label><span id="detailCompanies" style="font-size:1rem">-</span></div>
+      <div class="detail-item" style="grid-column:1/-1" id="detailSourcesWrap"><label>Sources</label><span id="detailSources" style="font-size:0.875rem">-</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== 2. CHOKEPOINT CALCULATOR ====== -->
+<section id="chokepoint">
+  <h2>Chokepoint Calculator</h2>
+  <p class="subtitle">Calculate USV barrier requirements and costs vs traditional patrol.</p>
+
+  <div class="card">
+    <div class="preset-btns">
+      <button class="preset-btn" onclick="setChokepoint(30)">Bab el-Mandeb (30 km)</button>
+      <button class="preset-btn" onclick="setChokepoint(50)">Hormuz (50 km)</button>
+      <button class="preset-btn" onclick="setChokepoint(65)">Malacca (65 km)</button>
+      <button class="preset-btn" onclick="setChokepoint(300)">GIUK Gap (300 km)</button>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Strait Width (km)</label>
+        <input type="number" id="straitWidth" value="50" min="1" max="2000" oninput="calcChokepoint()">
+      </div>
+      <div class="form-group">
+        <label>Coverage Type</label>
+        <select id="coverageType" onchange="calcChokepoint()">
+          <option value="surface">Surface Only (radar)</option>
+          <option value="subsurface">Subsurface Only (towed array)</option>
+          <option value="both">Both (surface + subsurface)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Rotation Factor</label>
+        <select id="rotationFactor" onchange="calcChokepoint()">
+          <option value="1">1.0x (no rotation)</option>
+          <option value="1.5" selected>1.5x (realistic maintenance)</option>
+          <option value="2">2.0x (conservative)</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="chokepointResults" class="results-grid"></div>
+
+    <h3 style="margin-top:2rem;font-size:1rem;font-weight:500;letter-spacing:var(--tracking-tight);margin-bottom:1rem;">Comparison vs Traditional Patrol</h3>
+    <table class="comp-table" id="chokepointTable">
+      <thead>
+        <tr><th>Approach</th><th>Units</th><th>Daily Cost</th><th>Annual Cost</th><th>Ratio</th></tr>
+      </thead>
+      <tbody id="chokepointTbody"></tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ====== 3. FLEET BUILDER ====== -->
+<section id="fleet">
+  <h2>Fleet Builder</h2>
+  <p class="subtitle">Scale a USV fleet and compare to equivalent traditional naval assets.</p>
+
+  <div class="card">
+    <div class="slider-group">
+      <label>Number of USVs</label>
+      <input type="range" id="fleetSize" min="1" max="500" value="50" oninput="calcFleet()">
+      <span class="val" id="fleetSizeVal">50</span>
+    </div>
+
+    <div class="toggle-row">
+      <button class="toggle-btn active" data-mode="radar" onclick="setFleetMode('radar',this)">Surface Radar</button>
+      <button class="toggle-btn" data-mode="asw" onclick="setFleetMode('asw',this)">Towed Hydrophone (ASW)</button>
+    </div>
+
+    <div id="fleetResults" class="results-grid" style="margin-bottom:1.5rem;"></div>
+
+    <h3 style="font-size:1rem;font-weight:500;letter-spacing:var(--tracking-tight);margin-bottom:1rem;">Equivalent Cost Comparison</h3>
+    <div class="chart-wrap" style="height:200px;">
+      <canvas id="fleetBarChart"></canvas>
+    </div>
+  </div>
+</section>
+
+<!-- ====== 4. MATRYOSHKA STRATEGY ====== -->
+<section id="matryoshka">
+  <h2>Matryoshka Strategy</h2>
+  <p class="subtitle">Nested platform architectures - vehicles carrying vehicles. Configure a mothership with ASVs and AUVs to see how coverage multiplies and cost per km2-hr compresses across domains.</p>
+
+  <div class="card">
+    <h3 style="font-size:1rem;font-weight:500;letter-spacing:var(--tracking-tight);margin-bottom:0.5rem;">Mothership Tier</h3>
+    <p style="font-size:0.8125rem;color:var(--grey);margin-bottom:1rem;">The outermost layer - provides transit, fuel, comms relay, and maintenance for subordinate platforms.</p>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Mothership Type</label>
+        <select id="mMotherType" onchange="calcMatryoshka()">
+          <option value="opv">OPV / Frigate (crewed)</option>
+          <option value="usv">Sea Hunter-class MDUSV</option>
+          <option value="none">No mothership (autonomous swarm)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Mothership Daily Cost</label>
+        <input type="number" id="mMotherCost" value="30000" min="0" max="500000" oninput="calcMatryoshka()">
+      </div>
+    </div>
+
+    <h3 style="font-size:1rem;font-weight:500;letter-spacing:var(--tracking-tight);margin-bottom:0.5rem;margin-top:1.5rem;">ASV Tier</h3>
+    <p style="font-size:0.8125rem;color:var(--grey);margin-bottom:1rem;">Surface autonomous vessels - fan out 50-100 km, carry radar/AIS/EO, relay comms, recharge AUVs.</p>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Number of ASVs</label>
+        <input type="number" id="mASVCount" value="4" min="0" max="20" oninput="calcMatryoshka()">
+      </div>
+      <div class="form-group">
+        <label>ASV Daily Cost (each)</label>
+        <input type="number" id="mASVCost" value="2000" min="0" max="50000" oninput="calcMatryoshka()">
+      </div>
+      <div class="form-group">
+        <label>ASV Towed Hydrophone</label>
+        <select id="mASVTowed" onchange="calcMatryoshka()">
+          <option value="no">No (surface only)</option>
+          <option value="yes">Yes (+acoustic domain)</option>
+        </select>
+      </div>
+    </div>
+
+    <h3 style="font-size:1rem;font-weight:500;letter-spacing:var(--tracking-tight);margin-bottom:0.5rem;margin-top:1.5rem;">AUV Tier</h3>
+    <p style="font-size:0.8125rem;color:var(--grey);margin-bottom:1rem;">Underwater autonomous vehicles - deploy 5-20 km from host ASV, carry hydrophones/sonar/MAD, return for recharge.</p>
+    <div class="form-row">
+      <div class="form-group">
+        <label>AUVs per ASV</label>
+        <input type="number" id="mAUVPerASV" value="2" min="0" max="6" oninput="calcMatryoshka()">
+      </div>
+      <div class="form-group">
+        <label>AUV Daily Cost (each)</label>
+        <input type="number" id="mAUVCost" value="500" min="0" max="10000" oninput="calcMatryoshka()">
+      </div>
+    </div>
+
+    <div class="preset-btns" style="margin-top:1rem;">
+      <button class="preset-btn" onclick="setMatryoshkaPreset('A')">Scenario A: OPV + ASVs + AUVs</button>
+      <button class="preset-btn" onclick="setMatryoshkaPreset('B')">Scenario B: MDUSV mothership</button>
+      <button class="preset-btn" onclick="setMatryoshkaPreset('C')">Scenario C: Autonomous swarm</button>
+    </div>
+
+    <div id="matryoshkaResults" class="results-grid" style="margin-top:1.5rem;"></div>
+
+    <h3 style="margin-top:2rem;font-size:1rem;font-weight:500;letter-spacing:var(--tracking-tight);margin-bottom:1rem;">Nesting vs Standalone Comparison</h3>
+    <table class="comp-table" id="matryoshkaTable">
+      <thead>
+        <tr><th>Configuration</th><th>Sensor Nodes</th><th>Coverage (km2)</th><th>Cost/km2-hr</th><th>Domains</th><th>Multiplier</th></tr>
+      </thead>
+      <tbody id="matryoshkaTbody"></tbody>
+    </table>
+
+    <div id="matryoshkaNote" class="cost-ratio" style="margin-top:1.5rem;"></div>
+  </div>
+</section>
+
+<!-- ====== 5. ASW COST COMPARISON ====== -->
+<section id="asw">
+  <h2>ASW Cost Comparison</h2>
+  <p class="subtitle">Compare three anti-submarine warfare approaches for a given barrier.</p>
+
+  <div class="card">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Barrier Length (km)</label>
+        <input type="number" id="aswLength" value="100" min="1" max="2000" oninput="calcASW()">
+      </div>
+      <div class="form-group">
+        <label>Persistence (days)</label>
+        <input type="number" id="aswDays" value="30" min="1" max="365" oninput="calcASW()">
+      </div>
+    </div>
+
+    <div id="aswResults" class="asw-results"></div>
+    <div id="aswRatio" class="cost-ratio"></div>
+  </div>
+</section>
+
+<!-- ====== 6. MARKET SEGMENTS ====== -->
+<section id="markets">
+  <h2>Market Segments</h2>
+  <p class="subtitle">Who pays for maritime surveillance, what they spend, and which platforms serve each buyer. Bottom-up sizing from observable budgets and contracts - not top-down TAM projections.</p>
+
+  <div class="card">
+    <div class="pills" id="marketPills">
+      <button class="pill active" onclick="setMarketView('treemap',this)">Segment Size</button>
+      <button class="pill" onclick="setMarketView('platform',this)">Platform Fit</button>
+      <button class="pill" onclick="setMarketView('usecases',this)">Use Cases</button>
+      <button class="pill" onclick="setMarketView('wedge',this)">Wedge Strategy</button>
+    </div>
+
+    <!-- View 1: Segment treemap / bar chart -->
+    <div id="marketTreemap">
+      <div class="chart-wrap" style="height:420px;">
+        <canvas id="marketBarChart"></canvas>
+      </div>
+      <p style="font-size:0.75rem;color:var(--grey);margin-top:0.5rem;">SAM = Serviceable Addressable Market for an autonomous surveillance startup. Bars show low-high range. Total realistic SAM: $2-5B/year (~10-15% of the $31.4B headline market).</p>
+    </div>
+
+    <!-- View 2: Platform fit heatmap -->
+    <div id="marketPlatform" style="display:none;">
+      <div style="overflow-x:auto;">
+        <table class="comp-table" id="platformFitTable">
+          <thead>
+            <tr>
+              <th style="text-align:left">Segment</th>
+              <th>SAR Satellite</th>
+              <th>AIS/RF Sat</th>
+              <th>HALE UAV</th>
+              <th>MALE UAV</th>
+              <th>USV</th>
+              <th>UUV</th>
+              <th>Coastal Radar</th>
+              <th>AI Analytics</th>
+            </tr>
+          </thead>
+          <tbody id="platformFitTbody"></tbody>
+        </table>
+      </div>
+      <div style="margin-top:1rem;display:flex;gap:1.5rem;flex-wrap:wrap;font-size:0.75rem;color:var(--grey);">
+        <span><span style="display:inline-block;width:12px;height:12px;border-radius:2px;background:#1a1a1a;vertical-align:middle;margin-right:4px;"></span> Primary</span>
+        <span><span style="display:inline-block;width:12px;height:12px;border-radius:2px;background:#B3BCB5;vertical-align:middle;margin-right:4px;"></span> Secondary</span>
+        <span><span style="display:inline-block;width:12px;height:12px;border-radius:2px;background:#E5E5E5;vertical-align:middle;margin-right:4px;"></span> Limited</span>
+      </div>
+      <p style="font-size:0.75rem;color:var(--grey);margin-top:0.75rem;">Platform fit based on physics constraints (Parts I-III), cost economics (Part III), and buyer procurement patterns (Part VI). USV and AI Analytics appear across the most segments - the dual-use thesis.</p>
+    </div>
+
+    <!-- View 3: Use Cases -->
+    <div id="marketUsecases" style="display:none;">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:1rem;">
+
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1.25rem;">
+          <div style="font-size:0.6875rem;text-transform:uppercase;color:var(--grey);letter-spacing:0.05em;">USV Fleet-as-a-Service</div>
+          <div style="font-size:1rem;font-weight:500;margin:0.375rem 0 0.75rem;">Saildrone: 20 USVs, Caribbean Drug Interdiction</div>
+          <div style="font-size:0.8125rem;color:var(--grey);line-height:1.6;">
+            <strong style="color:var(--black)">Operation Southern Spear</strong> (Jan 2025-present): 20 Voyager USVs deployed for JIATF-South. 95% detection rate. In June 2024, Saildrones shadowed Russian warships approaching Cuba. $2,500/day per USV - 10% the cost of a cutter.<br>
+            <strong style="color:var(--black)">Bluebottle</strong> (Jul 2024-present): 15 USVs, 200,000+ nm cumulative, 184-day longest deployment. A$176M for 40 more.
+          </div>
+          <div style="margin-top:0.75rem;font-size:0.6875rem;color:var(--grey);">Sources: USNI News Jun 2024; Saildrone Jan 2025; AU Defence Minister Mar 2026</div>
+        </div>
+
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1.25rem;">
+          <div style="font-size:0.6875rem;text-transform:uppercase;color:var(--grey);letter-spacing:0.05em;">Dark Vessel Intelligence</div>
+          <div style="font-size:1rem;font-weight:500;margin:0.375rem 0 0.75rem;">Windward AI: 1,950 Dark Fleet Vessels Identified</div>
+          <div style="font-size:0.8125rem;color:var(--grey);line-height:1.6;">
+            <strong style="color:var(--black)">VLCC Skipper seizure</strong>: AIS placed vessel 500+ nm from actual location. False Guyanese flag (registry ceased 2021). Windward analysis supported interdiction. <strong style="color:var(--black)">HawkEye 360</strong>: RF detected CPT AHMAD II at sanctioned Tartus port during AIS gap. <strong style="color:var(--black)">ICEYE/Spire</strong>: Argentine coast guard enforced against Chinese squid fleet detected dark in EEZ.
+          </div>
+          <div style="margin-top:0.75rem;font-size:0.6875rem;color:var(--grey);">Sources: Windward 2024; HawkEye 360 Nov 2021; ICEYE Maritime 2024</div>
+        </div>
+
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1.25rem;">
+          <div style="font-size:0.6875rem;text-transform:uppercase;color:var(--grey);letter-spacing:0.05em;">Offshore Wind Surveillance</div>
+          <div style="font-size:1rem;font-weight:500;margin:0.375rem 0 0.75rem;">Germany BSH: First Radar Mandate for Wind Farms</div>
+          <div style="font-size:0.8125rem;color:var(--grey);line-height:1.6;">
+            Jan 2025: BSH requires EnBW and RWE to install radar and transmit to Cuxhaven security center. <strong style="color:var(--black)">ScottishPower EA3</strong>: GBP 16M guard vessel + CTV contract (OEG + NR Marine). <strong style="color:var(--black)">TenneT</strong>: EUR 3M cable survey, 3,400km Prysmian/N-Sea monitoring SLA. <strong style="color:var(--black)">AP Sensing</strong>: 300km DTS/DAS at Kriegers Flak for Energinet. Near-zero adoption today - market inflection point.
+          </div>
+          <div style="margin-top:0.75rem;font-size:0.6875rem;color:var(--grey);">Sources: Baltic Wind Apr 2025; ScottishPower Apr 2025; TenneT Oct 2024</div>
+        </div>
+
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1.25rem;">
+          <div style="font-size:0.6875rem;text-transform:uppercase;color:var(--grey);letter-spacing:0.05em;">Submarine Cable Protection</div>
+          <div style="font-size:1rem;font-weight:500;margin:0.375rem 0 0.75rem;">C-Lion1: Double Break Catalyzes Market</div>
+          <div style="font-size:0.8125rem;color:var(--grey);line-height:1.6;">
+            Cinia's Finland-Germany cable broke Nov 18 + Dec 25, 2024. Response: military (Finnish/Swedish/German coast guard), not commercial. <strong style="color:var(--black)">200 faults/year</strong> globally, 86% from fishing/anchoring. Power cable repair: $10-100M/incident. Monitoring at $100-500K/year/route = clear ROI. EU committed EUR 540M (2025-27). NATO Baltic Sentry launched Jan 2025.
+          </div>
+          <div style="margin-top:0.75rem;font-size:0.6875rem;color:var(--grey);">Sources: Cinia Nov-Dec 2024; ICPC/SubOptic 2024; EU Action Plan Feb 2025</div>
+        </div>
+
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1.25rem;">
+          <div style="font-size:0.6875rem;text-transform:uppercase;color:var(--grey);letter-spacing:0.05em;">Smart Port Surveillance</div>
+          <div style="font-size:1rem;font-weight:500;margin:0.375rem 0 0.75rem;">Antwerp-Bruges: 460 Cameras, 22 Radars, 6 Drones</div>
+          <div style="font-size:0.8125rem;color:var(--grey);line-height:1.6;">
+            World's first BVLOS port drone network (2023). 5G real-time feed to coordination centre. Biometric access at PSA terminal. <strong style="color:var(--black)">Rotterdam</strong>: Kongsberg VTMIS ~$10M. Digital twin. <strong style="color:var(--black)">Singapore</strong>: AI NGVTMS predicts collisions 30min ahead (Kongsberg + Wartsila). Kongsberg dominates European VTS.
+          </div>
+          <div style="margin-top:0.75rem;font-size:0.6875rem;color:var(--grey);">Sources: Maritime Executive May 2023; Technavio 2024; MPA Singapore 2024</div>
+        </div>
+
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1.25rem;">
+          <div style="font-size:0.6875rem;text-transform:uppercase;color:var(--grey);letter-spacing:0.05em;">IUU Fishing Enforcement</div>
+          <div style="font-size:1rem;font-weight:500;margin:0.375rem 0 0.75rem;">Indonesia: 500+ Vessels Destroyed, 90% Reduction</div>
+          <div style="font-size:0.8125rem;color:var(--grey);line-height:1.6;">
+            First nation to share VMS publicly (2017). AIS+VMS system on all vessels >30GT. Global Fishing Watch confirmed 90% reduction in foreign fishing. <strong style="color:var(--black)">Thailand</strong>: VMS deployed nationwide in 90 days post-EU Yellow Card, EUR 87M invested. <strong style="color:var(--black)">Galapagos 2020</strong>: 340 Chinese vessels detected via multi-sensor (AIS, SAR, RF, aerial). 43 AIS shutoffs documented.
+          </div>
+          <div style="margin-top:0.75rem;font-size:0.6875rem;color:var(--grey);">Sources: GFW 2017; ORBCOMM 2015; Oceana Aug 2020</div>
+        </div>
+
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1.25rem;">
+          <div style="font-size:0.6875rem;text-transform:uppercase;color:var(--grey);letter-spacing:0.05em;">Coast Guard Drone Ops</div>
+          <div style="font-size:1rem;font-weight:500;margin:0.375rem 0 0.75rem;">4 National Models: Japan, Frontex, India, Philippines</div>
+          <div style="font-size:0.8125rem;color:var(--grey);line-height:1.6;">
+            <strong style="color:var(--black)">Japan JCG</strong>: 3 MQ-9Bs from Kitakyushu, imaging Chinese ships at Senkaku. Fleet to 10 by FY2028. <strong style="color:var(--black)">Frontex</strong>: 4,993 drone hours (2024, +50% YoY), 1,204 crossings detected. <strong style="color:var(--black)">India</strong>: 46 Terma radar stations, 1,500 targets simultaneously, $95M Phase II. <strong style="color:var(--black)">Philippines</strong>: 4 MANTAS USVs, Thitu Island station, USMC MQ-9A from Basa.
+          </div>
+          <div style="margin-top:0.75rem;font-size:0.6875rem;color:var(--grey);">Sources: Japan Today 2025; Frontex 2024; Terma/India MOD 2016-25</div>
+        </div>
+
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1.25rem;">
+          <div style="font-size:0.6875rem;text-transform:uppercase;color:var(--grey);letter-spacing:0.05em;">Platform Counter-UAS</div>
+          <div style="font-size:1rem;font-weight:500;margin:0.375rem 0 0.75rem;">Aker + Kongsberg: North Sea Drone Detection</div>
+          <div style="font-size:0.8125rem;color:var(--grey);line-height:1.6;">
+            Drones breached Equinor Sleipner and Heidrun 500m perimeters. Norway deployed military post-Nord Stream. <strong style="color:var(--black)">Joint demonstrator</strong> (2025): Drone Detection Radar + Mobile Broadband Radio + cameras + acoustic subsea sensors. <strong style="color:var(--black)">Aramco Safaniyah</strong>: Marine surveillance radar + VTMS (Security Vault Systems). No oil major has deployed USVs for perimeter security yet.
+          </div>
+          <div style="margin-top:0.75rem;font-size:0.6875rem;color:var(--grey);">Sources: OE Digital 2025; Kongsberg Discovery 2025; Security Vault Systems</div>
+        </div>
+
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1.25rem;">
+          <div style="font-size:0.6875rem;text-transform:uppercase;color:var(--grey);letter-spacing:0.05em;">ASW: USV-Towed Hydrophone</div>
+          <div style="font-size:1rem;font-weight:500;margin:0.375rem 0 0.75rem;">Saildrone + Thales: First Open-Ocean ASW Result</div>
+          <div style="font-size:0.8125rem;color:var(--grey);line-height:1.6;">
+            Saildrone Surveyor + Thales BlueSentry thin-line towed array: "exceptional operational performance during weeks-long mission," identified and tracked vessels of interest in real time. First confirmed USV ASW result at sea. IUSS/SURTASS: 5 T-AGOS ships, 161/181 days in SCS (2021). T-AGOS-25 replacement: $3.9B+. USV barrier: 20 units x 300km = GBP 40K/day vs. GBP 600K/day frigates (150x cheaper).
+          </div>
+          <div style="margin-top:0.75rem;font-size:0.6875rem;color:var(--grey);">Sources: Thales Sea-Air-Space 2025; USNI News; CRS 2024-25</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- View 4: Wedge strategy timeline -->
+    <div id="marketWedge" style="display:none;">
+      <div class="wedge-timeline">
+        <div class="wedge-phase" style="border-left:3px solid #B3BCB5;padding-left:1.5rem;margin-bottom:2rem;">
+          <div style="font-size:0.6875rem;text-transform:uppercase;color:var(--grey);letter-spacing:0.05em;margin-bottom:0.25rem;">Year 1-2</div>
+          <div style="font-size:1.125rem;font-weight:500;letter-spacing:var(--tracking-tight);margin-bottom:0.5rem;">Dual-use USV Fleet: Environmental + Coast Guard</div>
+          <div style="font-size:0.875rem;color:var(--grey);line-height:1.6;">
+            Follow the Saildrone playbook: persistent USVs collecting ocean data at $2,500/day. Revenue: $5-15M from NOAA/Copernicus contracts. Simultaneously demonstrate coast guard surveillance (Australia Bluebottle precedent: A$176M for 40 USVs). Platform cost: $50-250K per unit.<br>
+            <strong style="color:var(--black)">Why first:</strong> Low regulatory barriers, proven demand, dual-use data justifies fleet investment.
+          </div>
+          <div class="wedge-metrics">
+            <span class="wedge-metric"><span class="wedge-metric-label">Revenue</span><span class="wedge-metric-value">$5-15M</span></span>
+            <span class="wedge-metric"><span class="wedge-metric-label">Fleet size</span><span class="wedge-metric-value">20-50 USVs</span></span>
+            <span class="wedge-metric"><span class="wedge-metric-label">Segments</span><span class="wedge-metric-value">Environmental, Coast Guard</span></span>
+          </div>
+        </div>
+
+        <div class="wedge-phase" style="border-left:3px solid #B4BACC;padding-left:1.5rem;margin-bottom:2rem;">
+          <div style="font-size:0.6875rem;text-transform:uppercase;color:var(--grey);letter-spacing:0.05em;margin-bottom:0.25rem;">Year 2-3</div>
+          <div style="font-size:1.125rem;font-weight:500;letter-spacing:var(--tracking-tight);margin-bottom:0.5rem;">Offshore Wind Surveillance-as-a-Service</div>
+          <div style="font-size:0.875rem;color:var(--grey);line-height:1.6;">
+            Target 129 European offshore wind farms as EU CER Directive compliance deadline approaches (risk assessments due Jan 2026, entity identification due Jul 2026). Offer: persistent USV patrol + vessel traffic monitoring + AIS anomaly alerting at $2-5M/farm/year. Market barely exists today - "only a few wind farms have installed radars" (Reuters 2024).<br>
+            <strong style="color:var(--black)">Why second:</strong> Regulatory catalyst creating time-bounded demand. No incumbents to displace.
+          </div>
+          <div class="wedge-metrics">
+            <span class="wedge-metric"><span class="wedge-metric-label">Revenue</span><span class="wedge-metric-value">$20-100M</span></span>
+            <span class="wedge-metric"><span class="wedge-metric-label">Fleet size</span><span class="wedge-metric-value">50-200 USVs</span></span>
+            <span class="wedge-metric"><span class="wedge-metric-label">Segments</span><span class="wedge-metric-value">+ Offshore Wind</span></span>
+          </div>
+        </div>
+
+        <div class="wedge-phase" style="border-left:3px solid #000;padding-left:1.5rem;margin-bottom:2rem;">
+          <div style="font-size:0.6875rem;text-transform:uppercase;color:var(--grey);letter-spacing:0.05em;margin-bottom:0.25rem;">Year 3-5</div>
+          <div style="font-size:1.125rem;font-weight:500;letter-spacing:var(--tracking-tight);margin-bottom:0.5rem;">Defense + Undersea Infrastructure</div>
+          <div style="font-size:0.875rem;color:var(--grey);line-height:1.6;">
+            Use operational fleet data to win defense evaluation contracts. The US Navy's $1.2B autonomy software line in FY2026 is a greenfield budget category. Expand to cable/pipeline protection monitoring (same platforms, different sensors). Cable operators face $10-100M per power cable repair - making $1-5M/year monitoring an obvious ROI.<br>
+            <strong style="color:var(--black)">Why third:</strong> Defense procurement is slow (2-5 years). Starting in dual-use builds the track record needed.
+          </div>
+          <div class="wedge-metrics">
+            <span class="wedge-metric"><span class="wedge-metric-label">Revenue</span><span class="wedge-metric-value">$50-200M+</span></span>
+            <span class="wedge-metric"><span class="wedge-metric-label">Fleet size</span><span class="wedge-metric-value">200-500+ USVs</span></span>
+            <span class="wedge-metric"><span class="wedge-metric-label">Segments</span><span class="wedge-metric-value">+ Defense, Undersea Infra</span></span>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1.25rem;margin-top:1rem;">
+        <div style="font-size:0.875rem;font-weight:500;margin-bottom:0.75rem;">Business Model Comparison</div>
+        <table class="comp-table">
+          <thead><tr><th style="text-align:left">Model</th><th>Example</th><th>Revenue</th><th>Margin</th><th>Exit Benchmark</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Hardware</strong></td><td>Saronic</td><td>$392M OTA</td><td>20-30%</td><td>$4B valuation</td></tr>
+            <tr><td><strong>Data Platform</strong></td><td>Windward</td><td>$35M ARR</td><td>70-80%</td><td>$270M (7.5x rev)</td></tr>
+            <tr><td><strong>Fleet-as-a-Service</strong></td><td>Saildrone</td><td>$43M (+231% YoY)</td><td>40-60%</td><td>~$300M+ raised</td></tr>
+          </tbody>
+        </table>
+        <p style="font-size:0.75rem;color:var(--grey);margin-top:0.75rem;">The optimal strategy combines models 2+3: own the fleet to generate proprietary data that feeds a platform. The data moat comes from operating the sensors, not buying commodity AIS feeds.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Segment detail card -->
+  <div id="marketDetail" class="detail-card">
+    <h3 id="mktDetailName">-</h3>
+    <div class="detail-grid">
+      <div class="detail-item"><label>Annual Spend</label><span id="mktDetailSpend">-</span></div>
+      <div class="detail-item"><label>SAM (Low-High)</label><span id="mktDetailSAM">-</span></div>
+      <div class="detail-item"><label>Buyer Count</label><span id="mktDetailBuyers">-</span></div>
+      <div class="detail-item"><label>Growth (5yr)</label><span id="mktDetailGrowth">-</span></div>
+      <div class="detail-item" style="grid-column:1/-1"><label>Top Platforms</label><span id="mktDetailPlatforms" style="font-size:1rem">-</span></div>
+      <div class="detail-item" style="grid-column:1/-1"><label>Key Contracts / Signals</label><span id="mktDetailContracts" style="font-size:0.875rem">-</span></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  Maritime Surveillance Economics Dashboard. Data derived from <a href="../../../hekate/04-Output/Research/maritime-persistent-surveillance/maritime-persistent-surveillance-first-principles-report-2026-03-14.md" style="color:var(--grey);text-decoration:underline;">first-principles analysis report</a>.<br>
+  Inflection. All figures are indicative estimates for analytical comparison.
+</footer>
+
+<script>
+// ==================== DATA ====================
+const platforms = [
+  { name:"OTHR", cat:"surface", cost:0.0004, persistHrs:8760, coverageKm2:13000000, coverageLabel:"13M km2", notes:"Over-the-horizon radar, continental scale", companies:"Raytheon (AN/TPS-71 ROTHR), BAE Systems (JORN), Thales", sources:[{t:"JORN - Australian Defence",u:"https://www.dst.defence.gov.au/innovation/jindalee-operational-radar-network"}] },
+  { name:"AIS/RF Satellites", cat:"space", cost:0.001, persistHrs:8000, coverageKm2:50000000, coverageLabel:"Global", notes:"Cooperative tracking, near-continuous revisit", companies:"Spire Global, exactEarth, ORBCOMM, Unseenlabs (RF)", sources:[{t:"Spire Maritime AIS",u:"https://spire.com/maritime/solutions/standard-ais/"},{t:"Unseenlabs RF detection",u:"https://unseenlabs.space/"}] },
+  { name:"SAR Satellite (low)", cat:"space", cost:0.01, persistHrs:2, coverageKm2:200000, coverageLabel:"50-200K km2/day", notes:"Non-cooperative detection, per-pass", companies:"Capella Space, ICEYE, Umbra, Synspective", sources:[{t:"Capella Space",u:"https://www.capellaspace.com"},{t:"ICEYE Maritime",u:"https://www.iceye.com/sar-data/use-cases/maritime-domain-awareness"}] },
+  { name:"SAR Satellite (high)", cat:"space", cost:0.10, persistHrs:2, coverageKm2:50000, coverageLabel:"50-200K km2/day", notes:"High-res SAR, costly per pass", companies:"Airbus (TerraSAR-X), MDA (RADARSAT), Leonardo", sources:[{t:"Airbus Defence & Space",u:"https://www.airbus.com/en/space/earth-observation"}] },
+  { name:"MQ-4C Triton", cat:"airborne", cost:0.029, persistHrs:24, coverageKm2:7000000, coverageLabel:"7M km2", notes:"HALE UAV, wide-area maritime ISR", companies:"Northrop Grumman", sources:[{t:"Northrop Grumman Triton",u:"https://www.northropgrumman.com/what-we-do/aircraft/triton"}] },
+  { name:"Skydweller (solar HALE)", cat:"airborne", cost:0.0015, persistHrs:336, coverageKm2:1770000, coverageLabel:"1.77M km2", notes:"Solar-powered, weeks-long endurance", companies:"Skydweller Aero, BAE Systems (PHASA-35), Airbus (Zephyr)", sources:[{t:"Skydweller Aero",u:"https://www.skydweller.aero/"},{t:"Skydweller Perpetual Flight",u:"https://www.skydweller.aero/perpetual-flight/"}] },
+  { name:"Shore Radar (low)", cat:"surface", cost:0.03, persistHrs:8760, coverageKm2:10000, coverageLabel:"2-10K km2", notes:"Coastal surveillance radar", companies:"Kelvin Hughes, Terma, Hensoldt", sources:[] },
+  { name:"Shore Radar (high)", cat:"surface", cost:1.00, persistHrs:8760, coverageKm2:2000, coverageLabel:"2-10K km2", notes:"High-end coastal radar system", companies:"Thales (Coast Watcher), Indra, Leonardo", sources:[] },
+  { name:"MQ-9B SeaGuardian", cat:"airborne", cost:0.25, persistHrs:30, coverageKm2:600000, coverageLabel:"600K km2", notes:"MALE UAV, $3.5-8K/hr, can carry sonobuoys. 80% of P-8 capability at 14% cost.", companies:"General Atomics", sources:[{t:"GA-ASI SeaGuardian",u:"https://www.ga-asi.com/remotely-piloted-aircraft/mq-9b-seaguardian"}] },
+  { name:"P-8A Poseidon", cat:"airborne", cost:0.40, persistHrs:10, coverageKm2:400000, coverageLabel:"400K km2", notes:"Manned MPA, multi-sensor", companies:"Boeing, Kawasaki (P-1)", sources:[{t:"Boeing P-8A Poseidon",u:"https://www.boeing.com/defense/p-8-poseidon/"}] },
+  { name:"Small Tactical UAV", cat:"airborne", cost:0.10, persistHrs:28, coverageKm2:75000, coverageLabel:"50-100K km2", notes:"Group 3-4 tactical ISR", companies:"Textron (Aerosonde), Insitu (ScanEagle), Tekever (AR5)", sources:[{t:"Tekever AR5",u:"https://www.tekever.com/models/ar5/"}] },
+  { name:"Manned Patrol Vessel (OPV)", cat:"surface", cost:2.50, persistHrs:1440, coverageKm2:1250, coverageLabel:"1,250 km2 (radar horizon)", notes:"$50-100K/day, 30m mast = 20km radar horizon. 60-day endurance. Provides boarding/prosecution capability.", companies:"Huntington Ingalls, Damen, Fincantieri, Navantia", sources:[] },
+  { name:"USV (Sea Hunter class)", cat:"surface", cost:0.88, persistHrs:2160, coverageKm2:800, coverageLabel:"800 km2", notes:"MDUSV, $15-20K/day, ~6m mast height. 90-day endurance. No crew, no weapons.", companies:"Leidos (MDUSV), L3Harris, Saronic, Elbit Systems (Seagull)", sources:[{t:"Leidos Sea Hunter",u:"https://www.leidos.com/insights/sea-hunter-reaches-new-milestone-autonomy"},{t:"Saronic Technologies",u:"https://www.saronic.com/vessels"}] },
+  { name:"Low-cost Persistent USV", cat:"surface", cost:0.67, persistHrs:4380, coverageKm2:158, coverageLabel:"158 km2 (7km horizon)", notes:"$2.5K/day, ~$63K CapEx, 4m mast, 4kt, 300W payload. 6-month endurance.", companies:"Saildrone, Ocean Infinity, SEA-KIT, AutoNaut", sources:[{t:"Saildrone USV platforms",u:"https://www.saildrone.com/technology/vehicles"}] },
+  { name:"USV + Towed Hydrophone", cat:"subsurface", cost:0.43, persistHrs:4380, coverageKm2:240, coverageLabel:"240 km2 (ideal: 700-7800)", notes:"$2.5K/day, $250K CapEx. Range 10-50km depends on convergence zones and target noise. 240 km2 = conservative 8km radius.", companies:"Thales (MOAS/towed array), Ultra Electronics, Atlas Elektronik", sources:[] },
+  { name:"Seabed Autonomous Node", cat:"subsurface", cost:0.019, persistHrs:8760, coverageKm2:600, coverageLabel:"80-1250 km2", notes:"Amortized CapEx: $100K over 12-month battery. Zero OpEx once deployed. Range depends on frequency and conditions.", companies:"Thales (UMS), Sonardyne, Raytheon (SURTASS), DSIT Solutions", sources:[{t:"Sonardyne",u:"https://www.sonardyne.com/"}] },
+  { name:"Stratospheric UAV (low-cost)", cat:"airborne", cost:0.007, persistHrs:4380, coverageKm2:5000, coverageLabel:"5K km2 (EO/IR)", notes:"Solar-powered, ~$350K CapEx, 50-100W payload, 6-month endurance", companies:"Airbus (Zephyr), BAE Systems (PHASA-35), UAVOS (ApusDuo), Prismatic (PHASA)", sources:[{t:"Skydweller Aero",u:"https://www.skydweller.aero/"},{t:"Airbus Zephyr",u:"https://www.airbus.com/en/products-services/defence/uas/uas-solutions/zephyr"}] },
+];
+
+// Index of the custom stratospheric platform for live editing
+var STRATO_IDX = platforms.length - 1;
+
+function isDark() { return document.documentElement.getAttribute("data-theme") === "dark"; }
+function chartGrid() { return isDark() ? "#2A2A2A" : "#E5E5E5"; }
+function chartMuted() { return isDark() ? "#888888" : "#808080"; }
+
+function getCatColors() {
+  return isDark() ? {
+    space: "rgba(180,186,204,0.9)", airborne: "rgba(179,188,181,0.9)",
+    surface: "rgba(232,232,232,0.8)", subsurface: "rgba(160,160,160,0.8)"
+  } : {
+    space: "rgba(180,186,204,0.85)", airborne: "rgba(179,188,181,0.85)",
+    surface: "rgba(0,0,0,0.7)", subsurface: "rgba(128,128,128,0.7)"
+  };
+}
+function getCatBorders() {
+  return isDark() ? {
+    space: "#C8CDD9", airborne: "#C9D0CB", surface: "#E8E8E8", subsurface: "#AAAAAA"
+  } : {
+    space: "#B4BACC", airborne: "#B3BCB5", surface: "#000000", subsurface: "#808080"
+  };
+}
+
+// ==================== ASSUMPTIONS ====================
+function A(id) { return parseFloat(document.getElementById(id).value) || 0; }
+
+function toggleAssumptions() {
+  var body = document.getElementById("assumptionsBody");
+  var arrow = document.getElementById("assumptionsArrow");
+  if (body.style.maxHeight === "0px" || body.style.maxHeight === "0") {
+    body.style.maxHeight = "900px";
+    arrow.style.transform = "rotate(180deg)";
+  } else {
+    body.style.maxHeight = "0";
+    arrow.style.transform = "";
+  }
+}
+
+function resetAssumptions() {
+  document.getElementById("aRadarOpex").value = 2000;
+  document.getElementById("aRadarCapex").value = 63000;
+  document.getElementById("aRadarCoverage").value = 158;
+  document.getElementById("aRadarSpacing").value = 14;
+  document.getElementById("aASWOpex").value = 2500;
+  document.getElementById("aASWCapex").value = 250000;
+  document.getElementById("aASWCoverage").value = 240;
+  document.getElementById("aASWSpacing").value = 15;
+  document.getElementById("aFrigateCost").value = 150000;
+  document.getElementById("aFrigateCapex").value = 1000000000;
+  document.getElementById("aOPVCost").value = 40000;
+  document.getElementById("aDestroyerCapex").value = 2200000000;
+  document.getElementById("aStratoCapex").value = 350000;
+  document.getElementById("aStratoOpex").value = 875;
+  document.getElementById("aStratoCoverage").value = 5000;
+  document.getElementById("aStratoEndurance").value = 6;
+  updateStratoPlatform();
+  onAssumptionChange();
+}
+
+function updateStratoPlatform() {
+  var opex = A("aStratoOpex");
+  var cov = A("aStratoCoverage");
+  var months = A("aStratoEndurance");
+  var capex = A("aStratoCapex");
+  var persistHrs = months * 730;
+  var costPerKm2Hr = cov > 0 ? opex / (cov * 24) : 0;
+
+  platforms[STRATO_IDX].cost = Math.round(costPerKm2Hr * 10000) / 10000;
+  platforms[STRATO_IDX].persistHrs = persistHrs;
+  platforms[STRATO_IDX].coverageKm2 = cov;
+  platforms[STRATO_IDX].coverageLabel = fmtArea(cov) + " (EO/IR)";
+  platforms[STRATO_IDX].notes = "Solar-powered, ~" + fmtMoney(capex) + " CapEx, 50-100W payload, " + months + "-month endurance";
+
+  // Rebuild bubble chart with updated data
+  if (bubbleChart) {
+    updateBubbleChart(activeFilter);
+  }
+}
+
+function onAssumptionChange() {
+  // Update platform data for USV entries that map to assumptions
+  var radarOpex = A("aRadarOpex");
+  var radarCov = A("aRadarCoverage");
+  var radarCapex = A("aRadarCapex");
+  var aswOpex = A("aASWOpex");
+  var aswCov = A("aASWCoverage");
+  var aswCapex = A("aASWCapex");
+  var radarSpacing = A("aRadarSpacing");
+  var aswSpacing = A("aASWSpacing");
+
+  var opvCost = A("aOPVCost");
+  var frigCost = A("aFrigateCost");
+  var frigCapex = A("aFrigateCapex");
+  var destCapex = A("aDestroyerCapex");
+
+  // Manned Patrol Vessel / OPV (index 11)
+  var opvCov = 1250; // fixed: 20km radar horizon from 30m mast
+  platforms[11].cost = opvCov > 0 ? Math.round((opvCost / (opvCov * 24)) * 10000) / 10000 : 0;
+  platforms[11].notes = fmtMoney(opvCost) + "/day, 30m mast = 20km radar horizon. 60-day endurance. Provides boarding/prosecution capability.";
+
+  // Sea Hunter class (index 12) - no direct assumption, but scale relative to frigate for reference
+  // Static: $17K/day, 800 km2 - leave as-is unless we add a dedicated input
+
+  // Low-cost Persistent USV (index 13)
+  platforms[13].cost = radarCov > 0 ? Math.round((radarOpex / (radarCov * 24)) * 10000) / 10000 : 0;
+  platforms[13].coverageKm2 = radarCov;
+  platforms[13].coverageLabel = fmtArea(radarCov) + " (" + Math.round(Math.sqrt(radarCov / Math.PI)) + "km horizon)";
+  platforms[13].notes = fmtMoney(radarOpex) + "/day, ~" + fmtMoney(radarCapex) + " CapEx, " + radarSpacing + "km barrier spacing. 6-month endurance.";
+
+  // USV + Towed Hydrophone (index 14)
+  platforms[14].cost = aswCov > 0 ? Math.round((aswOpex / (aswCov * 24)) * 10000) / 10000 : 0;
+  platforms[14].coverageKm2 = aswCov;
+  platforms[14].coverageLabel = fmtArea(aswCov) + " (conservative)";
+  platforms[14].notes = fmtMoney(aswOpex) + "/day, " + fmtMoney(aswCapex) + " CapEx, " + aswSpacing + "km barrier spacing. Range depends on convergence zones.";
+
+  // Refresh bubble chart
+  if (bubbleChart) updateBubbleChart(activeFilter);
+
+  calcChokepoint();
+  calcFleet();
+  calcMatryoshka();
+  calcASW();
+}
+
+// ==================== UTILITIES ====================
+function fmtHours(h) {
+  if (h >= 8760) return (h/8760).toFixed(h >= 17520 ? 0 : 1) + " yr";
+  if (h >= 720) return (h/720).toFixed(0) + " mo";
+  if (h >= 48) return (h/24).toFixed(0) + " days";
+  return h + " hr";
+}
+
+function fmtMoney(v) {
+  if (v >= 1e9) return "$" + (v/1e9).toFixed(1) + "B";
+  if (v >= 1e6) return "$" + (v/1e6).toFixed(1) + "M";
+  if (v >= 1e3) return "$" + (v/1e3).toFixed(0) + "K";
+  return "$" + v.toFixed(0);
+}
+
+function fmtMoneyShort(v) {
+  if (v >= 1e9) return "$" + (v/1e9).toFixed(1) + "B";
+  if (v >= 1e6) return "$" + (v/1e6).toFixed(0) + "M";
+  if (v >= 1e3) return "$" + (v/1e3).toFixed(0) + "K";
+  return "$" + v.toFixed(0);
+}
+
+function fmtMoneyFull(v) {
+  return "$" + v.toLocaleString("en-US", { maximumFractionDigits: 0 });
+}
+
+function fmtArea(km2) {
+  if (km2 >= 1e6) return (km2/1e6).toFixed(1) + "M km2";
+  if (km2 >= 1e3) return (km2/1e3).toFixed(0) + "K km2";
+  return km2.toFixed(0) + " km2";
+}
+
+// Safe DOM builder helpers
+function el(tag, attrs, children) {
+  const e = document.createElement(tag);
+  if (attrs) Object.entries(attrs).forEach(function(kv) {
+    if (kv[0] === "textContent") e.textContent = kv[1];
+    else if (kv[0] === "className") e.className = kv[1];
+    else e.setAttribute(kv[0], kv[1]);
+  });
+  if (children) children.forEach(function(c) {
+    if (typeof c === "string") e.appendChild(document.createTextNode(c));
+    else if (c) e.appendChild(c);
+  });
+  return e;
+}
+
+function clearChildren(node) {
+  while (node.firstChild) node.removeChild(node.firstChild);
+}
+
+function resultCard(value, label, highlight) {
+  var card = el("div", { className: "result-card" + (highlight ? " highlight" : "") });
+  card.appendChild(el("div", { className: "value", textContent: value }));
+  card.appendChild(el("div", { className: "label", textContent: label }));
+  return card;
+}
+
+// ==================== BUBBLE CHART ====================
+var bubbleChart;
+var activeFilter = "all";
+
+function buildBubbleData(filter) {
+  return platforms
+    .filter(function(p) { return filter === "all" || p.cat === filter; })
+    .map(function(p) {
+      return {
+        x: p.cost,
+        y: p.persistHrs,
+        r: Math.max(4, Math.min(40, Math.sqrt(p.coverageKm2) / 150)),
+        label: p.name,
+        cat: p.cat,
+        platform: p
+      };
+    });
+}
+
+function initBubbleChart() {
+  var ctx = document.getElementById("bubbleChart").getContext("2d");
+  var data = buildBubbleData("all");
+
+  var cc = getCatColors(); var cb = getCatBorders();
+  bubbleChart = new Chart(ctx, {
+    type: "bubble",
+    data: {
+      datasets: [{
+        data: data,
+        backgroundColor: data.map(function(d) { return cc[d.cat]; }),
+        borderColor: data.map(function(d) { return cb[d.cat]; }),
+        borderWidth: 1.5,
+        hoverBorderWidth: 3,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: isDark() ? "#222" : "#000",
+          titleFont: { family: "'Inter', sans-serif", weight: "600", size: 13 },
+          bodyFont: { family: "'Inter', sans-serif", size: 12 },
+          titleColor: "#fff", bodyColor: "#ddd",
+          padding: 12,
+          cornerRadius: 6,
+          callbacks: {
+            title: function(items) { return items[0].raw.label; },
+            label: function(item) {
+              var p = item.raw.platform;
+              return [
+                "Cost: $" + (p.cost < 0.01 ? p.cost.toFixed(4) : p.cost.toFixed(2)) + "/km2-hr",
+                "Persistence: " + fmtHours(p.persistHrs),
+                "Coverage: " + p.coverageLabel
+              ];
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          type: "logarithmic",
+          title: { display: true, text: "Cost per km2-hr (USD, log scale)", font: { family: "'Inter',sans-serif", size: 12, weight: "600" }, color: chartMuted() },
+          grid: { color: chartGrid() },
+          ticks: {
+            color: chartMuted(),
+            font: { family: "'Inter',sans-serif", size: 11 },
+            callback: function(v) { return "$" + v; }
+          }
+        },
+        y: {
+          type: "logarithmic",
+          title: { display: true, text: "Persistence (hours, log scale)", font: { family: "'Inter',sans-serif", size: 12, weight: "600" }, color: chartMuted() },
+          grid: { color: chartGrid() },
+          ticks: {
+            color: chartMuted(),
+            font: { family: "'Inter',sans-serif", size: 11 },
+            callback: function(v) { return fmtHours(v); }
+          }
+        }
+      },
+      onClick: function(e, elements) {
+        if (elements.length > 0) {
+          var idx = elements[0].index;
+          var p = bubbleChart.data.datasets[0].data[idx].platform;
+          showDetail(p);
+        }
+      }
+    }
+  });
+}
+
+function updateBubbleChart(filter) {
+  var data = buildBubbleData(filter);
+  bubbleChart.data.datasets[0].data = data;
+  var cc = getCatColors(); var cb = getCatBorders();
+  bubbleChart.data.datasets[0].backgroundColor = data.map(function(d) { return cc[d.cat]; });
+  bubbleChart.data.datasets[0].borderColor = data.map(function(d) { return cb[d.cat]; });
+  bubbleChart.update();
+}
+
+function showDetail(p) {
+  document.getElementById("platformDetail").classList.add("visible");
+  document.getElementById("detailName").textContent = p.name;
+  document.getElementById("detailCat").textContent = p.cat.charAt(0).toUpperCase() + p.cat.slice(1);
+  document.getElementById("detailCost").textContent = "$" + (p.cost < 0.01 ? p.cost.toFixed(4) : p.cost.toFixed(2));
+  document.getElementById("detailPersist").textContent = fmtHours(p.persistHrs);
+  document.getElementById("detailCoverage").textContent = p.coverageLabel;
+  document.getElementById("detailNotes").textContent = p.notes;
+  document.getElementById("detailCompanies").textContent = p.companies || "-";
+
+  var srcEl = document.getElementById("detailSources");
+  var srcWrap = document.getElementById("detailSourcesWrap");
+  clearChildren(srcEl);
+  if (p.sources && p.sources.length > 0) {
+    srcWrap.style.display = "";
+    p.sources.forEach(function(s) {
+      var a = document.createElement("a");
+      a.href = s.u;
+      a.target = "_blank";
+      a.rel = "noopener";
+      a.className = "source-link";
+      a.textContent = s.t;
+      srcEl.appendChild(a);
+    });
+  } else {
+    srcWrap.style.display = "none";
+  }
+}
+
+// Pills
+document.querySelectorAll(".pill").forEach(function(btn) {
+  btn.addEventListener("click", function() {
+    document.querySelectorAll(".pill").forEach(function(b) { b.classList.remove("active"); });
+    btn.classList.add("active");
+    activeFilter = btn.dataset.filter;
+    updateBubbleChart(activeFilter);
+  });
+});
+
+// ==================== CHOKEPOINT CALCULATOR ====================
+function setChokepoint(width) {
+  document.getElementById("straitWidth").value = width;
+  calcChokepoint();
+}
+
+function calcChokepoint() {
+  var width = parseFloat(document.getElementById("straitWidth").value) || 50;
+  var type = document.getElementById("coverageType").value;
+
+  var radarSpacing = A("aRadarSpacing");
+  var aswSpacing = A("aASWSpacing");
+  var radarOpex = A("aRadarOpex");
+  var aswOpex = A("aASWOpex");
+
+  var rotation = parseFloat(document.getElementById("rotationFactor").value) || 1.5;
+
+  var numRadarOnStation = 0, numASWOnStation = 0;
+  if (type === "surface" || type === "both") numRadarOnStation = Math.ceil(width / radarSpacing);
+  if (type === "subsurface" || type === "both") numASWOnStation = Math.ceil(width / aswSpacing);
+
+  // Rotation factor: total fleet size needed to sustain on-station count
+  var numRadar = Math.ceil(numRadarOnStation * rotation);
+  var numASW = Math.ceil(numASWOnStation * rotation);
+  var totalUSV = numRadar + numASW;
+  var onStation = numRadarOnStation + numASWOnStation;
+  var dailyCost = numRadarOnStation * radarOpex + numASWOnStation * aswOpex;
+  var annualCost = dailyCost * 365;
+
+  var frigateDailyRate = A("aFrigateCost");
+  var numFrigates = Math.max(1, Math.ceil(width / 50));
+  var frigateDailyCost = numFrigates * frigateDailyRate;
+  var frigateAnnualCost = frigateDailyCost * 365;
+
+  var opvDailyRate = A("aOPVCost");
+  var numOPV = Math.max(1, Math.ceil(width / 30));
+  var opvDailyCost = numOPV * opvDailyRate;
+  var opvAnnualCost = opvDailyCost * 365;
+
+  var resultsEl = document.getElementById("chokepointResults");
+  clearChildren(resultsEl);
+  resultsEl.appendChild(resultCard(String(onStation), "On-Station", true));
+  resultsEl.appendChild(resultCard(String(totalUSV), "Fleet Total (" + rotation + "x)", false));
+  resultsEl.appendChild(resultCard(String(numRadarOnStation) + " / " + String(numASWOnStation), "Radar / ASW On-Station", false));
+  resultsEl.appendChild(resultCard(fmtMoney(dailyCost), "Daily Cost (USV)", false));
+  resultsEl.appendChild(resultCard(fmtMoney(annualCost), "Annual Cost (USV)", false));
+
+  var ratio1 = (frigateDailyCost / Math.max(1, dailyCost)).toFixed(0);
+  var ratio2 = (opvDailyCost / Math.max(1, dailyCost)).toFixed(0);
+
+  var tbody = document.getElementById("chokepointTbody");
+  clearChildren(tbody);
+
+  function makeRow(cells, isBest) {
+    var tr = document.createElement("tr");
+    cells.forEach(function(text, i) {
+      var td = document.createElement("td");
+      if (i === 0) { var s = document.createElement("strong"); s.textContent = text; td.appendChild(s); }
+      else { td.textContent = text; }
+      if (isBest && i >= 2) td.className = "best";
+      tr.appendChild(td);
+    });
+    return tr;
+  }
+
+  tbody.appendChild(makeRow(["USV Barrier", onStation + " on-station (" + totalUSV + " fleet)", fmtMoney(dailyCost), fmtMoney(annualCost), "1x"], true));
+  tbody.appendChild(makeRow(["Frigate Patrol", numFrigates + " frigate" + (numFrigates > 1 ? "s" : ""), fmtMoney(frigateDailyCost), fmtMoney(frigateAnnualCost), ratio1 + "x"], false));
+  tbody.appendChild(makeRow(["OPV Patrol", numOPV + " OPV" + (numOPV > 1 ? "s" : ""), fmtMoney(opvDailyCost), fmtMoney(opvAnnualCost), ratio2 + "x"], false));
+}
+
+// ==================== FLEET BUILDER ====================
+var fleetMode = "radar";
+var fleetBarChart;
+
+function setFleetMode(mode, btn) {
+  fleetMode = mode;
+  document.querySelectorAll(".toggle-btn").forEach(function(b) { b.classList.remove("active"); });
+  btn.classList.add("active");
+  calcFleet();
+}
+
+function calcFleet() {
+  var n = parseInt(document.getElementById("fleetSize").value);
+  document.getElementById("fleetSizeVal").textContent = n;
+
+  var capexUnit = fleetMode === "radar" ? A("aRadarCapex") : A("aASWCapex");
+  var opexDayUnit = fleetMode === "radar" ? A("aRadarOpex") : A("aASWOpex");
+  var coverageUnit = fleetMode === "radar" ? A("aRadarCoverage") : A("aASWCoverage");
+
+  var totalCapex = n * capexUnit;
+  var sixMonthOpex = n * opexDayUnit * 180;
+  var totalCoverage = n * coverageUnit;
+
+  var frigateCapex = A("aFrigateCapex");
+  var destroyerCapex = A("aDestroyerCapex");
+  var frigateEquiv = totalCapex / frigateCapex;
+  var destroyerEquiv = totalCapex / destroyerCapex;
+
+  var resultsEl = document.getElementById("fleetResults");
+  clearChildren(resultsEl);
+  resultsEl.appendChild(resultCard(fmtMoneyShort(totalCapex), "Total CapEx", true));
+  resultsEl.appendChild(resultCard(fmtMoneyShort(sixMonthOpex), "6-Month OpEx", false));
+  resultsEl.appendChild(resultCard(fmtArea(totalCoverage), "Continuous Coverage", false));
+  resultsEl.appendChild(resultCard(frigateEquiv.toFixed(1), "Frigate-Equivalents (CapEx)", false));
+  resultsEl.appendChild(resultCard(destroyerEquiv.toFixed(1), "Destroyer-Equivalents (CapEx)", false));
+
+  updateFleetBar(totalCapex, frigateCapex, destroyerCapex, n);
+}
+
+function updateFleetBar(usvCost, frigCost, destCost, n) {
+  if (fleetBarChart) fleetBarChart.destroy();
+
+  var ctx = document.getElementById("fleetBarChart").getContext("2d");
+  var barColors = isDark() ? ["#E8E8E8", "#888888", "#B4BACC"] : ["#000000", "#808080", "#B4BACC"];
+  fleetBarChart = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: [n + " USVs", "1 Frigate", "1 Destroyer"],
+      datasets: [{
+        data: [usvCost, frigCost, destCost],
+        backgroundColor: barColors,
+        borderRadius: 4,
+        barThickness: 32,
+      }]
+    },
+    options: {
+      indexAxis: "y",
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: isDark() ? "#222" : "#000",
+          titleFont: { family: "'Inter',sans-serif", weight: "600" },
+          bodyFont: { family: "'Inter',sans-serif" },
+          titleColor: "#fff", bodyColor: "#ddd",
+          padding: 10,
+          cornerRadius: 6,
+          callbacks: { label: function(item) { return fmtMoneyFull(item.raw); } }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: chartGrid() },
+          ticks: {
+            color: chartMuted(),
+            font: { family: "'Inter',sans-serif", size: 11 },
+            callback: function(v) { return fmtMoneyShort(v); }
+          }
+        },
+        y: {
+          grid: { display: false },
+          ticks: { color: chartMuted(), font: { family: "'Inter',sans-serif", size: 12, weight: "600" } }
+        }
+      }
+    }
+  });
+}
+
+// ==================== ASW COST COMPARISON ====================
+function calcASW() {
+  var length = parseFloat(document.getElementById("aswLength").value) || 100;
+  var days = parseFloat(document.getElementById("aswDays").value) || 30;
+
+  var frigateDailyRate = A("aFrigateCost");
+  var aswOpex = A("aASWOpex");
+  var aswSpace = A("aASWSpacing");
+
+  var numFrigates = Math.max(1, Math.ceil(length / 50));
+  var frigateCost = numFrigates * frigateDailyRate * days;
+
+  // P-8A: 10hr sortie, 8hr sonobuoy life, ~100km per sortie coverage
+  // Need 3 refresh cycles/day for 24hr coverage, each aircraft does ~2 sorties/day
+  // So need ceil(3/2) = 2 aircraft per 100km section for continuous coverage
+  var p8PerSection = 2; // aircraft needed for 24hr coverage per 100km
+  var numP8sections = Math.max(1, Math.ceil(length / 100));
+  var numP8 = numP8sections * p8PerSection;
+  var p8MissionCost = 250000; // $150-250K flight + $20-125K sonobuoys, midpoint
+  var p8SortiesPerAircraftPerDay = 2;
+  var p8DailyCost = numP8 * p8MissionCost * p8SortiesPerAircraftPerDay;
+  var p8Cost = p8DailyCost * days;
+
+  var numUSV = Math.ceil(length / aswSpace);
+  var usvCost = numUSV * aswOpex * days;
+
+  var costs = [
+    { name: "Frigate + Towed Array", cost: frigateCost, units: numFrigates + " frigate" + (numFrigates > 1 ? "s" : ""), meta: fmtMoney(frigateDailyRate) + "/day each, ~50km coverage per unit" },
+    { name: "P-8A Sonobuoy Pattern", cost: p8Cost, units: numP8 + " aircraft, " + p8SortiesPerAircraftPerDay + " sorties/day each", meta: "$250K/mission (flight + sonobuoys), 8hr refresh" },
+    { name: "USV Towed Hydrophone", cost: usvCost, units: numUSV + " USVs", meta: fmtMoney(aswOpex) + "/day each, " + aswSpace + "km spacing" }
+  ];
+
+  var minCost = Math.min.apply(null, costs.map(function(c) { return c.cost; }));
+
+  var resultsEl = document.getElementById("aswResults");
+  clearChildren(resultsEl);
+
+  costs.forEach(function(c) {
+    var card = el("div", { className: "asw-card" + (c.cost === minCost ? " cheapest" : "") });
+    card.appendChild(el("h4", { textContent: c.name }));
+    card.appendChild(el("div", { className: "cost", textContent: fmtMoneyFull(c.cost) }));
+    card.appendChild(el("div", { className: "meta", textContent: c.units }));
+    card.appendChild(el("div", { className: "meta", textContent: c.meta }));
+    if (c.cost === minCost) {
+      var badge = el("div", { textContent: "Lowest Cost" });
+      badge.style.cssText = "margin-top:0.5rem;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;";
+      card.appendChild(badge);
+    }
+    resultsEl.appendChild(card);
+  });
+
+  var ratioFrigate = (frigateCost / usvCost).toFixed(0);
+  var ratioP8 = (p8Cost / usvCost).toFixed(0);
+
+  var ratioEl = document.getElementById("aswRatio");
+  clearChildren(ratioEl);
+  ratioEl.appendChild(document.createTextNode("For a "));
+  ratioEl.appendChild(el("strong", { textContent: length + " km barrier over " + days + " days" }));
+  ratioEl.appendChild(document.createTextNode(": USV hydrophone barrier costs "));
+  ratioEl.appendChild(el("strong", { textContent: ratioFrigate + "x less" }));
+  ratioEl.appendChild(document.createTextNode(" than frigates and "));
+  ratioEl.appendChild(el("strong", { textContent: ratioP8 + "x less" }));
+  ratioEl.appendChild(document.createTextNode(" than P-8A sonobuoy patterns."));
+}
+
+// ==================== PHYSICS CARDS ====================
+function togglePhysics(header) {
+  header.parentElement.classList.toggle("open");
+}
+
+// ==================== NAV HIGHLIGHT ====================
+var navLinks = document.querySelectorAll("nav a");
+var allSections = document.querySelectorAll("section");
+
+window.addEventListener("scroll", function() {
+  var current = "";
+  allSections.forEach(function(s) {
+    if (window.scrollY >= s.offsetTop - 80) current = s.id;
+  });
+  navLinks.forEach(function(a) {
+    a.classList.toggle("active", a.getAttribute("href") === "#" + current);
+  });
+});
+
+// ==================== MATRYOSHKA STRATEGY ====================
+function setMatryoshkaPreset(scenario) {
+  if (scenario === "A") {
+    document.getElementById("mMotherType").value = "opv";
+    document.getElementById("mMotherCost").value = 30000;
+    document.getElementById("mASVCount").value = 4;
+    document.getElementById("mASVCost").value = 2000;
+    document.getElementById("mASVTowed").value = "no";
+    document.getElementById("mAUVPerASV").value = 2;
+    document.getElementById("mAUVCost").value = 500;
+  } else if (scenario === "B") {
+    document.getElementById("mMotherType").value = "usv";
+    document.getElementById("mMotherCost").value = 17000;
+    document.getElementById("mASVCount").value = 4;
+    document.getElementById("mASVCost").value = 500;
+    document.getElementById("mASVTowed").value = "yes";
+    document.getElementById("mAUVPerASV").value = 1;
+    document.getElementById("mAUVCost").value = 200;
+  } else if (scenario === "C") {
+    document.getElementById("mMotherType").value = "none";
+    document.getElementById("mMotherCost").value = 0;
+    document.getElementById("mASVCount").value = 20;
+    document.getElementById("mASVCost").value = 2000;
+    document.getElementById("mASVTowed").value = "no";
+    document.getElementById("mAUVPerASV").value = 0;
+    document.getElementById("mAUVCost").value = 200;
+  }
+  calcMatryoshka();
+}
+
+function calcMatryoshka() {
+  var motherType = document.getElementById("mMotherType").value;
+  var motherCost = parseFloat(document.getElementById("mMotherCost").value) || 0;
+  var asvCount = parseInt(document.getElementById("mASVCount").value) || 0;
+  var asvCost = parseFloat(document.getElementById("mASVCost").value) || 0;
+  var hasTowed = document.getElementById("mASVTowed").value === "yes";
+  var auvPerASV = parseInt(document.getElementById("mAUVPerASV").value) || 0;
+  var auvCost = parseFloat(document.getElementById("mAUVCost").value) || 0;
+
+  var totalAUV = asvCount * auvPerASV;
+  var dailyCost = motherCost + (asvCount * asvCost) + (totalAUV * auvCost);
+
+  // Coverage model (corrected from report Section 4.3)
+  // Mothership (OPV, 30m mast): 1,250 km2 (20km radar horizon)
+  // Mothership (MDUSV, 6m mast): 400 km2 (~11km horizon)
+  // ASV (2-3m mast): ~100 km2 (~6km radar horizon, pi*6^2)
+  // ASV with towed array: ~240 km2 acoustic (conservative 8km radius)
+  // AUV: ~80 km2 (5km close-range hydrophone, pi*5^2)
+  var motherCoverage = (motherType === "opv") ? 1250 : (motherType === "usv") ? 400 : 0;
+  var asvSurfaceCov = asvCount * 100;
+  var asvAcousticCov = hasTowed ? asvCount * 240 : 0;
+  var auvSubCov = totalAUV * 80;
+
+  var totalSurfaceCov = motherCoverage + asvSurfaceCov;
+  var totalSubCov = asvAcousticCov + auvSubCov;
+  var totalCoverage = totalSurfaceCov + totalSubCov;
+
+  // Sensor nodes
+  var surfaceNodes = (motherType !== "none" ? 1 : 0) + asvCount;
+  var subNodes = (hasTowed ? asvCount : 0) + totalAUV;
+  var totalNodes = surfaceNodes + subNodes;
+
+  // Cost per km2-hr
+  var costPerKm2Hr = totalCoverage > 0 ? dailyCost / (totalCoverage * 24) : 0;
+
+  // Standalone OPV baseline
+  var opvAloneCoverage = 1250;
+  var opvAloneCost = 30000;
+  var opvCostPerKm2Hr = opvAloneCost / (opvAloneCoverage * 24);
+  var multiplier = totalSurfaceCov > 0 ? totalSurfaceCov / Math.max(motherCoverage, 1) : asvCount;
+
+  // Domains covered
+  var domains = [];
+  if (totalSurfaceCov > 0) domains.push("Surface");
+  if (asvAcousticCov > 0) domains.push("Acoustic");
+  if (auvSubCov > 0) domains.push("Subsurface");
+  var domainStr = domains.join(" + ") || "None";
+
+  // Revisit time (area / (2 * sensor_radius * speed * nodes))
+  var searchArea = 30000; // standard comparison area
+  var revisitAlone = 54; // hours, from report
+  var revisitNested = surfaceNodes > 0 ? revisitAlone / surfaceNodes : 0;
+
+  // Results cards
+  var resultsEl = document.getElementById("matryoshkaResults");
+  clearChildren(resultsEl);
+  resultsEl.appendChild(resultCard(String(totalNodes), "Sensor Nodes", true));
+  resultsEl.appendChild(resultCard(String(surfaceNodes), "Surface Nodes", false));
+  resultsEl.appendChild(resultCard(String(subNodes), "Subsurface Nodes", false));
+  resultsEl.appendChild(resultCard(fmtMoney(dailyCost), "Daily Cost", false));
+  resultsEl.appendChild(resultCard(fmtArea(totalCoverage), "Total Coverage", false));
+  resultsEl.appendChild(resultCard("$" + costPerKm2Hr.toFixed(3), "Cost / km2-hr", false));
+  resultsEl.appendChild(resultCard(multiplier.toFixed(0) + "x", "Coverage Multiplier", true));
+  resultsEl.appendChild(resultCard(revisitNested > 0 ? revisitNested.toFixed(0) + " hr" : "-", "Revisit (30K km2)", false));
+  resultsEl.appendChild(resultCard(domainStr, "Domains Covered", false));
+
+  // Comparison table
+  var tbody = document.getElementById("matryoshkaTbody");
+  clearChildren(tbody);
+
+  function makeRow2(cells, isBest) {
+    var tr = document.createElement("tr");
+    cells.forEach(function(text, i) {
+      var td = document.createElement("td");
+      if (i === 0) { var s = document.createElement("strong"); s.textContent = text; td.appendChild(s); }
+      else { td.textContent = text; }
+      if (isBest && (i === 3 || i === 5)) td.className = "best";
+      tr.appendChild(td);
+    });
+    return tr;
+  }
+
+  tbody.appendChild(makeRow2([
+    "Your Config (nested)",
+    String(totalNodes),
+    fmtArea(totalCoverage),
+    "$" + costPerKm2Hr.toFixed(3),
+    domainStr,
+    multiplier.toFixed(0) + "x"
+  ], true));
+
+  tbody.appendChild(makeRow2([
+    "OPV alone",
+    "1",
+    fmtArea(opvAloneCoverage),
+    "$" + opvCostPerKm2Hr.toFixed(3),
+    "Surface",
+    "1x"
+  ], false));
+
+  tbody.appendChild(makeRow2([
+    "MQ-4C Triton (HALE)",
+    "1",
+    "7M km2",
+    "$0.029",
+    "Surface",
+    "-"
+  ], false));
+
+  tbody.appendChild(makeRow2([
+    "Saildrone fleet (50x)",
+    "50",
+    fmtArea(50 * 158),
+    "$0.670",
+    "Surface",
+    "1x each"
+  ], false));
+
+  // Summary note
+  var noteEl = document.getElementById("matryoshkaNote");
+  clearChildren(noteEl);
+
+  var costRatio = opvCostPerKm2Hr / Math.max(costPerKm2Hr, 0.0001);
+  noteEl.appendChild(document.createTextNode("Nesting achieves "));
+  noteEl.appendChild(el("strong", { textContent: "$" + costPerKm2Hr.toFixed(3) + "/km2-hr" }));
+  noteEl.appendChild(document.createTextNode(" across " + domainStr.toLowerCase() + " domains - "));
+  noteEl.appendChild(el("strong", { textContent: costRatio.toFixed(0) + "x cheaper" }));
+  noteEl.appendChild(document.createTextNode(" than a standalone OPV ($" + opvCostPerKm2Hr.toFixed(3) + "/km2-hr). "));
+  if (totalSubCov > 0) {
+    noteEl.appendChild(document.createTextNode("Critically, this is the only architecture matching HALE UAV area economics while adding subsurface detection."));
+  } else {
+    noteEl.appendChild(document.createTextNode("Add towed hydrophones or AUVs to extend coverage into the subsurface domain."));
+  }
+}
+
+// ==================== THEME ====================
+function toggleTheme() {
+  var html = document.documentElement;
+  var newTheme = isDark() ? "light" : "dark";
+  html.setAttribute("data-theme", newTheme);
+  localStorage.setItem("maritime-theme", newTheme);
+  rebuildCharts();
+}
+
+function rebuildCharts() {
+  if (bubbleChart) { bubbleChart.destroy(); bubbleChart = null; }
+  initBubbleChart();
+  updateBubbleChart(activeFilter);
+  calcFleet();
+  if (currentMarketView === "treemap") initMarketBar();
+  if (currentMarketView === "platform") buildPlatformFit();
+}
+
+// ==================== MARKET SEGMENTS ====================
+var marketSegments = [
+  { id:"defense", name:"Defense & Naval", spend:"$8-12B", samLow:500, samHigh:2000, buyers:"~30 navies", growth:"15-20%", cagr:"15-20% (autonomy layer)",
+    platforms:"USV, UUV, satellite, UAV, seabed nodes",
+    contracts:"US Navy $5.3B unmanned FY2026 (+70% YoY); India $3.4B MQ-9B; T-AGOS-25 $3.2B; Germany SeaGuardian $1.77B; Japan SHIELD $850M/yr; Saronic $392M OTA",
+    fit:{sar:2,ais:2,hale:3,male:3,usv:3,uuv:3,coastal:2,ai:2} },
+  { id:"coastguard", name:"Coast Guard & Border", spend:"$2-4B", samLow:300, samHigh:800, buyers:"~50 agencies", growth:"10-15%", cagr:"10-15%",
+    platforms:"USV, MALE UAV, satellite AIS, coastal radar",
+    contracts:"USCG $14.5B total, $100M C5I; Frontex EUR 1.12B (EUR 184M drones); Japan CG $2.15B (+14% YoY); IPMDA $120M+; Australia Bluebottle A$176M",
+    fit:{sar:2,ais:3,hale:1,male:3,usv:3,uuv:1,coastal:3,ai:2} },
+  { id:"wind", name:"Offshore Wind", spend:"$400-800M", samLow:300, samHigh:800, buyers:"~20 operators, 313 farms", growth:"20-30%", cagr:"20-30% (surveillance component)",
+    platforms:"USV, coastal radar, AIS, guard vessels",
+    contracts:"No major surveillance contracts yet - market at inflection. Saab Giraffe 1X radar trial at Hornsea 1 (proof-of-concept). EU CER Directive mandating risk assessments by Jan 2026. Guard vessels at GBP 1.5M/farm/year.",
+    fit:{sar:1,ais:2,hale:0,male:1,usv:3,uuv:1,coastal:3,ai:2} },
+  { id:"oilgas", name:"Oil & Gas", spend:"$3.3-8B (offshore)", samLow:200, samHigh:500, buyers:"~1,470 platforms", growth:"5-8%", cagr:"5-8% (stable, mature)",
+    platforms:"USV, coastal radar, guard vessels, AI analytics",
+    contracts:"Nigeria Deep Blue $195M (national maritime security); Gulf of Guinea $50K/voyage premium; piracy attacks down 90% post-investment; per-platform security $0.5-5M/year",
+    fit:{sar:2,ais:2,hale:0,male:1,usv:2,uuv:1,coastal:3,ai:2} },
+  { id:"shipping", name:"Shipping & Insurance", spend:"$1.3-1.8B (analytics)", samLow:200, samHigh:500, buyers:"~106,700 vessels", growth:"15-20%", cagr:"15-20% (AI/sanctions)",
+    platforms:"Satellite AIS, AI analytics platform, RF satellites",
+    contracts:"Windward acquired $270M (35M ARR); Kpler $100M+ ARR; Spire maritime sold $241M; P&I Club pool $3.96B; war risk premiums 20x increase post-Red Sea",
+    fit:{sar:2,ais:3,hale:0,male:0,usv:0,uuv:0,coastal:0,ai:3} },
+  { id:"fishing", name:"IUU Fishing", spend:"$200-500M (tech)", samLow:50, samHigh:150, buyers:"~50 nations, 5+ RFMOs", growth:"10-15%", cagr:"10-15% (from small base)",
+    platforms:"Satellite SAR, USV, VMS, electronic monitoring",
+    contracts:"NOAA enforcement $82M; EU EFCA EUR 30.6M; Global Fishing Watch tracking 900K vessels; 90% of fishing in MPAs invisible to AIS (Science 2025); VMS market $471-651M",
+    fit:{sar:3,ais:2,hale:1,male:1,usv:2,uuv:0,coastal:1,ai:3} },
+  { id:"enviro", name:"Environmental & Marine", spend:"$800M-1.2B", samLow:100, samHigh:300, buyers:"~30 agencies, NGOs", growth:"15-20%", cagr:"15-20% (climate monitoring)",
+    platforms:"USV (Saildrone), satellite, autonomous buoys",
+    contracts:"Saildrone $43M (+231% YoY); Lockheed $50M investment in Saildrone; NOAA IOOS $42.5M + $101.5M IRA; Ocean Infinity 14-vessel Armada fleet; oil spill detection $980M market",
+    fit:{sar:2,ais:1,hale:1,male:0,usv:3,uuv:2,coastal:0,ai:1} },
+  { id:"undersea", name:"Undersea Infrastructure", spend:"$1.4-2B (monitoring)", samLow:200, samHigh:500, buyers:"529 cable systems, 600+ power cables", growth:"20-30%", cagr:"20-30% (post-Nord Stream)",
+    platforms:"UUV, USV-towed arrays, seabed nodes, vessel traffic monitoring",
+    contracts:"EU Action Plan EUR 540M (2025-27) for cables; NATO Baltic Sentry; 200 cable faults/yr ($500K-100M each); power cable repair $10-100M/incident; UUV market to $8.72B by 2030",
+    fit:{sar:1,ais:2,hale:0,male:0,usv:2,uuv:3,coastal:1,ai:2} },
+  { id:"ports", name:"Port & Harbor Security", spend:"$21-23B (broad) / $2-3B (tech)", samLow:100, samHigh:300, buyers:"~3,200 ISPS facilities", growth:"7-10%", cagr:"7-10% (smart ports at 23%)",
+    platforms:"Coastal radar, AIS, cameras, access control, USV patrol",
+    contracts:"FEMA port security grants $90M/yr; smart ports market $2.6B (+23% CAGR); ISPS access control $2.18B; Terma SCANTER in 40+ countries",
+    fit:{sar:0,ais:2,hale:0,male:0,usv:2,uuv:0,coastal:3,ai:2} }
+];
+
+var marketBarChart = null;
+var currentMarketView = "treemap";
+
+function setMarketView(view, btn) {
+  currentMarketView = view;
+  var pills = document.querySelectorAll("#marketPills .pill");
+  pills.forEach(function(p) { p.classList.remove("active"); });
+  btn.classList.add("active");
+  document.getElementById("marketTreemap").style.display = view === "treemap" ? "block" : "none";
+  document.getElementById("marketPlatform").style.display = view === "platform" ? "block" : "none";
+  document.getElementById("marketUsecases").style.display = view === "usecases" ? "block" : "none";
+  document.getElementById("marketWedge").style.display = view === "wedge" ? "block" : "none";
+  if (view === "treemap") initMarketBar();
+  if (view === "platform") buildPlatformFit();
+}
+
+function initMarketBar() {
+  if (marketBarChart) { marketBarChart.destroy(); marketBarChart = null; }
+  var ctx = document.getElementById("marketBarChart").getContext("2d");
+  var labels = marketSegments.map(function(s) { return s.name; });
+  var lows = marketSegments.map(function(s) { return s.samLow; });
+  var ranges = marketSegments.map(function(s) { return s.samHigh - s.samLow; });
+
+  var barColors = isDark()
+    ? ["rgba(180,186,204,0.9)","rgba(179,188,181,0.9)","rgba(200,200,200,0.8)","rgba(160,160,160,0.7)","rgba(180,186,204,0.7)","rgba(179,188,181,0.7)","rgba(200,200,200,0.6)","rgba(160,160,160,0.6)","rgba(180,186,204,0.5)"]
+    : ["rgba(180,186,204,0.85)","rgba(179,188,181,0.85)","rgba(0,0,0,0.65)","rgba(128,128,128,0.65)","rgba(180,186,204,0.6)","rgba(179,188,181,0.6)","rgba(0,0,0,0.45)","rgba(128,128,128,0.45)","rgba(180,186,204,0.4)"];
+
+  marketBarChart = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: labels,
+      datasets: [
+        { label: "SAM Low ($M)", data: lows, backgroundColor: barColors, borderWidth: 0, borderSkipped: false },
+        { label: "SAM Range ($M)", data: ranges, backgroundColor: barColors.map(function(c) { return c.replace(/[\d.]+\)$/, "0.35)"); }), borderWidth: 0, borderSkipped: false }
+      ]
+    },
+    options: {
+      indexAxis: "y",
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(ctx2) {
+              var seg = marketSegments[ctx2.dataIndex];
+              return "SAM: $" + seg.samLow + "M - $" + seg.samHigh + "M / yr";
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          stacked: true,
+          title: { display: true, text: "SAM ($M/year)", color: chartMuted(), font: { size: 11, weight: 600 } },
+          grid: { color: chartGrid() },
+          ticks: { color: chartMuted(), font: { size: 11, weight: 600 } }
+        },
+        y: {
+          stacked: true,
+          grid: { display: false },
+          ticks: { color: isDark() ? "#F0F0F0" : "#000", font: { size: 11, weight: 600 } }
+        }
+      },
+      onClick: function(e, elems) {
+        if (elems.length > 0) showMarketDetail(elems[0].index);
+      }
+    }
+  });
+}
+
+function showMarketDetail(idx) {
+  var seg = marketSegments[idx];
+  var card = document.getElementById("marketDetail");
+  card.classList.add("visible");
+  document.getElementById("mktDetailName").textContent = seg.name;
+  document.getElementById("mktDetailSpend").textContent = seg.spend;
+  document.getElementById("mktDetailSAM").textContent = "$" + seg.samLow + "M - $" + seg.samHigh + "M / yr";
+  document.getElementById("mktDetailBuyers").textContent = seg.buyers;
+  document.getElementById("mktDetailGrowth").textContent = seg.cagr;
+  document.getElementById("mktDetailPlatforms").textContent = seg.platforms;
+  document.getElementById("mktDetailContracts").textContent = seg.contracts;
+}
+
+function buildPlatformFit() {
+  var tbody = document.getElementById("platformFitTbody");
+  while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
+  var dark = isDark();
+  var colors = { 3: dark ? "#E8E8E8" : "#1a1a1a", 2: dark ? "#667766" : "#B3BCB5", 1: dark ? "#3A3A3A" : "#E5E5E5", 0: "transparent" };
+
+  marketSegments.forEach(function(seg) {
+    var tr = document.createElement("tr");
+    var tdName = document.createElement("td");
+    tdName.style.textAlign = "left";
+    tdName.style.fontWeight = "500";
+    tdName.style.fontSize = "0.8125rem";
+    tdName.textContent = seg.name;
+    tr.appendChild(tdName);
+
+    ["sar","ais","hale","male","usv","uuv","coastal","ai"].forEach(function(plat) {
+      var td = document.createElement("td");
+      var div = document.createElement("div");
+      div.className = "fit-cell";
+      div.style.background = colors[seg.fit[plat]];
+      div.title = seg.fit[plat] === 3 ? "Primary" : seg.fit[plat] === 2 ? "Secondary" : seg.fit[plat] === 1 ? "Limited" : "N/A";
+      td.appendChild(div);
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+}
+
+// ==================== INIT ====================
+(function() {
+  var saved = localStorage.getItem("maritime-theme");
+  if (saved === "dark" || (!saved && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+    document.documentElement.setAttribute("data-theme", "dark");
+  }
+})();
+initBubbleChart();
+calcChokepoint();
+calcFleet();
+calcMatryoshka();
+calcASW();
+initMarketBar();
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>

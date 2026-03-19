@@ -1,0 +1,2504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<title>Maritime Surveillance Physics - Interactive Visualizations</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false});"></script>
+<style>
+  :root {
+    --black: #000000;
+    --grey: #808080;
+    --white: #FFFFFF;
+    --green: #B3BCB5;
+    --green-75: #C9D0CB;
+    --green-50: #D9DDDA;
+    --blue: #B4BACC;
+    --blue-75: #C8CDD9;
+    --blue-50: #DADCE6;
+    --bg: #FAFAFA;
+    --card-bg: #FFFFFF;
+    --border: #E5E5E5;
+    --font: 'Inter', -apple-system, system-ui, 'Segoe UI', sans-serif;
+    --tracking-tight: -0.015em;
+    --leading-body: 1.6;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--black);
+    font-weight: 600;
+    letter-spacing: 0;
+    line-height: var(--leading-body);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* --- NAV --- */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--black);
+    color: var(--white);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    height: 56px;
+    gap: 2rem;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  nav a {
+    color: var(--white);
+    text-decoration: none;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    opacity: 0.6;
+    transition: opacity 0.15s;
+    flex-shrink: 0;
+  }
+  nav a:hover, nav a.active { opacity: 1; }
+  nav a.nav-logo { opacity: 0.85; }
+  nav a.nav-logo:hover { opacity: 1; }
+  nav a.back-link { opacity: 0.85; display: flex; align-items: center; gap: 0.375rem; }
+  nav a.back-link:hover { opacity: 1; }
+  .nav-spacer { flex: 1; }
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    color: var(--white);
+  }
+  .nav-logo svg { display: block; }
+
+  .theme-toggle {
+    flex-shrink: 0;
+    background: none;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 6px;
+    color: rgba(255,255,255,0.6);
+    cursor: pointer;
+    padding: 0.375rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+  .theme-toggle:hover { color: #fff; border-color: rgba(255,255,255,0.4); }
+  .theme-toggle .icon-sun { display: none; }
+  .theme-toggle .icon-moon { display: block; }
+  [data-theme="dark"] .theme-toggle .icon-sun { display: block; }
+  [data-theme="dark"] .theme-toggle .icon-moon { display: none; }
+
+  /* --- LAYOUT --- */
+  .hero {
+    padding: 4rem 2rem 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .hero h1 {
+    font-size: 2.5rem;
+    font-weight: 500;
+    letter-spacing: var(--tracking-tight);
+    line-height: 1.1;
+    margin-bottom: 0.75rem;
+  }
+  .hero p {
+    color: var(--grey);
+    font-size: 1rem;
+    max-width: 640px;
+  }
+
+  section {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 3rem 2rem;
+  }
+  section h2 {
+    font-size: 1.5rem;
+    font-weight: 500;
+    letter-spacing: var(--tracking-tight);
+    margin-bottom: 0.25rem;
+  }
+  section .subtitle {
+    color: var(--grey);
+    font-size: 0.875rem;
+    margin-bottom: 2rem;
+  }
+
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  /* --- CANVAS CONTAINER --- */
+  .canvas-wrap {
+    position: relative;
+    width: 100%;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+  }
+  .canvas-wrap canvas {
+    display: block;
+    width: 100%;
+  }
+
+  /* --- SLIDER --- */
+  .slider-group {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  .slider-group label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: var(--grey);
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+    min-width: 140px;
+  }
+  .slider-group input[type="range"] {
+    flex: 1;
+    accent-color: var(--black);
+    height: 4px;
+  }
+  .slider-group .val {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    min-width: 5rem;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* --- EQUATIONS --- */
+  .equation {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1rem 1.25rem;
+    margin: 0.75rem 0;
+    overflow-x: auto;
+    text-align: center;
+  }
+  .equation .katex { font-size: 1.15em; }
+  .katex { font-size: 1em; }
+
+  /* --- READOUT --- */
+  .readout {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    margin: 1rem 0;
+    padding: 1rem 1.25rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+  }
+  .readout-item label {
+    display: block;
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    color: var(--grey);
+    letter-spacing: 0.05em;
+    margin-bottom: 0.25rem;
+  }
+  .readout-item .value {
+    font-size: 1.5rem;
+    font-weight: 500;
+    letter-spacing: var(--tracking-tight);
+  }
+  .readout-item .value.detected { color: #2E7D32; }
+  .readout-item .value.missed { color: #C62828; }
+  [data-theme="dark"] .readout-item .value.detected { color: #66BB6A; }
+  [data-theme="dark"] .readout-item .value.missed { color: #EF5350; }
+
+  /* --- CAPTION --- */
+  .caption {
+    font-size: 0.8125rem;
+    color: var(--grey);
+    line-height: 1.5;
+    margin-top: 0.75rem;
+  }
+  .caption strong { color: var(--black); }
+
+  /* --- CHART CONTAINER --- */
+  .chart-wrap {
+    position: relative;
+    width: 100%;
+    height: 280px;
+    margin-top: 1rem;
+  }
+  .chart-wrap canvas { width: 100% !important; height: 100% !important; }
+
+  /* --- DETECTION BADGE --- */
+  .detection-badge {
+    display: inline-block;
+    padding: 0.375rem 1rem;
+    border-radius: 100px;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .detection-badge.detected { background: #E8F5E9; color: #2E7D32; }
+  .detection-badge.missed { background: #FFEBEE; color: #C62828; }
+  [data-theme="dark"] .detection-badge.detected { background: #1B3A1B; color: #66BB6A; }
+  [data-theme="dark"] .detection-badge.missed { background: #3A1B1B; color: #EF5350; }
+
+  /* --- TL COMPARISON BARS --- */
+  .tl-compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin: 1rem 0;
+  }
+  .tl-item {
+    padding: 1rem;
+    border-radius: 6px;
+    text-align: center;
+  }
+  .tl-item.sofar { background: rgba(179,188,181,0.15); border: 1px solid var(--green); }
+  .tl-item.normal { background: rgba(128,128,128,0.1); border: 1px solid var(--border); }
+  .tl-item label {
+    display: block;
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    color: var(--grey);
+    letter-spacing: 0.05em;
+    margin-bottom: 0.25rem;
+  }
+  .tl-item .value {
+    font-size: 1.25rem;
+    font-weight: 500;
+  }
+  .tl-item .delta {
+    font-size: 0.8125rem;
+    color: var(--grey);
+    margin-top: 0.25rem;
+  }
+
+  /* --- SONAR PRESETS --- */
+  .sonar-preset {
+    padding: 0.25rem 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    font-family: var(--font);
+    cursor: pointer;
+    background: var(--card-bg);
+    color: var(--grey);
+    transition: all 0.15s;
+  }
+  .sonar-preset:hover { border-color: var(--grey); color: var(--black); }
+
+  /* --- REFERENCES --- */
+  .ref-link {
+    color: var(--grey);
+    text-decoration: none;
+    font-size: 0.7em;
+    vertical-align: super;
+  }
+  .ref-link:hover { color: var(--black); text-decoration: underline; }
+  .ref-list {
+    padding-left: 1.5rem;
+    margin: 0;
+  }
+  .ref-list li {
+    margin-bottom: 0.5rem;
+    color: var(--grey);
+    font-weight: 500;
+  }
+  .ref-list li em { font-weight: 600; color: var(--black); font-style: normal; }
+  .ref-list li a { color: var(--grey); text-decoration: underline; text-decoration-color: var(--border); }
+  .ref-list li a:hover { color: var(--black); }
+  .ref-list li:target { background: rgba(179,188,181,0.15); border-radius: 4px; padding: 0.25rem 0.5rem; margin-left: -0.5rem; }
+
+  /* --- FOOTER --- */
+  footer {
+    text-align: center;
+    padding: 3rem 2rem;
+    font-size: 0.75rem;
+    color: var(--grey);
+    border-top: 1px solid var(--border);
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  /* --- RESPONSIVE --- */
+  @media (max-width: 1024px) {
+    .hero h1 { font-size: 2rem; }
+  }
+  @media (max-width: 768px) {
+    nav { padding: 0 1rem; gap: 1rem; }
+    .hero { padding: 2.5rem 1rem 1.5rem; }
+    .hero h1 { font-size: 1.5rem; }
+    section { padding: 2rem 1rem; }
+    .slider-group { flex-wrap: wrap; }
+    .slider-group label { min-width: 100%; }
+    .tl-compare { grid-template-columns: 1fr; }
+    .chart-wrap { height: 220px; }
+    .preset-row { padding-left: 0 !important; }
+  }
+
+  /* --- DARK MODE --- */
+  [data-theme="dark"] {
+    color-scheme: dark;
+    --black: #E8E8E8;
+    --grey: #888888;
+    --white: #1A1A1A;
+    --bg: #0D0D0D;
+    --card-bg: #161616;
+    --border: #2A2A2A;
+    --green: #7A8A7D;
+    --green-75: #2A3A2D;
+    --green-50: #1A231C;
+    --blue: #8A92AA;
+  }
+  [data-theme="dark"] nav {
+    background: #0D0D0D;
+    border-bottom: 1px solid #2A2A2A;
+  }
+  [data-theme="dark"] nav a { color: #F0F0F0; }
+  [data-theme="dark"] nav .nav-logo { color: #B3BCB5; }
+  [data-theme="dark"] .slider-group input[type="range"] { accent-color: #E8E8E8; }
+  [data-theme="dark"] .caption strong { color: #E8E8E8; }
+  [data-theme="dark"] .katex { color: #E8E8E8; }
+  [data-theme="dark"] footer { border-top-color: #2A2A2A; }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="back-link"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg> Dashboard</a>
+  <a href="#radar">Radar</a>
+  <a href="#sofar">SOFAR</a>
+  <a href="#infocapacity">Information Capacity</a>
+  <a href="#sonar">Sonar</a>
+  <a href="#sources">Sources</a>
+  <a href="https://open.substack.com/pub/svrgn/p/observations-from-earth?r=15k85k&utm_campaign=post&utm_medium=web&showWelcomeOnShare=true" target="_blank" rel="noopener" style="opacity:0.85;">Blog Post</a>
+  <span class="nav-spacer"></span>
+  <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode">
+    <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12"/></svg>
+  </button>
+  <a href="https://inflection.fund" target="_blank" rel="noopener" class="nav-logo" aria-label="Inflection">
+    <svg height="22" viewBox="170 400 1575 220" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><g><g><path d="m551.11,439.1v-31.88h31.31v31.88h-31.31Zm1.71,175.9v-150h27.89v150h-27.89Z"/><path d="m609.74,615v-150h27.89v19.92h.85c8.26-14.23,26.19-22.77,45.82-22.77,36.43,0,53.51,23.91,53.51,58.35v94.5h-27.89v-94.21c0-24.19-13.09-35.58-33.02-35.58-25.33,0-39.28,20.21-39.28,50.66v79.13h-27.89Z"/><path d="m777.39,615v-126.94h-26.47v-23.06h26.47v-19.92c0-27.04,17.65-40.7,45.26-40.7,4.84,0,11.67.57,16.22,1.71v24.19c-24.76-2.56-33.58,2.56-33.58,21.06v13.66h33.58v23.06h-33.58v126.94h-27.89Zm79.41,0v-207.78h27.61v207.78h-27.61Z"/><path d="m903.47,539.57c0-46.68,29.03-77.42,71.16-77.42s69.45,29.03,69.45,72.58c0,2.85,0,6.55-.29,11.67h-110.43c0,29.89,17.36,48.39,42.69,48.39,21.06,0,31.88-8.82,38.14-26.76h27.61c-5.12,29.6-32.16,49.81-66.03,49.81-42.98,0-72.3-32.16-72.3-78.27Zm110.44-13.95c-1.14-24.76-16.22-40.42-39.28-40.42s-39.28,16.22-41.27,40.42h80.55Z"/><path d="m1058.88,539.29c0-46.4,29.03-77.14,72.58-77.14,35.58,0,63.19,22.2,66.03,52.94h-29.6c-3.42-19.35-17.65-29.89-36.43-29.89-27.61,0-42.69,21.63-42.69,54.08,0,35.86,16.79,55.5,42.13,55.5,20.49,0,33.87-11.95,37-30.17h29.6c-3.13,30.74-29.32,53.22-66.6,53.22-45.54,0-72.01-31.31-72.01-78.56Z"/><path d="m1229.37,582.27v-94.21h-24.19v-23.06h24.19v-42.12h27.89v42.12h28.18v23.06h-28.18v85.96c0,13.38,3.42,17.36,20.5,17.36,3.13,0,6.26-.29,7.68-.57v24.19c-4.27.85-9.68,1.42-16.79,1.42-26.19,0-39.28-11.38-39.28-34.16Z"/><path d="m1306.79,439.1v-31.88h31.31v31.88h-31.31Zm1.71,175.9v-150h27.89v150h-27.89Z"/><path d="m1358.3,539.86c0-46.96,29.6-77.7,73.44-77.7s73.43,30.74,73.43,77.7-29.32,77.99-73.43,77.99-73.44-31.02-73.44-77.99Zm116.98,0c0-35.01-17.36-54.65-43.55-54.65-27.89,0-43.55,21.92-43.55,54.65,0,35.29,17.36,54.93,43.55,54.93,27.89,0,43.55-21.92,43.55-54.93Z"/><path d="m1524.24,615v-150h27.89v19.92h.85c8.26-14.23,26.19-22.77,45.82-22.77,36.43,0,53.51,23.91,53.51,58.35v94.5h-27.89v-94.21c0-24.19-13.09-35.58-33.02-35.58-25.33,0-39.28,20.21-39.28,50.66v79.13h-27.89Z"/></g><path d="m1673.38,496.55c0-18.99,15.32-34.4,34.4-34.4s34.4,15.41,34.4,34.4-15.23,34.4-34.4,34.4-34.4-15.41-34.4-34.4Zm63.3,0c0-15.87-13.03-28.9-28.9-28.9s-28.9,13.03-28.9,28.9,12.94,28.9,28.9,28.9,28.9-13.03,28.9-28.9Zm-46.14,0c0-12.2,7.06-19.08,17.89-19.08,8.99,0,15.6,5.6,16.51,14.04h-8.44c-.64-4.86-3.85-7.16-8.07-7.16-6.42,0-9.54,4.86-9.54,12.2,0,8.35,3.85,12.29,9.63,12.29,4.77,0,7.52-2.94,8.26-7.16h8.35c-.64,8.35-7.34,14.03-16.6,14.03-11.56,0-17.98-7.71-17.98-19.17Z"/></g><path d="m477.82,468v-3H177.82v3c82.01,0,148.5,32.24,148.5,72s-66.49,72-148.5,72v3h300v-3c-82.01,0-148.5-32.24-148.5-72s66.49-72,148.5-72Z"/></svg>
+  </a>
+</nav>
+
+<div class="hero">
+  <h1>Maritime Surveillance Physics</h1>
+  <p>Interactive visualizations of the core physics governing radar detection, underwater acoustic propagation, and passive sonar performance.</p>
+</div>
+
+<!-- ====== 1. RADAR RANGE & SEA CLUTTER ====== -->
+<section id="radar">
+  <h2>Radar Range & Sea Clutter</h2>
+  <p class="subtitle">Interactive radar sweep showing target detection against sea clutter. The fourth-root law means doubling range requires 16x power.</p>
+
+  <div class="card">
+    <div class="canvas-wrap">
+      <canvas id="radarCanvas" width="800" height="800"></canvas>
+    </div>
+
+    <div class="slider-group">
+      <label>Transmit Power (kW)</label>
+      <input type="range" id="radarPower" min="1" max="200" value="25" oninput="updateRadar()">
+      <span class="val" id="radarPowerVal">25 kW</span>
+    </div>
+    <div class="slider-group">
+      <label>Sea State</label>
+      <input type="range" id="radarSeaState" min="1" max="6" value="3" step="1" oninput="updateRadar()">
+      <span class="val" id="radarSeaStateVal">3</span>
+    </div>
+    <div class="slider-group">
+      <label>Target RCS (m&sup2;)</label>
+      <input type="range" id="radarRCS" min="-2" max="5" value="2" step="0.1" oninput="updateRadar()">
+      <span class="val" id="radarRCSVal">100 m&sup2;</span>
+    </div>
+
+    <div class="readout" id="radarReadout">
+      <div class="readout-item">
+        <label>Max Detection Range</label>
+        <span class="value" id="radarRmax">--</span>
+      </div>
+      <div class="readout-item">
+        <label>K-distribution shape ($\nu$)</label>
+        <span class="value" id="radarNu">--</span>
+      </div>
+      <div class="readout-item">
+        <label>Clutter regime</label>
+        <span class="value" id="radarClutterRegime" style="font-size:1rem;">--</span>
+      </div>
+    </div>
+
+    <div class="equation">$$R_{\max} = \left[\frac{P_t G^2 \lambda^2 \sigma}{(4\pi)^3 S_{\min}}\right]^{1/4}$$</div>
+    <p class="caption"><strong>Fourth-root law:</strong> doubling detection range requires 16x more transmit power.<sup><a href="#ref-5" class="ref-link">5</a></sup> <strong>Compound K-distributed clutter:</strong> sea clutter intensity is modeled as an exponential random variable whose mean is itself Gamma-distributed with shape parameter $\nu$.<sup><a href="#ref-1" class="ref-link">1</a></sup> Low $\nu$ (rough sea) produces heavy tails - bright clutter spikes that mimic targets and overwhelm CFAR detectors. High $\nu$ (calm) approaches Rayleigh statistics where detection is straightforward.<sup><a href="#ref-3" class="ref-link">3</a>,<a href="#ref-6" class="ref-link">6</a></sup></p>
+
+    <h3 style="font-size:1rem;font-weight:500;letter-spacing:var(--tracking-tight);margin:1.5rem 0 0.5rem;">Why Maritime Radar is Clutter-Dominated</h3>
+    <p class="caption" style="margin-bottom:0.75rem;">Maritime radar operates in a fundamentally different regime from free-space or airborne radar. The dominant challenge is <strong>signal-to-clutter ratio</strong> (SCR), not signal-to-noise.<sup><a href="#ref-1" class="ref-link">1</a>,<a href="#ref-3" class="ref-link">3</a></sup></p>
+    <p class="caption" style="margin-bottom:0.75rem;"><strong>The sea surface as a reflector.</strong> Wind-driven waves, capillary ripples, and swell all backscatter radar energy. At the low grazing angles of ship-borne radar (looking out toward the horizon), even modest seas produce strong returns that fill every range-azimuth cell. A small target's RCS (1-100 m&sup2;)<sup><a href="#ref-7" class="ref-link">7</a></sup> must compete against clutter returns from an illuminated ocean patch that can span thousands of m&sup2;. Clutter power typically exceeds thermal noise by 20-40 dB.<sup><a href="#ref-3" class="ref-link">3</a></sup></p>
+    <p class="caption" style="margin-bottom:0.75rem;"><strong>Why not scattering?</strong> Atmospheric volume scattering is relatively negligible at typical radar frequencies (S/X-band, 3-10 GHz). Rain and fog cause some attenuation but don't create persistent false targets. The problem is not that the signal is scattered away - it arrives fine - but that it is buried under the surface return from the sea itself.<sup><a href="#ref-1" class="ref-link">1</a></sup></p>
+    <p class="caption" style="margin-bottom:0.75rem;"><strong>Heavy-tailed statistics.</strong> Sea clutter follows compound K-distribution statistics (modeled above). The local clutter power varies randomly with heavy tails, producing occasional bright spikes that look exactly like real targets.<sup><a href="#ref-1" class="ref-link">1</a>,<a href="#ref-6" class="ref-link">6</a></sup> This is why simple threshold detectors fail: a fixed threshold that catches targets also triggers on clutter spikes (false alarms), while raising the threshold to avoid false alarms means missing real targets. Switching from Gaussian to K-distribution statistics can degrade detection performance by up to 12 dB.<sup><a href="#ref-3" class="ref-link">3</a></sup> CFAR detectors adapt the threshold locally, but still struggle when $\nu$ is low (rough seas) because the tail probabilities are much higher than Gaussian or Rayleigh models predict.</p>
+    <p class="caption"><strong>Contrast with other domains.</strong> Airborne radar looking down sees targets against a relatively stable ground backdrop.<sup><a href="#ref-8" class="ref-link">8</a></sup> Space-based radar tracking satellites operates in a noise-limited regime with no clutter at all.<sup><a href="#ref-12" class="ref-link">12</a></sup> Maritime surface radar is uniquely difficult because the clutter source (the ocean) is co-located with the targets of interest, is in constant motion, and exhibits non-Gaussian statistics that defeat classical detection theory.<sup><a href="#ref-1" class="ref-link">1</a></sup></p>
+  </div>
+</section>
+
+<!-- ====== 2. SOFAR CHANNEL ====== -->
+<section id="sofar">
+  <h2>SOFAR Channel</h2>
+  <p class="subtitle">Sound speed in water depends on temperature, salinity, and pressure. Temperature drops with depth (less solar heating), while pressure rises (more water above). These opposing gradients create a sound speed minimum at ~1000m - the SOFAR channel - where acoustic energy is trapped by refraction.</p>
+
+  <div class="card">
+    <p style="font-size:0.8125rem;color:var(--grey);margin-bottom:1rem;"><strong>Left panel:</strong> Three depth profiles - temperature (drops with depth), pressure effect (rises with depth), and their combined result: the sound speed curve with its minimum at the SOFAR axis. <strong>Right panel:</strong> Animated ray paths from a movable source. Rays near the SOFAR axis refract back toward the minimum and travel far. Rays away from it escape to the surface or seabed and dissipate.</p>
+    <div class="canvas-wrap">
+      <canvas id="sofarCanvas" width="1100" height="550"></canvas>
+    </div>
+
+    <div class="slider-group">
+      <label>Source Depth (m)</label>
+      <input type="range" id="sofarDepth" min="0" max="4000" value="1000" step="50" oninput="updateSofar()">
+      <span class="val" id="sofarDepthVal">1000 m</span>
+    </div>
+    <div class="slider-group">
+      <label>Observation Range (km)</label>
+      <input type="range" id="sofarRange" min="1" max="1000" value="100" step="1" oninput="updateSofar()">
+      <span class="val" id="sofarRangeVal">100 km</span>
+    </div>
+
+    <div class="tl-compare">
+      <div class="tl-item sofar">
+        <label>SOFAR (Cylindrical)</label>
+        <span class="value" id="tlSofar">--</span>
+        <div class="delta" id="tlSofarNote"></div>
+      </div>
+      <div class="tl-item normal">
+        <label>Normal (Spherical)</label>
+        <span class="value" id="tlNormal">--</span>
+        <div class="delta" id="tlNormalNote"></div>
+      </div>
+    </div>
+
+    <div class="equation">$$\text{TL}_{\text{SOFAR}} \approx 10\log_{10}(R) + \alpha R \quad \text{vs.} \quad \text{TL}_{\text{normal}} \approx 20\log_{10}(R) + \alpha R$$</div>
+    <p class="caption"><strong>Why the minimum exists:</strong> Sound speed $\approx 1449 + 4.6T - 0.055T^2 + 0.016D$ (simplified Mackenzie equation,<sup><a href="#ref-13" class="ref-link">13</a></sup> where $T$ = temperature in C, $D$ = depth in m). Temperature falls ~1.5C per 100m in the thermocline (0-1000m), pulling speed down. Below the thermocline, temperature stabilizes near 2-4C, and the pressure term ($+0.016D$) dominates, pushing speed back up. The crossing point - typically at 600-1,200m depth - creates the SOFAR minimum.<sup><a href="#ref-10" class="ref-link">10</a></sup> Sound refracts toward lower speed, so rays bend back toward the axis - trapping energy in a waveguide. At 1,000 km range, cylindrical spreading provides a ~30 dB advantage over spherical spreading.<sup><a href="#ref-10" class="ref-link">10</a></sup></p>
+  </div>
+</section>
+
+<!-- ====== 3. INFORMATION CAPACITY ====== -->
+<section id="infocapacity">
+  <h2>The Information Budget</h2>
+  <p class="subtitle">Every remote sensing system has a fixed rate at which it can extract information from a scene. You must spend that budget across swath width, resolution, and radiometric precision. This tradeoff is not engineering - it is information theory.</p>
+
+  <div class="card">
+    <p style="font-size:0.875rem;line-height:1.7;margin-bottom:1.5rem;">
+      A sensor platform has essentially fixed hardware: radiated or received power spectrum over some bandwidth $B$, noise power spectral density $N_0$, platform kinematics (altitude, velocity, look geometry), and total data rate. These determine a maximum Shannon information rate:
+    </p>
+    <div class="equation">$$C = B \log_2\!\left(1 + \frac{S}{N_0 B}\right) \quad \text{bits/second}$$</div>
+    <p style="font-size:0.875rem;line-height:1.7;margin:1rem 0;">
+      You then <strong>spend</strong> that capacity across three dimensions:
+    </p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-bottom:1.5rem;">
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1rem;text-align:center;">
+        <div style="font-size:1.5rem;font-weight:500;">W</div>
+        <div style="font-size:0.75rem;color:var(--grey);margin-top:0.25rem;">Swath width (spatial bandwidth)</div>
+      </div>
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1rem;text-align:center;">
+        <div style="font-size:1.5rem;font-weight:500;">&Delta;x</div>
+        <div style="font-size:0.75rem;color:var(--grey);margin-top:0.25rem;">Ground resolution (pixel size)</div>
+      </div>
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1rem;text-align:center;">
+        <div style="font-size:1.5rem;font-weight:500;">b</div>
+        <div style="font-size:0.75rem;color:var(--grey);margin-top:0.25rem;">Bits per pixel (radiometric precision)</div>
+      </div>
+    </div>
+    <p style="font-size:0.875rem;line-height:1.7;margin-bottom:1rem;">
+      The number of independent cross-track samples per line is $N = W / (2\Delta x)$, where the factor of 2 comes from Nyquist sampling. Each sample carries $b$ bits set by SNR and quantization. If you fix the per-line information budget, then increasing $W$ at fixed $\Delta x$ requires more samples per line - more bits - which forces a reduction elsewhere. <strong>The total information-gathering ability is fundamentally bounded.</strong>
+    </p>
+
+    <!-- Interactive visualization -->
+    <h3 style="font-size:1rem;font-weight:500;letter-spacing:var(--tracking-tight);margin:1.5rem 0 0.5rem;">Information Budget Explorer</h3>
+    <p class="caption" style="margin-bottom:1rem;">Move the sliders to see how swath, resolution, and bits per pixel compete for a fixed information budget. The capacity bar shows utilization - when it overflows, the system cannot physically collect that combination.</p>
+
+    <div class="slider-group">
+      <label>Swath Width (km)</label>
+      <input type="range" id="infoSwath" min="5" max="500" value="100" step="5" oninput="updateInfoBudget()">
+      <span class="val" id="infoSwathVal">100 km</span>
+    </div>
+    <div class="slider-group">
+      <label>Ground Resolution (m)</label>
+      <input type="range" id="infoRes" min="0.25" max="100" value="10" step="0.25" oninput="updateInfoBudget()">
+      <span class="val" id="infoResVal">10 m</span>
+    </div>
+    <div class="slider-group">
+      <label>Bits per Pixel</label>
+      <input type="range" id="infoBpp" min="1" max="16" value="8" step="1" oninput="updateInfoBudget()">
+      <span class="val" id="infoBppVal">8 bits</span>
+    </div>
+    <div class="slider-group">
+      <label>Platform Velocity (km/s)</label>
+      <input type="range" id="infoVel" min="0.01" max="8" value="7.5" step="0.01" oninput="updateInfoBudget()">
+      <span class="val" id="infoVelVal">7.5 km/s (LEO satellite)</span>
+    </div>
+
+    <!-- Budget bar -->
+    <div style="margin:1.5rem 0;">
+      <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--grey);margin-bottom:0.375rem;">
+        <span>Information demand</span>
+        <span id="infoDemandLabel">-- Mbps</span>
+      </div>
+      <div style="background:var(--border);border-radius:6px;height:32px;overflow:hidden;position:relative;">
+        <div id="infoBudgetFill" style="height:100%;border-radius:6px;transition:width 0.2s,background 0.2s;width:50%;background:var(--green);"></div>
+        <div id="infoBudgetCapLine" style="position:absolute;top:0;bottom:0;width:2px;background:var(--black);left:80%;"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:0.6875rem;color:var(--grey);margin-top:0.25rem;">
+        <span>0</span>
+        <span id="infoCapLabel">Channel capacity: -- Mbps</span>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div class="readout" id="infoReadout">
+      <div class="readout-item">
+        <label>Pixels per line</label>
+        <span class="value" id="infoPixels">--</span>
+      </div>
+      <div class="readout-item">
+        <label>Data rate required</label>
+        <span class="value" id="infoDataRate">--</span>
+      </div>
+      <div class="readout-item">
+        <label>Lines per second</label>
+        <span class="value" id="infoLPS">--</span>
+      </div>
+      <div class="readout-item">
+        <label>Status</label>
+        <span id="infoStatus"></span>
+      </div>
+    </div>
+
+    <!-- Preset buttons -->
+    <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin:1.25rem 0;">
+      <button class="sonar-preset" onclick="setInfoPreset('sar_wide')">SAR wide-swath (25m, 100km)</button>
+      <button class="sonar-preset" onclick="setInfoPreset('sar_spot')">SAR spotlight (1m, 10km)</button>
+      <button class="sonar-preset" onclick="setInfoPreset('optical_hr')">Optical high-res (0.5m, 15km)</button>
+      <button class="sonar-preset" onclick="setInfoPreset('othr')">OTHR (50km res, 3000km)</button>
+    </div>
+
+    <!-- SAR vs Optical explainer -->
+    <h3 style="font-size:1rem;font-weight:500;letter-spacing:var(--tracking-tight);margin:2rem 0 0.75rem;">Why This Hits SAR and Optical Differently</h3>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1.25rem;">
+        <div style="font-size:0.875rem;font-weight:600;margin-bottom:0.75rem;">SAR / Radar: Hard Physics Limit</div>
+        <div class="equation" style="font-size:0.9rem;">$$W \cdot \delta_{az} \;\geq\; \frac{\lambda R}{2}$$</div>
+        <p style="font-size:0.8125rem;color:var(--grey);line-height:1.6;margin-top:0.75rem;">
+          The pulse repetition frequency (PRF) must be high enough to avoid azimuth ambiguities (Doppler aliasing) but low enough to avoid range ambiguities (echoes from previous pulses returning during the next listen window). These two requirements bound the PRF from both sides, creating an inequality that <strong>cannot be violated regardless of engineering investment</strong>. It is a property of the waveform itself.
+        </p>
+        <p style="font-size:0.8125rem;color:var(--grey);line-height:1.6;margin-top:0.5rem;">
+          For a LEO SAR at 500 km altitude with X-band ($\lambda$ = 3 cm): $W \times \delta_{az} \geq 7{,}500$ m$^2$. A 1m resolution image can cover at most a 7.5 km swath. A 100 km swath forces resolution to 75m or worse. No amount of power, antenna size, or clever signal processing can break this bound.<sup><a href="#ref-12" class="ref-link">12</a>,<a href="#ref-14" class="ref-link">14</a></sup>
+        </p>
+      </div>
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1.25rem;">
+        <div style="font-size:0.875rem;font-weight:600;margin-bottom:0.75rem;">EO / Optical: Engineering Challenge</div>
+        <div class="equation" style="font-size:0.9rem;">$$\text{SBP} = \left(\frac{D}{\lambda}\right)^2 \times \Omega$$</div>
+        <p style="font-size:0.8125rem;color:var(--grey);line-height:1.6;margin-top:0.75rem;">
+          The space-bandwidth product (SBP) sets the maximum number of independently resolvable spots an optical system can produce: aperture diameter $D$ over wavelength $\lambda$, squared, times the solid-angle field of view $\Omega$. This is the optical equivalent of the SAR swath-resolution inequality.
+        </p>
+        <p style="font-size:0.8125rem;color:var(--grey);line-height:1.6;margin-top:0.5rem;">
+          The difference: you can increase the SBP by building a bigger aperture or using a larger focal plane array. It is an engineering constraint, not a waveform property. A $D$ = 1m telescope at $\lambda$ = 500 nm can resolve ~$4 \times 10^{12}$ spots - enough for 0.5m resolution over a 15 km swath. But you pay in mass, cost, and downlink bandwidth. The information budget still applies - you just have more design freedom in where you hit the wall.<sup><a href="#ref-12" class="ref-link">12</a>,<a href="#ref-15" class="ref-link">15</a></sup>
+        </p>
+      </div>
+    </div>
+
+    <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1.25rem;margin-top:1.5rem;">
+      <div style="font-size:0.875rem;font-weight:600;margin-bottom:0.5rem;">Implication for maritime surveillance</div>
+      <p style="font-size:0.8125rem;color:var(--grey);line-height:1.6;">
+        This is why the layered architecture (Part IV of the report) is a consequence of information theory, not an operational preference. OTHR covers 13 million km$^2$ because it uses km-scale resolution - but you cannot tell a tanker from a warship. A SAR satellite achieves 1m resolution but covers only a few thousand km$^2$ per pass. A patrol vessel's EO/IR camera can classify a target's hull markings but covers only the visual horizon. <strong>Each tier exists because physics imposes a tradeoff between coverage and capability</strong> - and no single platform can be simultaneously wide-area, high-resolution, and persistent.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ====== 4. SONAR DETECTION ====== -->
+<section id="sonar">
+  <h2>Sonar Detection</h2>
+  <p class="subtitle">Compare passive and active sonar. Passive listens for a target's own noise (covert, one-way path). Active sends a ping and listens for the echo (detects quiet targets, but two-way path and reveals your position).</p>
+
+  <div class="card">
+    <!-- Active / Passive toggle -->
+    <div style="display:flex;gap:0.5rem;margin-bottom:1.25rem;">
+      <button class="sonar-preset" id="btnPassive" style="background:var(--black);color:var(--white);border-color:var(--black);" onclick="setSonarMode('passive')">Passive</button>
+      <button class="sonar-preset" id="btnActive" onclick="setSonarMode('active')">Active</button>
+    </div>
+
+    <!-- Scenario presets -->
+    <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:1.25rem;">
+      <span id="presetsPassive">
+        <button class="sonar-preset" onclick="setSonarPreset('surface')">Surface ship, 20 km</button>
+        <button class="sonar-preset" onclick="setSonarPreset('diesel')">Diesel-electric, 10 km</button>
+        <button class="sonar-preset" onclick="setSonarPreset('aip')">AIP submarine, 10 km</button>
+      </span>
+      <span id="presetsActive" style="display:none;">
+        <button class="sonar-preset" onclick="setSonarPreset('active_surface')">Ping surface ship, 30 km</button>
+        <button class="sonar-preset" onclick="setSonarPreset('active_diesel')">Ping diesel sub, 15 km</button>
+        <button class="sonar-preset" onclick="setSonarPreset('active_aip')">Ping AIP sub, 8 km</button>
+      </span>
+    </div>
+
+    <!-- Passive-mode sliders -->
+    <div id="slidersPassive">
+      <div class="slider-group">
+        <label>Target Source Level (dB) <span style="font-weight:400;color:var(--grey);font-size:0.75rem;">- how loud the target is</span></label>
+        <input type="range" id="sonarSL" min="80" max="160" value="120" step="1" oninput="updateSonar()">
+        <span class="val" id="sonarSLVal">120 dB</span>
+      </div>
+    </div>
+
+    <!-- Active-mode sliders -->
+    <div id="slidersActive" style="display:none;">
+      <div class="slider-group">
+        <label>Sonar Source Level (dB) <span style="font-weight:400;color:var(--grey);font-size:0.75rem;">- how loud your ping is</span></label>
+        <input type="range" id="sonarPingSL" min="180" max="240" value="220" step="1" oninput="updateSonar()">
+        <span class="val" id="sonarPingSLVal">220 dB</span>
+      </div>
+      <div class="slider-group">
+        <label>Target Strength (dB) <span style="font-weight:400;color:var(--grey);font-size:0.75rem;">- how reflective the target is</span></label>
+        <input type="range" id="sonarTS" min="-30" max="30" value="15" step="1" oninput="updateSonar()">
+        <span class="val" id="sonarTSVal">15 dB</span>
+      </div>
+    </div>
+
+    <!-- Shared sliders -->
+    <div class="slider-group">
+      <label>Range (km)</label>
+      <input type="range" id="sonarRange" min="1" max="500" value="50" step="1" oninput="updateSonar()">
+      <span class="val" id="sonarRangeVal">50 km</span>
+    </div>
+    <div class="slider-group">
+      <label>Noise Level (dB)</label>
+      <input type="range" id="sonarNL" min="60" max="100" value="75" step="1" oninput="updateSonar()">
+      <span class="val" id="sonarNLVal">75 dB</span>
+    </div>
+    <div class="slider-group">
+      <label>Array DI (dB)</label>
+      <input type="range" id="sonarDI" min="0" max="30" value="18" step="1" oninput="updateSonar()">
+      <span class="val" id="sonarDIVal">18 dB</span>
+    </div>
+    <div class="slider-group">
+      <label>Detection Threshold (dB)</label>
+      <input type="range" id="sonarDT" min="0" max="15" value="5" step="1" oninput="updateSonar()">
+      <span class="val" id="sonarDTVal">5 dB</span>
+    </div>
+
+    <!-- Ocean scene -->
+    <div class="canvas-wrap" style="margin:1.5rem 0 0;">
+      <canvas id="sonarOceanCanvas"></canvas>
+    </div>
+
+    <!-- Waterfall / cascade diagram -->
+    <div style="margin:0.75rem 0 1.5rem;">
+      <canvas id="sonarWaterfallCanvas"></canvas>
+    </div>
+
+    <div class="readout" id="sonarReadout">
+      <div class="readout-item">
+        <label>Signal Excess (SE)</label>
+        <span class="value" id="sonarSE">--</span>
+      </div>
+      <div class="readout-item">
+        <label>Result</label>
+        <span id="sonarResult"></span>
+      </div>
+    </div>
+
+    <div id="eqPassive">
+      <div class="equation">$$\text{SE} = \text{SL}_{\text{target}} - \text{TL} - (\text{NL} - \text{DI}) - \text{DT}$$</div>
+      <p class="caption" style="margin-top:0.5rem;">
+        <strong>Passive sonar</strong> listens for the target's own noise. One-way transmission loss ($R^2$ dependence). Covert - the target doesn't know you're listening. But modern quiet submarines (AIP, electric drive) have reduced source levels by 30-40 dB vs. Cold War boats, shrinking detection ranges from hundreds of km to tens of km.<sup><a href="#ref-9" class="ref-link">9</a>,<a href="#ref-10" class="ref-link">10</a></sup>
+      </p>
+    </div>
+    <div id="eqActive" style="display:none;">
+      <div class="equation">$$\text{SE} = \text{SL}_{\text{sonar}} - 2\text{TL} + \text{TS} - (\text{NL} - \text{DI}) - \text{DT}$$</div>
+      <p class="caption" style="margin-top:0.5rem;">
+        <strong>Active sonar</strong> sends a ping and listens for the echo. The signal travels to the target AND back - <strong>two-way transmission loss</strong> ($R^4$ dependence, not $R^2$). This is the critical penalty: doubling range costs 16x more power, vs. 4x for passive. Active sonar detects quiet targets (you supply the energy), but it reveals your own position and at short range is limited by <strong>reverberation</strong> (echoes from the sea surface, bottom, and volume scatterers) rather than noise.<sup><a href="#ref-9" class="ref-link">9</a>,<a href="#ref-11" class="ref-link">11</a></sup>
+      </p>
+    </div>
+
+    <!-- Key differences callout -->
+    <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1rem 1.25rem;margin-top:1.25rem;">
+      <div style="font-size:0.8125rem;font-weight:600;margin-bottom:0.5rem;">Active vs Passive: Key Tradeoffs</div>
+      <table style="font-size:0.8125rem;width:100%;border-collapse:collapse;">
+        <thead><tr style="border-bottom:1px solid var(--border);">
+          <th style="text-align:left;padding:0.375rem 0.5rem;font-weight:600;"></th>
+          <th style="text-align:left;padding:0.375rem 0.5rem;font-weight:600;">Passive</th>
+          <th style="text-align:left;padding:0.375rem 0.5rem;font-weight:600;">Active</th>
+        </tr></thead>
+        <tbody>
+          <tr><td style="padding:0.25rem 0.5rem;color:var(--grey);">Path loss</td><td style="padding:0.25rem 0.5rem;">One-way (R<sup>2</sup>)</td><td style="padding:0.25rem 0.5rem;">Two-way (R<sup>4</sup>) - 16x power to double range</td></tr>
+          <tr><td style="padding:0.25rem 0.5rem;color:var(--grey);">Covert?</td><td style="padding:0.25rem 0.5rem;">Yes - target unaware</td><td style="padding:0.25rem 0.5rem;">No - ping reveals your position</td></tr>
+          <tr><td style="padding:0.25rem 0.5rem;color:var(--grey);">Vs. quiet subs</td><td style="padding:0.25rem 0.5rem;">Struggles - low SL = short range</td><td style="padding:0.25rem 0.5rem;">Works - you supply the energy</td></tr>
+          <tr><td style="padding:0.25rem 0.5rem;color:var(--grey);">Output</td><td style="padding:0.25rem 0.5rem;">Bearing only (no range)</td><td style="padding:0.25rem 0.5rem;">Range AND bearing (from echo delay)</td></tr>
+          <tr><td style="padding:0.25rem 0.5rem;color:var(--grey);">Limiting factor</td><td style="padding:0.25rem 0.5rem;">Ambient noise floor</td><td style="padding:0.25rem 0.5rem;">Reverberation at short range, noise at long range</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Range-probability curve -->
+    <h3 style="font-size:1rem;font-weight:500;letter-spacing:var(--tracking-tight);margin:1.5rem 0 0.5rem;">Detection Probability vs Range</h3>
+    <p class="caption" style="margin-bottom:0.75rem;">Probability of detection as a function of range for current sonar settings. Vertical marker shows current range. <span id="probNote" style="font-weight:600;">Note the steeper falloff in active mode from two-way path loss.</span></p>
+    <div class="chart-wrap">
+      <canvas id="sonarProbChart"></canvas>
+    </div>
+  </div>
+</section>
+
+<!-- ====== SOURCES ====== -->
+<section id="sources">
+  <h2>Sources</h2>
+  <p class="subtitle">Primary references for the physics, equations, and performance figures used in these visualizations.</p>
+  <div class="card" style="font-size:0.8125rem;line-height:1.7;">
+    <ol class="ref-list">
+      <li id="ref-1">Ward, K.D., Tough, R.J.A., Watts, S. <em>Radar Sea Clutter: Scattering, the K Distribution and Radar Performance</em>. IET Digital Library. <a href="https://digital-library.theiet.org/doi/book/10.1049/sbra530e" target="_blank" rel="noopener">digital-library.theiet.org</a></li>
+      <li id="ref-2">NATO ACT. <em>NATO Mainsail: Multi-Domain Awareness and Insight with AI Layering</em>, 2025. <a href="https://www.act.nato.int/article/natos-mainsail/" target="_blank" rel="noopener">act.nato.int</a></li>
+      <li id="ref-3">IET. <em>Maritime Surveillance Radar Part 2: Detection Performance Prediction in Sea Clutter</em>. <a href="https://www.theiet.org/media/11275/maritime-surveillance-radar-detection-performance-prediction-in-sea-clutter.pdf" target="_blank" rel="noopener">theiet.org [PDF]</a></li>
+      <li id="ref-4">Dark Shipping. <em>SIGINT Dark Shipping</em>. <a href="https://www.darkshipping.com/signals-intelligence" target="_blank" rel="noopener">darkshipping.com</a></li>
+      <li id="ref-5">Radartutorial.eu. <em>The Radar Range Equation</em>. <a href="https://www.radartutorial.eu/01.basics/The%20Radar%20Range%20Equation.en.html" target="_blank" rel="noopener">radartutorial.eu</a></li>
+      <li id="ref-6">MathWorks. <em>Maritime Radar Sea Clutter Modeling</em> (MATLAB/Simulink). <a href="https://www.mathworks.com/help/radar/ug/maritime-radar-sea-clutter-modeling.html" target="_blank" rel="noopener">mathworks.com</a></li>
+      <li id="ref-7">Harre, I. <em>RCS in Radar Range Calculations for Maritime Targets</em>. <a href="http://www.mar-it.de/Radar/RCS/RCS_xx.pdf" target="_blank" rel="noopener">mar-it.de [PDF]</a></li>
+      <li id="ref-8">Windward AI. <em>Synthetic Aperture Radar (SAR): The All-Weather Eye on the Oceans</em>. <a href="https://windward.ai/blog/synthetic-aperture-radar-sar-in-maritime-intelligence/" target="_blank" rel="noopener">windward.ai</a></li>
+      <li id="ref-9">US Navy ES310. <em>Sonar Propagation and Detection Equations</em>. FAS. <a href="https://man.fas.org/dod-101/navy/docs/es310/SNR_PROP/snr_prop.htm" target="_blank" rel="noopener">fas.org</a></li>
+      <li id="ref-10">US Navy Undersea Warfare Magazine. <em>SOSUS: The Secret Weapon of Undersea Surveillance</em>. <a href="https://www.public.navy.mil/subfor/underseawarfaremagazine/Issues/Archives/issue_25/sosus.htm" target="_blank" rel="noopener">navy.mil</a></li>
+      <li id="ref-11">NATO STO. <em>Airborne Maritime Radar Based Submarine Periscope Detection and Discrimination at High Grazing Angles</em>, November 2024. <a href="https://www.sto.nato.int/document/airborne-maritime-radar-based-submarine-periscope-detection-and-discriminationat-high-grazing-angles/" target="_blank" rel="noopener">sto.nato.int</a></li>
+      <li id="ref-12">IEEE/arXiv. <em>Space-Based Global Maritime Surveillance Part I: Satellite Technologies</em>. <a href="https://arxiv.org/pdf/2011.11304" target="_blank" rel="noopener">arxiv.org</a></li>
+      <li id="ref-13">Mackenzie, K.V. <em>Nine-term equation for the sound speed in the oceans</em>. J. Acoust. Soc. Am. 70(3), 807-812, 1981. <a href="https://doi.org/10.1121/1.386920" target="_blank" rel="noopener">doi.org</a></li>
+      <li id="ref-14">Cumming, I.G., Wong, F.H. <em>Digital Processing of Synthetic Aperture Radar Data</em>. Artech House, 2005. Ch. 3: SAR Signal Properties - PRF constraints and swath-resolution tradeoff.</li>
+      <li id="ref-15">Goodman, J.W. <em>Introduction to Fourier Optics</em>, 4th ed. W.H. Freeman, 2017. Ch. 6: Space-bandwidth product and information capacity of imaging systems.</li>
+    </ol>
+  </div>
+</section>
+
+<footer>
+  Maritime Surveillance Physics Visualizations. Part of the <a href="index.html" style="color:var(--grey);text-decoration:underline;">Maritime Surveillance Economics Dashboard</a>.<br>
+  Inflection. All figures are indicative estimates for analytical comparison.
+</footer>
+
+<script>
+// ==================== THEME ====================
+function isDark() { return document.documentElement.getAttribute("data-theme") === "dark"; }
+
+function toggleTheme() {
+  var html = document.documentElement;
+  var newTheme = isDark() ? "light" : "dark";
+  html.setAttribute("data-theme", newTheme);
+  localStorage.setItem("maritime-theme", newTheme);
+  drawRadar();
+  drawSofar();
+  updateSonar();
+}
+
+(function() {
+  var saved = localStorage.getItem("maritime-theme");
+  if (saved === "dark" || (!saved && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+    document.documentElement.setAttribute("data-theme", "dark");
+  }
+})();
+
+// ==================== UTILITY ====================
+function getColors() {
+  var dark = isDark();
+  return {
+    bg: dark ? "#161616" : "#FFFFFF",
+    canvasBg: dark ? "#0D0D0D" : "#111111",
+    text: dark ? "#E8E8E8" : "#000000",
+    muted: dark ? "#888888" : "#808080",
+    green: dark ? "#7A8A7D" : "#B3BCB5",
+    greenBright: dark ? "#A0BBAA" : "#6A9A7A",
+    blue: dark ? "#8A92AA" : "#B4BACC",
+    border: dark ? "#2A2A2A" : "#E5E5E5",
+    gridLine: dark ? "#2A2A2A" : "#333333",
+    sweepColor: dark ? "rgba(122,138,125," : "rgba(179,188,181,",
+    clutterColor: dark ? "rgba(136,136,136," : "rgba(128,128,128,",
+    targetColor: dark ? "#A0BBAA" : "#90EE90",
+    rmaxCircle: dark ? "#8A92AA" : "#B4BACC",
+    oceanDeep: dark ? "#0A1628" : "#0A1A3A",
+    oceanMid: dark ? "#122040" : "#1A3060",
+    oceanLight: dark ? "#1A2A50" : "#2A4A80",
+    sofarRay: dark ? "#A0BBAA" : "#B3BCB5",
+    normalRay: dark ? "#666666" : "#808080",
+    speedCurve: dark ? "#8A92AA" : "#B4BACC",
+    slBar: dark ? "#7A8A7D" : "#4CAF50",
+    tlBar: dark ? "#AA5555" : "#E53935",
+    nlBar: dark ? "#AA8844" : "#FF9800",
+    dtLine: dark ? "#E8E8E8" : "#000000"
+  };
+}
+
+// ==================== 1. RADAR ====================
+var radarAngle = 0;
+var radarTargets = [];
+var radarClutter = [];
+var radarAnimId;
+
+function initRadarTargets() {
+  radarTargets = [];
+  for (var i = 0; i < 5; i++) {
+    var angle = Math.random() * Math.PI * 2;
+    var dist = 0.2 + Math.random() * 0.6;
+    radarTargets.push({
+      angle: angle,
+      dist: dist,
+      brightness: 0.7 + Math.random() * 0.3,
+      speed: (Math.random() - 0.5) * 0.0003
+    });
+  }
+}
+
+// Gamma random variable via Marsaglia & Tsang's method
+function gammaRandom(shape) {
+  if (shape < 1) {
+    return gammaRandom(shape + 1) * Math.pow(Math.random(), 1 / shape);
+  }
+  var d = shape - 1/3;
+  var c = 1 / Math.sqrt(9 * d);
+  while (true) {
+    var x, v;
+    do {
+      // Box-Muller for standard normal
+      var u1 = Math.random(), u2 = Math.random();
+      x = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+      v = 1 + c * x;
+    } while (v <= 0);
+    v = v * v * v;
+    var u = Math.random();
+    if (u < 1 - 0.0331 * (x * x) * (x * x)) return d * v;
+    if (Math.log(u) < 0.5 * x * x + d * (1 - v + Math.log(v))) return d * v;
+  }
+}
+
+// Compound K-distribution: exponential with Gamma-distributed mean
+// Shape parameter nu controls tail weight:
+//   nu -> inf: Rayleigh (calm sea, easy detection)
+//   nu ~ 0.1-2: heavy-tailed (rough sea, hard detection)
+function kDistributedIntensity(nu) {
+  // Texture: local mean power is Gamma(nu, 1/nu) so E[texture] = 1
+  var texture = gammaRandom(nu) / nu;
+  // Speckle: exponential with that mean
+  var speckle = -Math.log(Math.random()) * texture;
+  return speckle;
+}
+
+function generateClutter(seaState) {
+  // Sea state maps to K-distribution shape parameter nu:
+  //   SS1 (calm): nu=50 (nearly Rayleigh, few false alarms)
+  //   SS3: nu=5
+  //   SS5: nu=0.5 (heavy tails, many bright clutter spikes)
+  //   SS6: nu=0.2
+  var nu = 50 * Math.exp(-0.9 * seaState);
+  var count = 100 + seaState * 60;
+  radarClutter = [];
+  for (var i = 0; i < count; i++) {
+    var angle = Math.random() * Math.PI * 2;
+    var dist = Math.random() * 0.9;
+    // K-distributed intensity, clamped to [0,1] for display
+    var raw = kDistributedIntensity(nu);
+    // Normalize: median of K-dist is ~0.7 when nu=50, but heavy-tailed at low nu
+    var intensity = Math.min(1, raw / 3);
+    radarClutter.push({
+      angle: angle,
+      dist: dist,
+      intensity: intensity
+    });
+  }
+}
+
+function calcRmax() {
+  var Pt = parseFloat(document.getElementById("radarPower").value) * 1000;
+  var Glin = 1000;
+  var lambda = 0.03;
+  var sigma = Math.pow(10, parseFloat(document.getElementById("radarRCS").value));
+  var Smin = 1e-13;
+
+  var numerator = Pt * Glin * Glin * lambda * lambda * sigma;
+  var denominator = Math.pow(4 * Math.PI, 3) * Smin;
+  var Rmax = Math.pow(numerator / denominator, 0.25);
+  return Rmax / 1000;
+}
+
+function updateRadar() {
+  var power = parseFloat(document.getElementById("radarPower").value);
+  var seaState = parseInt(document.getElementById("radarSeaState").value);
+  var rcsLog = parseFloat(document.getElementById("radarRCS").value);
+  var rcs = Math.pow(10, rcsLog);
+
+  document.getElementById("radarPowerVal").textContent = power + " kW";
+  document.getElementById("radarSeaStateVal").textContent = seaState;
+
+  var rcsStr;
+  if (rcs >= 1000) rcsStr = (rcs/1000).toFixed(rcs >= 10000 ? 0 : 1) + "K m\u00B2";
+  else if (rcs >= 1) rcsStr = rcs.toFixed(rcs >= 100 ? 0 : 1) + " m\u00B2";
+  else rcsStr = rcs.toFixed(rcs >= 0.1 ? 2 : 3) + " m\u00B2";
+  document.getElementById("radarRCSVal").textContent = rcsStr;
+
+  generateClutter(seaState);
+
+  var Rmax = calcRmax();
+  document.getElementById("radarRmax").textContent = Rmax.toFixed(1) + " km";
+
+  var nu = 50 * Math.exp(-0.9 * seaState);
+  document.getElementById("radarNu").textContent = nu.toFixed(nu >= 10 ? 0 : nu >= 1 ? 1 : 2);
+  var regime;
+  if (nu > 20) regime = "Near-Rayleigh (easy)";
+  else if (nu > 5) regime = "Moderate tails";
+  else if (nu > 1) regime = "Heavy-tailed (hard)";
+  else regime = "Extreme tails (12dB penalty)";
+  document.getElementById("radarClutterRegime").textContent = regime;
+}
+
+function drawRadar() {
+  var canvas = document.getElementById("radarCanvas");
+  var rect = canvas.parentElement.getBoundingClientRect();
+  var size = Math.min(rect.width, 800);
+  canvas.width = size * 2;
+  canvas.height = size * 2;
+  canvas.style.height = size + "px";
+  var ctx = canvas.getContext("2d");
+  var s = size * 2;
+  var cx = s / 2, cy = s / 2;
+  var radius = s * 0.44;
+  var c = getColors();
+
+  ctx.fillStyle = c.canvasBg;
+  ctx.fillRect(0, 0, s, s);
+
+  // Range rings
+  ctx.strokeStyle = c.gridLine;
+  ctx.lineWidth = 1;
+  for (var i = 1; i <= 5; i++) {
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius * i / 5, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  // Cross hairs
+  ctx.beginPath();
+  ctx.moveTo(cx - radius, cy); ctx.lineTo(cx + radius, cy);
+  ctx.moveTo(cx, cy - radius); ctx.lineTo(cx, cy + radius);
+  ctx.stroke();
+
+  // Range labels
+  var Rmax = calcRmax();
+  var maxDisplayRange = 200;
+  ctx.font = (s * 0.018) + "px Inter, sans-serif";
+  ctx.fillStyle = c.muted;
+  ctx.textAlign = "center";
+  for (var i = 1; i <= 5; i++) {
+    var km = Math.round(maxDisplayRange * i / 5);
+    ctx.fillText(km + " km", cx, cy - radius * i / 5 + s * 0.025);
+  }
+
+  // Rmax circle (dashed)
+  var rmaxNorm = Math.min(Rmax / maxDisplayRange, 1.0);
+  ctx.strokeStyle = c.rmaxCircle;
+  ctx.lineWidth = 2.5;
+  ctx.setLineDash([8, 6]);
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius * rmaxNorm, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Rmax label
+  ctx.fillStyle = c.rmaxCircle;
+  ctx.font = "bold " + (s * 0.02) + "px Inter, sans-serif";
+  ctx.textAlign = "left";
+  var lblX = cx + radius * rmaxNorm * Math.cos(-Math.PI / 4) + 8;
+  var lblY = cy + radius * rmaxNorm * Math.sin(-Math.PI / 4) - 8;
+  ctx.fillText("R_max = " + Rmax.toFixed(1) + " km", lblX, lblY);
+
+  // Sweep (trailing fade)
+  var sweepWidth = 0.15;
+  for (var step = 0; step < 30; step++) {
+    var a = radarAngle - step * sweepWidth / 30;
+    var alpha = (1 - step / 30) * 0.15;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, radius, a - 0.02, a + 0.02);
+    ctx.closePath();
+    ctx.fillStyle = c.sweepColor + alpha + ")";
+    ctx.fill();
+  }
+
+  // Main sweep line
+  ctx.strokeStyle = c.sweepColor + "0.8)";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.lineTo(cx + radius * Math.cos(radarAngle), cy + radius * Math.sin(radarAngle));
+  ctx.stroke();
+
+  // Draw clutter
+  radarClutter.forEach(function(dot) {
+    var angleDiff = radarAngle - dot.angle;
+    while (angleDiff < 0) angleDiff += Math.PI * 2;
+    while (angleDiff > Math.PI * 2) angleDiff -= Math.PI * 2;
+    if (angleDiff > Math.PI * 2 * 0.85 && angleDiff < Math.PI * 2) angleDiff -= Math.PI * 2;
+    var fade = 0;
+    if (angleDiff >= 0 && angleDiff < Math.PI * 0.5) {
+      fade = 1 - angleDiff / (Math.PI * 0.5);
+    }
+    if (fade > 0) {
+      var px = cx + dot.dist * radius * Math.cos(dot.angle);
+      var py = cy + dot.dist * radius * Math.sin(dot.angle);
+      var sz = 1.5 + dot.intensity * 3;
+      ctx.beginPath();
+      ctx.arc(px, py, sz, 0, Math.PI * 2);
+      ctx.fillStyle = c.clutterColor + (fade * dot.intensity * 0.6) + ")";
+      ctx.fill();
+    }
+  });
+
+  // Draw targets (persistent blips)
+  radarTargets.forEach(function(t) {
+    t.angle += t.speed;
+    var px = cx + t.dist * radius * Math.cos(t.angle);
+    var py = cy + t.dist * radius * Math.sin(t.angle);
+
+    var tRangeKm = t.dist * maxDisplayRange;
+    if (tRangeKm <= Rmax) {
+      ctx.beginPath();
+      ctx.arc(px, py, 5, 0, Math.PI * 2);
+      ctx.fillStyle = c.targetColor;
+      ctx.fill();
+
+      var grad = ctx.createRadialGradient(px, py, 3, px, py, 12);
+      grad.addColorStop(0, isDark() ? "rgba(160,187,170,0.5)" : "rgba(144,238,144,0.5)");
+      grad.addColorStop(1, isDark() ? "rgba(160,187,170,0)" : "rgba(144,238,144,0)");
+      ctx.beginPath();
+      ctx.arc(px, py, 12, 0, Math.PI * 2);
+      ctx.fillStyle = grad;
+      ctx.fill();
+    }
+  });
+
+  // Center dot
+  ctx.beginPath();
+  ctx.arc(cx, cy, 4, 0, Math.PI * 2);
+  ctx.fillStyle = c.text;
+  ctx.fill();
+
+  // Sea state label
+  var seaState = parseInt(document.getElementById("radarSeaState").value);
+  ctx.fillStyle = c.muted;
+  ctx.font = (s * 0.018) + "px Inter, sans-serif";
+  ctx.textAlign = "left";
+  ctx.fillText("Sea State: " + seaState, s * 0.03, s * 0.04);
+}
+
+function animateRadar() {
+  radarAngle += 0.02;
+  if (radarAngle > Math.PI * 2) radarAngle -= Math.PI * 2;
+  drawRadar();
+  radarAnimId = requestAnimationFrame(animateRadar);
+}
+
+// ==================== 2. SOFAR CHANNEL ====================
+var sofarAnimTime = 0;
+var sofarAnimId;
+
+// Realistic ocean profiles
+function oceanTemperature(depth) {
+  // Surface: ~20C, thermocline drops to ~4C by 1000m, then near-constant ~2C
+  if (depth < 100) return 20 - depth * 0.02; // mixed layer
+  if (depth < 1000) return 18 - (depth - 100) * 0.0156; // thermocline: 18C to ~4C
+  return 4 * Math.exp(-(depth - 1000) / 3000) + 1.5; // deep: asymptotic ~1.5C
+}
+
+function pressureEffect(depth) {
+  // Pressure contribution to sound speed: ~+0.016 m/s per meter depth
+  return 0.016 * depth;
+}
+
+function temperatureEffect(depth) {
+  // Temperature contribution: ~4.6*T - 0.055*T^2 (simplified Mackenzie)
+  var T = oceanTemperature(depth);
+  return 4.6 * T - 0.055 * T * T;
+}
+
+function soundSpeed(depth) {
+  // Simplified Mackenzie: c = 1449 + 4.6T - 0.055T^2 + 0.016D + salinity terms
+  var T = oceanTemperature(depth);
+  return 1449 + 4.6 * T - 0.055 * T * T + 0.016 * depth + 1.34; // +1.34 for ~35ppt salinity
+}
+
+function soundSpeedGradient(depth) {
+  var dz = 10;
+  return (soundSpeed(depth + dz) - soundSpeed(depth - dz)) / (2 * dz);
+}
+
+function traceRays(sourceDepth, numRays) {
+  var rays = [];
+  var maxRange = 200;
+  var maxDepth = 5000;
+  var dt_step = 0.5;
+  var steps = 2000;
+
+  for (var i = 0; i < numRays; i++) {
+    var angleDeg = -15 + (30 * i / (numRays - 1));
+    var angleRad = angleDeg * Math.PI / 180;
+    var ray = [];
+    var z = sourceDepth;
+    var r = 0;
+    var c_speed = soundSpeed(z);
+    var vz = c_speed * Math.sin(angleRad);
+    var vr = c_speed * Math.cos(angleRad);
+    var bounces = 0;
+    var energy = 1.0; // energy fraction remaining
+
+    for (var s = 0; s < steps; s++) {
+      ray.push({ r: r / 1000, z: z, energy: energy });
+
+      var dc = soundSpeedGradient(z);
+      vz += dc * dt_step * 0.5;
+      z += vz * dt_step / 1000;
+      r += Math.abs(vr) * dt_step;
+
+      // Surface/bottom reflection with energy loss (~6dB per bounce = 75% loss)
+      if (z < 0) { z = -z; vz = Math.abs(vz); bounces++; energy *= 0.25; }
+      if (z > maxDepth) { z = 2 * maxDepth - z; vz = -Math.abs(vz); bounces++; energy *= 0.25; }
+      if (energy < 0.01) break; // ray effectively dead
+      if (r / 1000 > maxRange) break;
+    }
+    ray.bounces = bounces;
+    ray.trapped = bounces === 0;
+    rays.push(ray);
+  }
+  return rays;
+}
+
+function drawSofar() {
+  var canvas = document.getElementById("sofarCanvas");
+  var rect = canvas.parentElement.getBoundingClientRect();
+  var w = Math.min(rect.width * 2, 2200);
+  var h = w * 0.65;
+  canvas.width = w;
+  canvas.height = h;
+  canvas.style.height = (h / 2) + "px";
+  var ctx = canvas.getContext("2d");
+  var c = getColors();
+
+  var profileWidth = w * 0.32;
+  var gapWidth = 24;
+  var plotLeft = profileWidth + gapWidth;
+  var plotWidth = w - plotLeft - 20;
+  var plotTop = 90;
+  var plotHeight = h - 150;
+  var maxDepth = 5000;
+  var maxRange = 200;
+
+  var dk = isDark();
+  var fs = w * 0.01;
+  var tempColor = "#E07050";
+  var pressColor = "#5090D0";
+  var speedColor = dk ? "#E8E8E8" : "#000000";
+
+  // Background
+  ctx.fillStyle = c.canvasBg;
+  ctx.fillRect(0, 0, w, h);
+
+  // Ocean gradient for ray panel
+  var grad = ctx.createLinearGradient(0, plotTop, 0, plotTop + plotHeight);
+  grad.addColorStop(0, c.oceanLight);
+  grad.addColorStop(0.3, c.oceanMid);
+  grad.addColorStop(1, c.oceanDeep);
+  ctx.fillStyle = grad;
+  ctx.fillRect(plotLeft, plotTop, plotWidth, plotHeight);
+
+  // Profile panel background
+  ctx.fillStyle = dk ? "#111" : "#F8F8F8";
+  ctx.fillRect(0, plotTop, profileWidth, plotHeight);
+  ctx.strokeStyle = c.border;
+  ctx.lineWidth = 1;
+  ctx.strokeRect(0, plotTop, profileWidth, plotHeight);
+
+  // --- Draw three profile curves ---
+  var margin = 24;
+  var curveW = profileWidth - margin * 2;
+
+  // Temperature profile (red-ish)
+  // Normalize: 0C to 22C mapped to curve width
+  ctx.beginPath();
+  ctx.strokeStyle = tempColor;
+  ctx.lineWidth = 2.5;
+  ctx.globalAlpha = 0.8;
+  for (var d = 0; d <= maxDepth; d += 20) {
+    var T = oceanTemperature(d);
+    var x = margin + (T / 22) * curveW;
+    var y = plotTop + (d / maxDepth) * plotHeight;
+    if (d === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+
+  // Temperature axis labels
+  ctx.fillStyle = tempColor;
+  ctx.globalAlpha = 0.6;
+  ctx.font = "500 " + (fs * 0.85) + "px Inter, sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("0C", margin, plotTop + plotHeight + 18);
+  ctx.fillText("20C", margin + (20 / 22) * curveW, plotTop + plotHeight + 18);
+  ctx.globalAlpha = 1;
+
+  // Pressure effect profile (blue-ish)
+  // Normalize: 0 to 80 m/s contribution mapped to curve width
+  ctx.beginPath();
+  ctx.strokeStyle = pressColor;
+  ctx.lineWidth = 2.5;
+  ctx.globalAlpha = 0.8;
+  for (var d = 0; d <= maxDepth; d += 20) {
+    var P = pressureEffect(d);
+    var x = margin + (P / 80) * curveW;
+    var y = plotTop + (d / maxDepth) * plotHeight;
+    if (d === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+
+  // Pressure axis labels
+  ctx.fillStyle = pressColor;
+  ctx.globalAlpha = 0.6;
+  ctx.font = "500 " + (fs * 0.85) + "px Inter, sans-serif";
+  ctx.fillText("+0", margin, plotTop + plotHeight + 30);
+  ctx.fillText("+80 m/s", margin + curveW, plotTop + plotHeight + 30);
+  ctx.globalAlpha = 1;
+
+  // Combined sound speed profile (solid white/black, thick)
+  var minSpeed = 1470, maxSpeed = 1545;
+  ctx.beginPath();
+  ctx.strokeStyle = speedColor;
+  ctx.lineWidth = 3.5;
+  var sofarMinActualDepth = 0, sofarMinActualSpeed = 9999;
+  for (var d = 0; d <= maxDepth; d += 10) {
+    var sp = soundSpeed(d);
+    if (sp < sofarMinActualSpeed) { sofarMinActualSpeed = sp; sofarMinActualDepth = d; }
+    var x = margin + ((sp - minSpeed) / (maxSpeed - minSpeed)) * curveW;
+    var y = plotTop + (d / maxDepth) * plotHeight;
+    if (d === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+
+  // Sound speed axis labels
+  ctx.fillStyle = speedColor;
+  ctx.globalAlpha = 0.6;
+  ctx.font = "500 " + (fs * 0.85) + "px Inter, sans-serif";
+  ctx.fillText(minSpeed + "", margin, plotTop + plotHeight + 42);
+  ctx.fillText(maxSpeed + " m/s", margin + curveW, plotTop + plotHeight + 42);
+  ctx.globalAlpha = 1;
+
+  // Mark the SOFAR minimum point on the speed curve
+  var sofarMinX = margin + ((sofarMinActualSpeed - minSpeed) / (maxSpeed - minSpeed)) * curveW;
+  var sofarMinY = plotTop + (sofarMinActualDepth / maxDepth) * plotHeight;
+  ctx.beginPath();
+  ctx.arc(sofarMinX, sofarMinY, 7, 0, Math.PI * 2);
+  ctx.fillStyle = c.sofarRay;
+  ctx.fill();
+  ctx.strokeStyle = dk ? "#222" : "#FFF";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  // SOFAR axis dashed line across both panels
+  ctx.setLineDash([6, 4]);
+  ctx.strokeStyle = c.sofarRay;
+  ctx.lineWidth = 1.5;
+  ctx.globalAlpha = 0.6;
+  ctx.beginPath();
+  ctx.moveTo(0, sofarMinY);
+  ctx.lineTo(w, sofarMinY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.globalAlpha = 1;
+
+  // Profile panel labels
+  ctx.font = "600 " + (fs * 1.1) + "px Inter, sans-serif";
+  ctx.textAlign = "left";
+
+  // Legend items in profile panel header - stacked for clarity
+  var legY = plotTop - 42;
+  var legSpacing = fs * 1.6;
+  ctx.font = "600 " + (fs * 1.1) + "px Inter, sans-serif";
+
+  // Colored legend dots + labels
+  ctx.beginPath(); ctx.arc(margin + 5, legY - 3, 4, 0, Math.PI*2); ctx.fillStyle = tempColor; ctx.fill();
+  ctx.fillText("Temperature (drops with depth)", margin + 16, legY);
+
+  ctx.beginPath(); ctx.arc(margin + 5, legY + legSpacing - 3, 4, 0, Math.PI*2); ctx.fillStyle = pressColor; ctx.fill();
+  ctx.fillText("Pressure effect (rises with depth)", margin + 16, legY + legSpacing);
+
+  ctx.beginPath(); ctx.arc(margin + 5, legY + legSpacing * 2 - 3, 5, 0, Math.PI*2); ctx.fillStyle = speedColor; ctx.fill();
+  ctx.font = "700 " + (fs * 1.1) + "px Inter, sans-serif";
+  ctx.fillText("Combined sound speed", margin + 16, legY + legSpacing * 2);
+
+  // SOFAR label
+  ctx.font = "700 " + (fs * 1.1) + "px Inter, sans-serif";
+  ctx.fillStyle = c.sofarRay;
+  ctx.textAlign = "right";
+  ctx.fillText("SOFAR min: " + Math.round(sofarMinActualSpeed) + " m/s @ " + Math.round(sofarMinActualDepth) + "m", profileWidth - margin, sofarMinY - 8);
+
+  // Inline function labels alongside curves
+  var eqFs = fs * 0.82;
+  ctx.font = "500 " + eqFs + "px Inter, sans-serif";
+
+  // Temperature function - place at ~400m depth where thermocline is steepest
+  var eqDepth400 = plotTop + (400 / maxDepth) * plotHeight;
+  var T400 = oceanTemperature(400);
+  var eqTx = margin + (T400 / 22) * curveW;
+  ctx.fillStyle = tempColor;
+  ctx.globalAlpha = 0.75;
+  ctx.textAlign = "left";
+  ctx.fillText("T(d)", eqTx + 8, eqDepth400 - 2);
+  ctx.font = "italic 500 " + (eqFs * 0.88) + "px Inter, sans-serif";
+  ctx.fillText("20C - 1.56C/100m", eqTx + 8, eqDepth400 + eqFs + 2);
+  ctx.globalAlpha = 1;
+
+  // Pressure function - place at ~3000m depth
+  var eqDepth3k = plotTop + (3000 / maxDepth) * plotHeight;
+  var P3k = pressureEffect(3000);
+  var eqPx = margin + (P3k / 80) * curveW;
+  ctx.fillStyle = pressColor;
+  ctx.globalAlpha = 0.75;
+  ctx.font = "500 " + eqFs + "px Inter, sans-serif";
+  ctx.textAlign = "right";
+  ctx.fillText("+0.016 d", eqPx - 8, eqDepth3k - 2);
+  ctx.font = "italic 500 " + (eqFs * 0.88) + "px Inter, sans-serif";
+  ctx.fillText("m/s per meter", eqPx - 8, eqDepth3k + eqFs + 2);
+  ctx.globalAlpha = 1;
+
+  // Sound speed function - place at ~2200m in the deep section
+  var eqDepth2200 = plotTop + (2200 / maxDepth) * plotHeight;
+  var sp2200 = soundSpeed(2200);
+  var eqSx = margin + ((sp2200 - minSpeed) / (maxSpeed - minSpeed)) * curveW;
+  ctx.fillStyle = speedColor;
+  ctx.globalAlpha = 0.7;
+  ctx.font = "500 " + eqFs + "px Inter, sans-serif";
+  ctx.textAlign = "left";
+  ctx.fillText("c = 1449 + 4.6T", eqSx + 10, eqDepth2200 - eqFs + 2);
+  ctx.fillText("  - 0.055T\u00B2 + 0.016d", eqSx + 10, eqDepth2200 + 4);
+  ctx.globalAlpha = 1;
+
+  // Depth labels
+  ctx.fillStyle = c.muted;
+  ctx.font = "500 " + fs + "px Inter, sans-serif";
+  ctx.textAlign = "right";
+  for (var d = 0; d <= maxDepth; d += 1000) {
+    var y = plotTop + (d / maxDepth) * plotHeight;
+    ctx.fillText(d + "m", profileWidth - 4, y + 4);
+  }
+
+  // Zone annotations along right edge of profile panel
+  ctx.font = "600 " + (fs * 0.95) + "px Inter, sans-serif";
+  var zoneX = profileWidth - 10;
+
+  // Mixed layer (0-100m)
+  var mixY1 = plotTop;
+  var mixY2 = plotTop + (100 / maxDepth) * plotHeight;
+  ctx.fillStyle = c.muted;
+  ctx.globalAlpha = 0.5;
+  ctx.textAlign = "right";
+  ctx.save();
+  ctx.translate(zoneX, (mixY1 + mixY2) / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillText("Mixed", 0, 0);
+  ctx.restore();
+  ctx.globalAlpha = 1;
+
+  // Thermocline zone (100-1000m)
+  var thermY1 = mixY2;
+  var thermY2 = plotTop + (1000 / maxDepth) * plotHeight;
+  // Colored sidebar strip
+  ctx.fillStyle = tempColor;
+  ctx.globalAlpha = 0.25;
+  ctx.fillRect(zoneX + 2, thermY1, 6, thermY2 - thermY1);
+  ctx.globalAlpha = 0.7;
+  ctx.textAlign = "right";
+  ctx.fillStyle = tempColor;
+  ctx.save();
+  ctx.translate(zoneX - 2, (thermY1 + thermY2) / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.textAlign = "center";
+  ctx.fillText("Thermocline (T drops)", 0, 0);
+  ctx.restore();
+  ctx.globalAlpha = 1;
+
+  // Deep pressure-dominated zone (1000m+)
+  var deepY1 = thermY2;
+  var deepY2 = plotTop + plotHeight;
+  ctx.fillStyle = pressColor;
+  ctx.globalAlpha = 0.25;
+  ctx.fillRect(zoneX + 2, deepY1, 6, deepY2 - deepY1);
+  ctx.globalAlpha = 0.7;
+  ctx.fillStyle = pressColor;
+  ctx.save();
+  ctx.translate(zoneX - 2, (deepY1 + deepY2) / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.textAlign = "center";
+  ctx.fillText("Pressure-dominated (P rises)", 0, 0);
+  ctx.restore();
+  ctx.globalAlpha = 1;
+
+  // --- Ray tracing panel ---
+
+  // SOFAR channel zone highlight (behind everything)
+  var chTop = plotTop + (400 / maxDepth) * plotHeight;
+  var chBot = plotTop + (2000 / maxDepth) * plotHeight;
+  ctx.fillStyle = dk ? "rgba(179,188,181,0.06)" : "rgba(179,188,181,0.08)";
+  ctx.fillRect(plotLeft, chTop, plotWidth, chBot - chTop);
+
+  // Zone labels
+  ctx.font = "700 " + (fs * 0.9) + "px Inter, sans-serif";
+  ctx.textAlign = "right";
+  var zLabX = plotLeft + plotWidth - 8;
+
+  // Spherical zone (above channel)
+  ctx.fillStyle = c.normalRay;
+  ctx.globalAlpha = 0.5;
+  ctx.save();
+  ctx.translate(zLabX + 4, plotTop + (chTop - plotTop) / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.textAlign = "center";
+  ctx.fillText("SPHERICAL", 0, 0);
+  ctx.restore();
+
+  // Cylindrical zone (inside channel)
+  ctx.fillStyle = c.sofarRay;
+  ctx.globalAlpha = 0.6;
+  ctx.save();
+  ctx.translate(zLabX + 4, (chTop + chBot) / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.textAlign = "center";
+  ctx.fillText("CYLINDRICAL", 0, 0);
+  ctx.restore();
+
+  // Spherical zone (below channel)
+  ctx.fillStyle = c.normalRay;
+  ctx.globalAlpha = 0.5;
+  ctx.save();
+  ctx.translate(zLabX + 4, chBot + (plotTop + plotHeight - chBot) / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.textAlign = "center";
+  ctx.fillText("SPHERICAL", 0, 0);
+  ctx.restore();
+  ctx.globalAlpha = 1;
+
+  // Channel boundary lines
+  ctx.setLineDash([3, 6]);
+  ctx.strokeStyle = c.sofarRay;
+  ctx.globalAlpha = 0.3;
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(plotLeft, chTop); ctx.lineTo(plotLeft + plotWidth, chTop); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(plotLeft, chBot); ctx.lineTo(plotLeft + plotWidth, chBot); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.globalAlpha = 1;
+
+  // Range labels at bottom
+  ctx.fillStyle = c.muted;
+  ctx.font = "500 " + fs + "px Inter, sans-serif";
+  ctx.textAlign = "center";
+  for (var r = 0; r <= maxRange; r += 50) {
+    var x = plotLeft + (r / maxRange) * plotWidth;
+    ctx.fillText(r + " km", x, plotTop + plotHeight + 20);
+    ctx.strokeStyle = dk ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.1)";
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x, plotTop); ctx.lineTo(x, plotTop + plotHeight); ctx.stroke();
+  }
+
+  // Panel label
+  ctx.fillStyle = c.muted;
+  ctx.font = "600 " + (fs * 1.1) + "px Inter, sans-serif";
+  ctx.textAlign = "left";
+  ctx.fillText("Acoustic propagation", plotLeft + 8, plotTop - 10);
+
+  // Source
+  var sourceDepth = parseInt(document.getElementById("sofarDepth").value);
+
+  // Trace rays
+  var rays = traceRays(sourceDepth, 31);
+  var maxAnimRange = sofarAnimTime * 0.5;
+  var trappedCount = 0, escapedCount = 0;
+  var trappedMaxR = 0, escapedMaxR = 0;
+
+  rays.forEach(function(ray) {
+    if (ray.trapped) trappedCount++; else escapedCount++;
+    for (var i = ray.length - 1; i >= 0; i--) {
+      if (ray[i].energy > 0.1) {
+        if (ray.trapped && ray[i].r > trappedMaxR) trappedMaxR = ray[i].r;
+        if (!ray.trapped && ray[i].r > escapedMaxR) escapedMaxR = ray[i].r;
+        break;
+      }
+    }
+  });
+
+  // SOFAR channel depth bounds for per-segment coloring
+  var chDepthTop = 400, chDepthBot = 2000;
+
+  // Draw rays: color each segment by whether it's inside or outside the channel
+  // Escaped rays first (behind), then trapped rays (in front)
+  [false, true].forEach(function(drawTrapped) {
+    rays.forEach(function(ray) {
+      if (ray.length < 2 || ray.trapped !== drawTrapped) return;
+      for (var i = 1; i < ray.length; i++) {
+        if (ray[i].r > maxAnimRange) break;
+        var e = ray[i].energy;
+        if (e < 0.02) break;
+
+        var z0 = ray[i-1].z, z1 = ray[i].z;
+        var midZ = (z0 + z1) / 2;
+        var inChannel = midZ >= chDepthTop && midZ <= chDepthBot;
+
+        var x0 = plotLeft + (ray[i-1].r / maxRange) * plotWidth;
+        var y0 = plotTop + (z0 / maxDepth) * plotHeight;
+        var x1 = plotLeft + (ray[i].r / maxRange) * plotWidth;
+        var y1 = plotTop + (z1 / maxDepth) * plotHeight;
+
+        ctx.beginPath();
+        ctx.strokeStyle = inChannel ? c.sofarRay : c.normalRay;
+        ctx.lineWidth = inChannel ? 2 : 1;
+        ctx.globalAlpha = inChannel ? e * 0.75 : e * 0.3;
+        ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+      }
+    });
+  });
+  ctx.globalAlpha = 1;
+
+  // --- Wavefront arcs at regular range intervals ---
+  // Sample all ray positions at fixed range values and draw arcs between them
+  var wfRanges = [];
+  for (var wr = 10; wr <= Math.min(maxAnimRange, maxRange); wr += 15) wfRanges.push(wr);
+
+  wfRanges.forEach(function(targetR) {
+    // Collect depth/energy at this range from each ray
+    var points = [];
+    rays.forEach(function(ray) {
+      for (var i = 1; i < ray.length; i++) {
+        if (ray[i].r >= targetR) {
+          var frac = (targetR - ray[i-1].r) / (ray[i].r - ray[i-1].r + 0.001);
+          var z = ray[i-1].z + frac * (ray[i].z - ray[i-1].z);
+          var e = ray[i-1].energy + frac * (ray[i].energy - ray[i-1].energy);
+          if (e > 0.02) points.push({ z: z, e: e, trapped: ray.trapped });
+          break;
+        }
+      }
+    });
+
+    if (points.length < 2) return;
+    points.sort(function(a, b) { return a.z - b.z; });
+
+    var x = plotLeft + (targetR / maxRange) * plotWidth;
+
+    // Draw wavefront: a vertical line segment connecting ray positions
+    // Thickness and brightness show energy concentration
+    var hasTrapped = points.some(function(p) { return p.trapped; });
+
+    // Draw each segment between adjacent points
+    for (var i = 0; i < points.length - 1; i++) {
+      var y0 = plotTop + (points[i].z / maxDepth) * plotHeight;
+      var y1 = plotTop + (points[i+1].z / maxDepth) * plotHeight;
+      var avgE = (points[i].e + points[i+1].e) / 2;
+      var bothTrapped = points[i].trapped && points[i+1].trapped;
+
+      ctx.beginPath();
+      ctx.strokeStyle = bothTrapped ? c.sofarRay : c.normalRay;
+      ctx.lineWidth = bothTrapped ? 3 : 1.5;
+      ctx.globalAlpha = avgE * (bothTrapped ? 0.5 : 0.2);
+      ctx.moveTo(x, y0); ctx.lineTo(x, y1); ctx.stroke();
+    }
+
+    // Draw energy dots at each ray crossing
+    points.forEach(function(p) {
+      var y = plotTop + (p.z / maxDepth) * plotHeight;
+      ctx.beginPath();
+      ctx.arc(x, y, p.trapped ? 2.5 : 1.5, 0, Math.PI * 2);
+      ctx.fillStyle = p.trapped ? c.sofarRay : c.normalRay;
+      ctx.globalAlpha = p.e * (p.trapped ? 0.8 : 0.4);
+      ctx.fill();
+    });
+  });
+  ctx.globalAlpha = 1;
+
+  // Source point
+  var anyTrapped = trappedCount > 0;
+  var srcY = plotTop + (sourceDepth / maxDepth) * plotHeight;
+  ctx.beginPath();
+  ctx.arc(plotLeft + 2, srcY, 7, 0, Math.PI * 2);
+  ctx.fillStyle = anyTrapped ? c.sofarRay : c.normalRay;
+  ctx.fill();
+  ctx.strokeStyle = dk ? "#E8E8E8" : "#FFFFFF";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Source label
+  ctx.fillStyle = dk ? "#E8E8E8" : "#FFFFFF";
+  ctx.font = "700 " + (w * 0.013) + "px Inter, sans-serif";
+  ctx.textAlign = "left";
+  ctx.fillText("Source: " + sourceDepth + "m", plotLeft + 16, srcY + 5);
+
+  // Status readout - top right
+  ctx.font = "600 " + (w * 0.011) + "px Inter, sans-serif";
+  ctx.textAlign = "right";
+  var legX = plotLeft + plotWidth - 20;
+
+  if (trappedCount > 0 && escapedCount > 0) {
+    ctx.fillStyle = c.sofarRay;
+    ctx.fillText(trappedCount + "/" + (trappedCount+escapedCount) + " rays trapped - cylindrical to 200+ km", legX, plotTop + 18);
+    ctx.fillStyle = c.normalRay;
+    ctx.fillText(escapedCount + " escaping - spherical, die within " + Math.max(5, Math.round(escapedMaxR)) + " km", legX, plotTop + 36);
+  } else if (trappedCount > 0) {
+    ctx.fillStyle = c.sofarRay;
+    ctx.fillText("All rays trapped - cylindrical spreading to 200+ km", legX, plotTop + 18);
+  } else {
+    ctx.fillStyle = c.normalRay;
+    ctx.fillText("No trapping - spherical spreading, dies within " + Math.max(5, Math.round(escapedMaxR)) + " km", legX, plotTop + 18);
+    ctx.fillStyle = dk ? "#888" : "#666";
+    ctx.font = "500 " + (w * 0.01) + "px Inter, sans-serif";
+    ctx.fillText("Move source toward ~1000m to see SOFAR trapping", legX, plotTop + 36);
+  }
+}
+
+function animateSofar() {
+  sofarAnimTime += 1;
+  if (sofarAnimTime > 800) sofarAnimTime = 800;
+  drawSofar();
+  if (sofarAnimTime < 800) {
+    sofarAnimId = requestAnimationFrame(animateSofar);
+  }
+}
+
+function updateSofar() {
+  var depth = parseInt(document.getElementById("sofarDepth").value);
+  var range = parseInt(document.getElementById("sofarRange").value);
+  document.getElementById("sofarDepthVal").textContent = depth + " m";
+  document.getElementById("sofarRangeVal").textContent = range + " km";
+
+  sofarAnimTime = 0;
+  if (sofarAnimId) cancelAnimationFrame(sofarAnimId);
+  animateSofar();
+
+  var R = range * 1000;
+  var alpha = 0.00001;
+  var tlSofar = 10 * Math.log10(R) + alpha * R;
+  var tlNormal = 20 * Math.log10(R) + alpha * R;
+  var diff = tlNormal - tlSofar;
+
+  document.getElementById("tlSofar").textContent = tlSofar.toFixed(1) + " dB";
+  document.getElementById("tlNormal").textContent = tlNormal.toFixed(1) + " dB";
+  document.getElementById("tlSofarNote").textContent = "10 log(" + range + " km)";
+  document.getElementById("tlNormalNote").textContent = "20 log(" + range + " km) - " + diff.toFixed(1) + " dB worse";
+}
+
+// ==================== 3. PASSIVE SONAR ====================
+// ==================== INFORMATION BUDGET ====================
+var INFO_CHANNEL_CAPACITY_MBPS = 800; // representative LEO SAR/EO downlink + processing capacity
+
+function updateInfoBudget() {
+  var swathKm = parseFloat(document.getElementById("infoSwath").value);
+  var resM = parseFloat(document.getElementById("infoRes").value);
+  var bpp = parseFloat(document.getElementById("infoBpp").value);
+  var velKmS = parseFloat(document.getElementById("infoVel").value);
+
+  document.getElementById("infoSwathVal").textContent = swathKm + " km";
+  document.getElementById("infoResVal").textContent = resM + " m";
+  document.getElementById("infoBppVal").textContent = bpp + " bits";
+
+  var velLabel = velKmS >= 5 ? " (LEO satellite)" : velKmS >= 0.1 ? " (aircraft)" : " (USV/ship)";
+  document.getElementById("infoVelVal").textContent = velKmS + " km/s" + velLabel;
+
+  var swathM = swathKm * 1000;
+  var pixelsPerLine = Math.ceil(swathM / (2 * resM)); // Nyquist
+  var linesPerSecond = (velKmS * 1000) / (2 * resM); // along-track Nyquist
+  var dataRateBps = pixelsPerLine * linesPerSecond * bpp;
+  var dataRateMbps = dataRateBps / 1e6;
+
+  document.getElementById("infoPixels").textContent = pixelsPerLine.toLocaleString();
+  document.getElementById("infoDataRate").textContent = dataRateMbps.toFixed(1) + " Mbps";
+  document.getElementById("infoLPS").textContent = linesPerSecond.toFixed(1);
+
+  var utilization = dataRateMbps / INFO_CHANNEL_CAPACITY_MBPS;
+  var pct = Math.min(utilization * 100, 100);
+  var fill = document.getElementById("infoBudgetFill");
+  fill.style.width = pct + "%";
+
+  var statusSpan = document.getElementById("infoStatus");
+  while (statusSpan.firstChild) statusSpan.removeChild(statusSpan.firstChild);
+  var badge = document.createElement("span");
+
+  if (utilization <= 1) {
+    fill.style.background = "var(--green)";
+    badge.className = "detection-badge detected";
+    badge.textContent = "FEASIBLE";
+  } else {
+    fill.style.background = "#E53935";
+    badge.className = "detection-badge missed";
+    badge.textContent = "EXCEEDS CAPACITY (" + utilization.toFixed(1) + "x)";
+  }
+  statusSpan.appendChild(badge);
+
+  document.getElementById("infoDemandLabel").textContent = dataRateMbps.toFixed(1) + " Mbps required";
+  document.getElementById("infoCapLabel").textContent = "Channel capacity: " + INFO_CHANNEL_CAPACITY_MBPS + " Mbps";
+
+  // SAR inequality check
+  var lambda = 0.03; // X-band ~3cm
+  var R = 500000; // 500km LEO altitude
+  var sarMinProduct = lambda * R / 2; // minimum swath * azimuth_resolution in m^2
+  var actualProduct = swathM * resM;
+  // (This is informational - the budget bar handles the general case)
+}
+
+function setInfoPreset(name) {
+  var presets = {
+    sar_wide:   { swath: 100, res: 25, bpp: 8, vel: 7.5 },
+    sar_spot:   { swath: 10,  res: 1,  bpp: 12, vel: 7.5 },
+    optical_hr: { swath: 15,  res: 0.5, bpp: 12, vel: 7.5 },
+    othr:       { swath: 3000, res: 50000, bpp: 4, vel: 0.01 }
+  };
+  var p = presets[name];
+  if (!p) return;
+  document.getElementById("infoSwath").value = p.swath;
+  document.getElementById("infoRes").value = p.res;
+  document.getElementById("infoBpp").value = p.bpp;
+  document.getElementById("infoVel").value = p.vel;
+  updateInfoBudget();
+}
+
+// ==================== SONAR ====================
+var sonarProbChart;
+var sonarAnimId;
+var sonarWavePhase = 0;
+var sonarMode = "passive"; // "passive" or "active"
+var activePingPhase = 0;
+
+function calcTL(rangeKm) {
+  var R = rangeKm * 1000;
+  if (R < 1) R = 1;
+  var alpha = 0.00001;
+  return 20 * Math.log10(R) + alpha * R;
+}
+
+function setSonarMode(mode) {
+  sonarMode = mode;
+  var isActive = mode === "active";
+  document.getElementById("btnPassive").style.background = isActive ? "" : "var(--black)";
+  document.getElementById("btnPassive").style.color = isActive ? "" : "var(--white)";
+  document.getElementById("btnPassive").style.borderColor = isActive ? "" : "var(--black)";
+  document.getElementById("btnActive").style.background = isActive ? "var(--black)" : "";
+  document.getElementById("btnActive").style.color = isActive ? "var(--white)" : "";
+  document.getElementById("btnActive").style.borderColor = isActive ? "var(--black)" : "";
+  document.getElementById("slidersPassive").style.display = isActive ? "none" : "block";
+  document.getElementById("slidersActive").style.display = isActive ? "block" : "none";
+  document.getElementById("presetsPassive").style.display = isActive ? "none" : "inline";
+  document.getElementById("presetsActive").style.display = isActive ? "inline" : "none";
+  document.getElementById("eqPassive").style.display = isActive ? "none" : "block";
+  document.getElementById("eqActive").style.display = isActive ? "block" : "none";
+  document.getElementById("probNote").style.display = isActive ? "inline" : "none";
+  updateSonar();
+}
+
+function setSonarPreset(name) {
+  var presets = {
+    diesel:  { SL: 130, R: 10,  NL: 72, DI: 20, DT: 5 },
+    aip:     { SL: 95,  R: 10,  NL: 68, DI: 25, DT: 8 },
+    surface: { SL: 160, R: 20,  NL: 70, DI: 20, DT: 3 },
+    active_surface: { pingSL: 220, TS: 25, R: 30, NL: 72, DI: 20, DT: 5 },
+    active_diesel:  { pingSL: 220, TS: 15, R: 15, NL: 68, DI: 22, DT: 5 },
+    active_aip:     { pingSL: 225, TS: 5,  R: 8,  NL: 65, DI: 25, DT: 8 }
+  };
+  var p = presets[name];
+  if (!p) return;
+  if (p.pingSL !== undefined) {
+    setSonarMode("active");
+    document.getElementById("sonarPingSL").value = p.pingSL;
+    document.getElementById("sonarTS").value = p.TS;
+  } else {
+    setSonarMode("passive");
+    document.getElementById("sonarSL").value = p.SL;
+  }
+  document.getElementById("sonarRange").value = p.R;
+  document.getElementById("sonarNL").value = p.NL;
+  document.getElementById("sonarDI").value = p.DI;
+  document.getElementById("sonarDT").value = p.DT;
+  updateSonar();
+}
+
+function calcSonarSE() {
+  var range = parseFloat(document.getElementById("sonarRange").value);
+  var NL = parseFloat(document.getElementById("sonarNL").value);
+  var DI = parseFloat(document.getElementById("sonarDI").value);
+  var DT = parseFloat(document.getElementById("sonarDT").value);
+  var TL = calcTL(range);
+  var effectiveNoise = NL - DI;
+  if (sonarMode === "active") {
+    var pingSL = parseFloat(document.getElementById("sonarPingSL").value);
+    var TS = parseFloat(document.getElementById("sonarTS").value);
+    return { SE: pingSL - 2 * TL + TS - effectiveNoise - DT, TL: TL, twoWayTL: 2 * TL };
+  } else {
+    var SL = parseFloat(document.getElementById("sonarSL").value);
+    return { SE: SL - TL - effectiveNoise - DT, TL: TL, twoWayTL: TL };
+  }
+}
+
+function calcSEAtRange(rangeKm) {
+  var NL = parseFloat(document.getElementById("sonarNL").value);
+  var DI = parseFloat(document.getElementById("sonarDI").value);
+  var DT = parseFloat(document.getElementById("sonarDT").value);
+  var TL = calcTL(rangeKm);
+  var effectiveNoise = NL - DI;
+  if (sonarMode === "active") {
+    var pingSL = parseFloat(document.getElementById("sonarPingSL").value);
+    var TS = parseFloat(document.getElementById("sonarTS").value);
+    return pingSL - 2 * TL + TS - effectiveNoise - DT;
+  } else {
+    var SL = parseFloat(document.getElementById("sonarSL").value);
+    return SL - TL - effectiveNoise - DT;
+  }
+}
+
+function updateSonar() {
+  var range = parseFloat(document.getElementById("sonarRange").value);
+  var NL = parseFloat(document.getElementById("sonarNL").value);
+  var DI = parseFloat(document.getElementById("sonarDI").value);
+  var DT = parseFloat(document.getElementById("sonarDT").value);
+
+  if (sonarMode === "passive") {
+    var SL = parseFloat(document.getElementById("sonarSL").value);
+    document.getElementById("sonarSLVal").textContent = SL + " dB";
+  } else {
+    var pingSL = parseFloat(document.getElementById("sonarPingSL").value);
+    var TS = parseFloat(document.getElementById("sonarTS").value);
+    document.getElementById("sonarPingSLVal").textContent = pingSL + " dB";
+    document.getElementById("sonarTSVal").textContent = TS + " dB";
+  }
+  document.getElementById("sonarRangeVal").textContent = range + " km";
+  document.getElementById("sonarNLVal").textContent = NL + " dB";
+  document.getElementById("sonarDIVal").textContent = DI + " dB";
+  document.getElementById("sonarDTVal").textContent = DT + " dB";
+
+  var result = calcSonarSE();
+  var SE = result.SE;
+  var TL = result.TL;
+
+  var seSpan = document.getElementById("sonarSE");
+  seSpan.textContent = SE.toFixed(1) + " dB";
+  seSpan.className = "value " + (SE >= 0 ? "detected" : "missed");
+
+  var resultSpan = document.getElementById("sonarResult");
+  while (resultSpan.firstChild) resultSpan.removeChild(resultSpan.firstChild);
+  var badge = document.createElement("span");
+  badge.className = "detection-badge " + (SE >= 0 ? "detected" : "missed");
+  badge.textContent = SE >= 0 ? "DETECTED" : "MISSED";
+  resultSpan.appendChild(badge);
+
+  var effSL = sonarMode === "active" ? parseFloat(document.getElementById("sonarPingSL").value) : parseFloat(document.getElementById("sonarSL").value);
+  drawSonarOcean(effSL, TL, NL, DI, DT, SE, range);
+  drawSonarWaterfall(effSL, TL, NL, DI, DT, SE);
+  updateSonarProbChart(effSL, NL, DI, DT, range);
+}
+
+// ---------- Ocean Scene ----------
+function drawSonarOcean(SL, TL, NL, DI, DT, SE, rangeKm) {
+  var canvas = document.getElementById("sonarOceanCanvas");
+  var rect = canvas.parentElement.getBoundingClientRect();
+  var dpr = window.devicePixelRatio || 1;
+  var w = Math.round(rect.width * dpr);
+  var h = Math.round(400 * dpr);
+  canvas.width = w;
+  canvas.height = h;
+  canvas.style.height = "400px";
+  var ctx = canvas.getContext("2d");
+  var dark = isDark();
+
+  // Ocean gradient background
+  var grad = ctx.createLinearGradient(0, 0, 0, h);
+  if (dark) {
+    grad.addColorStop(0, "#0A1628");
+    grad.addColorStop(0.3, "#0D1E3A");
+    grad.addColorStop(1, "#050E1A");
+  } else {
+    grad.addColorStop(0, "#1A3060");
+    grad.addColorStop(0.3, "#1A4070");
+    grad.addColorStop(1, "#0A1A3A");
+  }
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, w, h);
+
+  // Subtle surface waves at top
+  ctx.strokeStyle = dark ? "rgba(100,160,220,0.15)" : "rgba(120,180,240,0.2)";
+  ctx.lineWidth = 1.5 * dpr;
+  for (var wv = 0; wv < 3; wv++) {
+    ctx.beginPath();
+    for (var wx = 0; wx < w; wx += 2) {
+      var wy = 8 * dpr + wv * 4 * dpr + Math.sin(wx * 0.008 + sonarWavePhase + wv * 1.2) * 3 * dpr;
+      if (wx === 0) ctx.moveTo(wx, wy); else ctx.lineTo(wx, wy);
+    }
+    ctx.stroke();
+  }
+
+  var margin = { left: 80 * dpr, right: 60 * dpr, top: 40 * dpr, bottom: 50 * dpr };
+  var plotW = w - margin.left - margin.right;
+  var plotH = h - margin.top - margin.bottom;
+  var maxRangeScale = Math.max(rangeKm * 1.3, 50);
+
+  // Scale functions
+  var xScale = function(km) { return margin.left + (km / maxRangeScale) * plotW; };
+  var hydroX = margin.left + 10 * dpr;
+  var subX = xScale(rangeKm);
+  var centerY = margin.top + plotH * 0.45;
+
+  // Range scale along bottom
+  ctx.fillStyle = dark ? "rgba(200,200,200,0.5)" : "rgba(200,220,240,0.6)";
+  ctx.font = (10 * dpr) + "px Inter, sans-serif";
+  ctx.textAlign = "center";
+  var step = maxRangeScale > 200 ? 50 : maxRangeScale > 50 ? 20 : 10;
+  for (var km = 0; km <= maxRangeScale; km += step) {
+    var tx = xScale(km);
+    ctx.fillText(km + " km", tx, h - 12 * dpr);
+    ctx.strokeStyle = dark ? "rgba(100,140,180,0.1)" : "rgba(100,140,180,0.08)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(tx, margin.top);
+    ctx.lineTo(tx, h - margin.bottom);
+    ctx.stroke();
+  }
+
+  // Noise floor - random low-amplitude ripples
+  ctx.strokeStyle = dark ? "rgba(120,140,160,0.12)" : "rgba(140,160,180,0.15)";
+  ctx.lineWidth = 0.8 * dpr;
+  var noiseIntensity = (NL - 60) / 40; // 0-1 normalized
+  for (var ni = 0; ni < 8; ni++) {
+    ctx.beginPath();
+    var ny = margin.top + plotH * 0.15 + (plotH * 0.7) * (ni / 8);
+    for (var nx = margin.left; nx < w - margin.right; nx += 3) {
+      var amp = noiseIntensity * 4 * dpr * (Math.random() - 0.5);
+      if (nx === margin.left) ctx.moveTo(nx, ny + amp);
+      else ctx.lineTo(nx, ny + amp);
+    }
+    ctx.stroke();
+  }
+
+  // Active mode: ping rings expanding from hydrophone toward sub
+  if (sonarMode === "active") {
+    activePingPhase += 0.015;
+    var pingNumArcs = 6;
+    var pingMaxDist = rangeKm * 1.8;
+    var pxPerKm = plotW / maxRangeScale;
+    for (var pi = 0; pi < pingNumArcs; pi++) {
+      // Outgoing ping - expanding from hydrophone
+      var pingProgress = ((activePingPhase * 0.4 + pi / pingNumArcs) % 1.0);
+      var pingDistKm = pingProgress * pingMaxDist;
+      var pingRadiusPx = pingDistKm * pxPerKm;
+      if (pingRadiusPx < 5 * dpr) continue;
+      var pingAlpha = 0.5 * (1 - pingProgress) * (1 - pingProgress);
+      if (pingAlpha < 0.02) continue;
+      ctx.strokeStyle = dark
+        ? "rgba(220,140,80," + pingAlpha + ")"
+        : "rgba(255,120,50," + pingAlpha + ")";
+      ctx.lineWidth = Math.max(1, (3 - pi * 0.3) * dpr);
+      ctx.beginPath();
+      ctx.arc(hydroX, centerY, pingRadiusPx, -0.45 * Math.PI, 0.45 * Math.PI);
+      ctx.stroke();
+
+      // Returning echo - expanding from sub back toward hydrophone (fainter, delayed)
+      var echoProgress = ((activePingPhase * 0.4 + pi / pingNumArcs - 0.5) % 1.0);
+      if (echoProgress > 0 && echoProgress < 1) {
+        var echoDistKm = echoProgress * pingMaxDist;
+        var echoRadiusPx = echoDistKm * pxPerKm;
+        var echoAlpha = 0.25 * (1 - echoProgress) * (1 - echoProgress);
+        if (echoAlpha > 0.02) {
+          ctx.strokeStyle = dark
+            ? "rgba(100,200,150," + echoAlpha + ")"
+            : "rgba(80,220,140," + echoAlpha + ")";
+          ctx.lineWidth = Math.max(1, (2 - pi * 0.2) * dpr);
+          ctx.beginPath();
+          ctx.arc(subX, centerY, echoRadiusPx, 0.55 * Math.PI, 1.45 * Math.PI);
+          ctx.stroke();
+        }
+      }
+    }
+    // "PING" label near hydrophone
+    ctx.fillStyle = dark ? "rgba(220,160,100,0.6)" : "rgba(255,140,60,0.7)";
+    ctx.font = "700 " + (9 * dpr) + "px Inter, sans-serif";
+    ctx.textAlign = "left";
+    ctx.fillText("PING", hydroX + 20 * dpr, centerY + 50 * dpr);
+    ctx.fillStyle = dark ? "rgba(100,200,150,0.5)" : "rgba(80,180,120,0.6)";
+    ctx.fillText("ECHO", subX - 50 * dpr, centerY + 50 * dpr);
+  }
+
+  // Passive mode: wavefronts from submarine (emanate outward from sub)
+  if (sonarMode === "passive") {
+    var numArcs = 14;
+    var maxArcDist = rangeKm * 1.4;
+    var pxPerKm = plotW / maxRangeScale;
+    for (var ai = 1; ai <= numArcs; ai++) {
+      var distKm = (ai / numArcs) * maxArcDist;
+      var arcRadiusPx = distKm * pxPerKm;
+      if (arcRadiusPx < 5 * dpr) continue;
+      var visualFalloff = Math.exp(-distKm / (rangeKm * 0.6));
+      var arcAlpha = 0.5 * visualFalloff;
+      if (arcAlpha < 0.03) continue;
+      var phaseOffset = (sonarWavePhase * 0.6 + ai * 0.5) % (2 * Math.PI);
+      var pulseAlpha = arcAlpha * (0.5 + 0.5 * Math.sin(phaseOffset));
+      ctx.strokeStyle = dark
+        ? "rgba(100,200,150," + pulseAlpha + ")"
+        : "rgba(80,220,140," + pulseAlpha + ")";
+      ctx.lineWidth = Math.max(1, (2.5 - ai * 0.12) * dpr);
+      ctx.beginPath();
+      ctx.arc(subX, centerY, arcRadiusPx, 0.55 * Math.PI, 1.45 * Math.PI);
+      ctx.stroke();
+    }
+  }
+
+  // Submarine silhouette
+  var subLen = 36 * dpr;
+  var subH = 10 * dpr;
+  ctx.fillStyle = dark ? "rgba(180,200,180,0.85)" : "rgba(160,220,160,0.9)";
+  ctx.beginPath();
+  // Hull
+  ctx.ellipse(subX, centerY, subLen / 2, subH / 2, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // Sail
+  ctx.fillRect(subX - 4 * dpr, centerY - subH / 2 - 6 * dpr, 8 * dpr, 6 * dpr);
+  // Label
+  ctx.fillStyle = dark ? "rgba(200,220,200,0.7)" : "rgba(200,240,200,0.8)";
+  ctx.font = "600 " + (10 * dpr) + "px Inter, sans-serif";
+  ctx.textAlign = "center";
+  if (sonarMode === "active") {
+    var tsVal = parseFloat(document.getElementById("sonarTS").value);
+    ctx.fillText("TS = " + Math.round(tsVal) + " dB", subX, centerY + subH / 2 + 16 * dpr);
+  } else {
+    ctx.fillText("SL = " + Math.round(SL) + " dB", subX, centerY + subH / 2 + 16 * dpr);
+  }
+  ctx.fillText(rangeKm + " km", subX, centerY + subH / 2 + 30 * dpr);
+
+  // Hydrophone array (left side)
+  var arrayLen = 60 * dpr;
+  var arrayTop = centerY - arrayLen / 2;
+  ctx.strokeStyle = dark ? "rgba(140,180,220,0.8)" : "rgba(100,160,220,0.9)";
+  ctx.lineWidth = 2.5 * dpr;
+  ctx.beginPath();
+  ctx.moveTo(hydroX, arrayTop);
+  ctx.lineTo(hydroX, arrayTop + arrayLen);
+  ctx.stroke();
+  // Array elements (dots)
+  var nElems = 8;
+  for (var ei = 0; ei < nElems; ei++) {
+    var ey = arrayTop + (ei / (nElems - 1)) * arrayLen;
+    ctx.beginPath();
+    ctx.arc(hydroX, ey, 3 * dpr, 0, Math.PI * 2);
+    ctx.fillStyle = dark ? "rgba(140,180,220,0.9)" : "rgba(100,160,220,1)";
+    ctx.fill();
+  }
+  // Array label
+  ctx.fillStyle = dark ? "rgba(140,180,220,0.7)" : "rgba(100,160,220,0.8)";
+  ctx.font = "600 " + (10 * dpr) + "px Inter, sans-serif";
+  ctx.textAlign = "center";
+  if (sonarMode === "active") {
+    var pingSLVal = parseFloat(document.getElementById("sonarPingSL").value);
+    ctx.fillText("SL = " + Math.round(pingSLVal) + " dB", hydroX, arrayTop - 22 * dpr);
+    ctx.fillText("DI = " + Math.round(DI) + " dB", hydroX, arrayTop - 10 * dpr);
+  } else {
+    ctx.fillText("DI = " + Math.round(DI) + " dB", hydroX, arrayTop - 10 * dpr);
+  }
+
+  // Detection result overlay
+  if (SE >= 0) {
+    // Green glow around hydrophone
+    var glowGrad = ctx.createRadialGradient(hydroX, centerY, 5 * dpr, hydroX, centerY, 50 * dpr);
+    glowGrad.addColorStop(0, "rgba(80,220,120,0.3)");
+    glowGrad.addColorStop(1, "rgba(80,220,120,0)");
+    ctx.fillStyle = glowGrad;
+    ctx.fillRect(hydroX - 50 * dpr, centerY - 50 * dpr, 100 * dpr, 100 * dpr);
+
+    ctx.fillStyle = dark ? "#66BB6A" : "#2E7D32";
+    ctx.font = "700 " + (14 * dpr) + "px Inter, sans-serif";
+    ctx.textAlign = "left";
+    ctx.fillText("DETECTED", hydroX + 20 * dpr, margin.top + 20 * dpr);
+    ctx.font = "600 " + (10 * dpr) + "px Inter, sans-serif";
+    ctx.fillText("SE = +" + SE.toFixed(1) + " dB", hydroX + 20 * dpr, margin.top + 36 * dpr);
+  } else {
+    ctx.fillStyle = dark ? "#EF5350" : "#C62828";
+    ctx.font = "700 " + (14 * dpr) + "px Inter, sans-serif";
+    ctx.textAlign = "left";
+    ctx.fillText("MISSED", hydroX + 20 * dpr, margin.top + 20 * dpr);
+    ctx.font = "600 " + (10 * dpr) + "px Inter, sans-serif";
+    ctx.fillText("SE = " + SE.toFixed(1) + " dB", hydroX + 20 * dpr, margin.top + 36 * dpr);
+  }
+
+  // NL label in bottom corner
+  ctx.fillStyle = dark ? "rgba(180,160,100,0.6)" : "rgba(200,180,120,0.7)";
+  ctx.font = "600 " + (10 * dpr) + "px Inter, sans-serif";
+  ctx.textAlign = "right";
+  ctx.fillText("Ocean noise: NL = " + Math.round(NL) + " dB", w - margin.right, h - margin.bottom + 15 * dpr);
+}
+
+function animateSonarOcean() {
+  sonarWavePhase += 0.03;
+  var range = parseFloat(document.getElementById("sonarRange").value);
+  var NL = parseFloat(document.getElementById("sonarNL").value);
+  var DI = parseFloat(document.getElementById("sonarDI").value);
+  var DT = parseFloat(document.getElementById("sonarDT").value);
+  var result = calcSonarSE();
+  var effSL = sonarMode === "active" ? parseFloat(document.getElementById("sonarPingSL").value) : parseFloat(document.getElementById("sonarSL").value);
+  drawSonarOcean(effSL, result.TL, NL, DI, DT, result.SE, range);
+  sonarAnimId = requestAnimationFrame(animateSonarOcean);
+}
+
+// ---------- Waterfall / Cascade Diagram ----------
+function drawSonarWaterfall(SL, TL, NL, DI, DT, SE) {
+  var canvas = document.getElementById("sonarWaterfallCanvas");
+  var rect = canvas.parentElement.getBoundingClientRect();
+  var dpr = window.devicePixelRatio || 1;
+  var w = Math.round(rect.width * dpr);
+  var h = Math.round(180 * dpr);
+  canvas.width = w;
+  canvas.height = h;
+  canvas.style.height = "180px";
+  var ctx = canvas.getContext("2d");
+  var dark = isDark();
+  var c = getColors();
+
+  ctx.fillStyle = dark ? "#161616" : "#F8F8F8";
+  ctx.fillRect(0, 0, w, h);
+
+  var margin = { left: 20 * dpr, right: 20 * dpr, top: 30 * dpr, bottom: 25 * dpr };
+  var plotW = w - margin.left - margin.right;
+  var plotH = h - margin.top - margin.bottom;
+
+  // Build the signal budget chain based on mode
+  var effectiveNoise = NL - DI;
+  var steps;
+  if (sonarMode === "active") {
+    var pingSLVal = parseFloat(document.getElementById("sonarPingSL").value);
+    var tsVal = parseFloat(document.getElementById("sonarTS").value);
+    steps = [
+      { label: "SL", sublabel: "Sonar power", value: pingSLVal, color: dark ? "#AA7744" : "#E65100", direction: "up" },
+      { label: "2xTL", sublabel: "Two-way loss", value: -2 * TL, color: dark ? "#AA5555" : "#E53935", direction: "down" },
+      { label: "TS", sublabel: "Target strength", value: tsVal, color: dark ? "#5A8A5D" : "#4CAF50", direction: "up" },
+      { label: "NL-DI", sublabel: "Net noise floor", value: -effectiveNoise, color: dark ? "#AA8844" : "#FF9800", direction: "down" },
+      { label: "DT", sublabel: "Threshold", value: -DT, color: dark ? "#7788AA" : "#5C6BC0", direction: "down" }
+    ];
+  } else {
+    steps = [
+      { label: "SL", sublabel: "Target noise", value: SL, color: dark ? "#5A8A5D" : "#4CAF50", direction: "up" },
+      { label: "TL", sublabel: "Propagation loss", value: -TL, color: dark ? "#AA5555" : "#E53935", direction: "down" },
+      { label: "NL-DI", sublabel: "Net noise floor", value: -effectiveNoise, color: dark ? "#AA8844" : "#FF9800", direction: "down" },
+      { label: "DT", sublabel: "Threshold", value: -DT, color: dark ? "#7788AA" : "#5C6BC0", direction: "down" }
+    ];
+  }
+
+  // Compute cumulative levels
+  var cumulative = [0];
+  for (var i = 0; i < steps.length; i++) {
+    cumulative.push(cumulative[i] + steps[i].value);
+  }
+
+  // Y-axis scaling: map dB to pixel height
+  var allVals = cumulative.slice();
+  allVals.push(0);
+  var minDB = Math.min.apply(null, allVals) - 10;
+  var maxDB = Math.max.apply(null, allVals) + 10;
+  var dbRange = maxDB - minDB;
+  var yScale = function(db) { return margin.top + (1 - (db - minDB) / dbRange) * plotH; };
+
+  // Block widths
+  var blockCount = steps.length;
+  var gap = 6 * dpr;
+  var blockW = (plotW - gap * (blockCount + 1)) / (blockCount + 1); // +1 for SE result
+  var startX = margin.left + gap;
+
+  // Zero line
+  var zeroY = yScale(0);
+  ctx.strokeStyle = dark ? "rgba(200,200,200,0.15)" : "rgba(0,0,0,0.08)";
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4 * dpr, 4 * dpr]);
+  ctx.beginPath();
+  ctx.moveTo(margin.left, zeroY);
+  ctx.lineTo(w - margin.right, zeroY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Draw connector line (running total)
+  ctx.strokeStyle = dark ? "rgba(200,200,200,0.3)" : "rgba(0,0,0,0.15)";
+  ctx.lineWidth = 1.5 * dpr;
+  ctx.beginPath();
+  for (var i = 0; i <= steps.length; i++) {
+    var cx = startX + i * (blockW + gap) + blockW / 2;
+    var cy = yScale(cumulative[i]);
+    if (i === 0) ctx.moveTo(cx, cy);
+    else ctx.lineTo(cx, cy);
+  }
+  ctx.stroke();
+
+  // Draw blocks
+  ctx.font = "700 " + (11 * dpr) + "px Inter, sans-serif";
+  ctx.textAlign = "center";
+
+  for (var i = 0; i < steps.length; i++) {
+    var bx = startX + i * (blockW + gap);
+    var topVal = cumulative[i];
+    var bottomVal = cumulative[i + 1];
+    var y1 = yScale(Math.max(topVal, bottomVal));
+    var y2 = yScale(Math.min(topVal, bottomVal));
+    var blockH = Math.max(y2 - y1, 3 * dpr);
+
+    ctx.fillStyle = steps[i].color;
+    ctx.globalAlpha = 0.85;
+    ctx.beginPath();
+    // Rounded rect
+    var r = 3 * dpr;
+    ctx.moveTo(bx + r, y1);
+    ctx.lineTo(bx + blockW - r, y1);
+    ctx.quadraticCurveTo(bx + blockW, y1, bx + blockW, y1 + r);
+    ctx.lineTo(bx + blockW, y1 + blockH - r);
+    ctx.quadraticCurveTo(bx + blockW, y1 + blockH, bx + blockW - r, y1 + blockH);
+    ctx.lineTo(bx + r, y1 + blockH);
+    ctx.quadraticCurveTo(bx, y1 + blockH, bx, y1 + blockH - r);
+    ctx.lineTo(bx, y1 + r);
+    ctx.quadraticCurveTo(bx, y1, bx + r, y1);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+
+    // Label inside block if tall enough, else above
+    var labelY;
+    var absVal = Math.abs(steps[i].value);
+    if (blockH > 28 * dpr) {
+      labelY = y1 + blockH / 2 + 4 * dpr;
+      ctx.fillStyle = "#FFFFFF";
+    } else {
+      labelY = y1 - 6 * dpr;
+      ctx.fillStyle = c.text;
+    }
+    ctx.fillText(steps[i].label + " " + (steps[i].value >= 0 ? "+" : "") + Math.round(steps[i].value), bx + blockW / 2, labelY);
+
+    // Sublabel below block
+    ctx.fillStyle = c.muted;
+    ctx.font = (9 * dpr) + "px Inter, sans-serif";
+    ctx.fillText(steps[i].sublabel, bx + blockW / 2, y1 + blockH + 14 * dpr);
+    ctx.font = "700 " + (11 * dpr) + "px Inter, sans-serif";
+  }
+
+  // SE result block at end
+  var seX = startX + steps.length * (blockW + gap);
+  var seTop = yScale(Math.max(SE, 0));
+  var seBottom = yScale(Math.min(SE, 0));
+  var seH = Math.max(seBottom - seTop, 4 * dpr);
+  var seColor = SE >= 0
+    ? (dark ? "#4CAF50" : "#2E7D32")
+    : (dark ? "#EF5350" : "#C62828");
+
+  ctx.fillStyle = seColor;
+  ctx.globalAlpha = 0.9;
+  ctx.beginPath();
+  var r = 3 * dpr;
+  ctx.moveTo(seX + r, seTop);
+  ctx.lineTo(seX + blockW - r, seTop);
+  ctx.quadraticCurveTo(seX + blockW, seTop, seX + blockW, seTop + r);
+  ctx.lineTo(seX + blockW, seTop + seH - r);
+  ctx.quadraticCurveTo(seX + blockW, seTop + seH, seX + blockW - r, seTop + seH);
+  ctx.lineTo(seX + r, seTop + seH);
+  ctx.quadraticCurveTo(seX, seTop + seH, seX, seTop + seH - r);
+  ctx.lineTo(seX, seTop + r);
+  ctx.quadraticCurveTo(seX, seTop, seX + r, seTop);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+
+  // SE label
+  ctx.fillStyle = "#FFFFFF";
+  ctx.font = "700 " + (11 * dpr) + "px Inter, sans-serif";
+  if (seH > 24 * dpr) {
+    ctx.fillText("SE " + (SE >= 0 ? "+" : "") + Math.round(SE), seX + blockW / 2, seTop + seH / 2 + 4 * dpr);
+  } else {
+    ctx.fillStyle = seColor;
+    ctx.fillText("SE " + (SE >= 0 ? "+" : "") + Math.round(SE), seX + blockW / 2, seTop - 6 * dpr);
+  }
+  ctx.fillStyle = c.muted;
+  ctx.font = (9 * dpr) + "px Inter, sans-serif";
+  ctx.fillText("Signal excess", seX + blockW / 2, seTop + seH + 14 * dpr);
+
+  // Title
+  ctx.fillStyle = c.muted;
+  ctx.font = "600 " + (10 * dpr) + "px Inter, sans-serif";
+  ctx.textAlign = "left";
+  ctx.fillText("SIGNAL BUDGET", margin.left, margin.top - 10 * dpr);
+}
+
+// ---------- Probability Chart with Range Marker ----------
+function updateSonarProbChart(SL, NL, DI, DT, currentRange) {
+  var labels = [];
+  var probs = [];
+  var maxRange = 500;
+
+  for (var r = 1; r <= maxRange; r += 2) {
+    labels.push(r);
+    var se = calcSEAtRange(r);
+    var sigma = 3;
+    var prob = 1 / (1 + Math.exp(-se / sigma));
+    probs.push(prob * 100);
+  }
+
+  // Find prob at current range
+  var currentSE = calcSEAtRange(currentRange);
+  var currentProb = 100 / (1 + Math.exp(-currentSE / 3));
+
+  if (sonarProbChart) sonarProbChart.destroy();
+
+  var ctx = document.getElementById("sonarProbChart").getContext("2d");
+  var dark = isDark();
+
+  // Vertical line plugin for current range
+  var rangeMarkerPlugin = {
+    id: "rangeMarker",
+    afterDraw: function(chart) {
+      var xAxis = chart.scales.x;
+      var yAxis = chart.scales.y;
+      var ctx2 = chart.ctx;
+
+      // Find pixel position of current range
+      var idx = Math.round((currentRange - 1) / 2);
+      if (idx < 0) idx = 0;
+      if (idx >= labels.length) idx = labels.length - 1;
+      var xPx = xAxis.getPixelForValue(idx);
+      var yPx = yAxis.getPixelForValue(currentProb);
+
+      // Vertical dashed line
+      ctx2.save();
+      ctx2.setLineDash([4, 4]);
+      ctx2.strokeStyle = dark ? "rgba(200,200,200,0.5)" : "rgba(0,0,0,0.3)";
+      ctx2.lineWidth = 1.5;
+      ctx2.beginPath();
+      ctx2.moveTo(xPx, yAxis.top);
+      ctx2.lineTo(xPx, yAxis.bottom);
+      ctx2.stroke();
+      ctx2.setLineDash([]);
+
+      // Dot at intersection
+      ctx2.beginPath();
+      ctx2.arc(xPx, yPx, 5, 0, Math.PI * 2);
+      ctx2.fillStyle = dark ? "#A0BBAA" : "#2E7D32";
+      ctx2.fill();
+      ctx2.strokeStyle = dark ? "#161616" : "#FFFFFF";
+      ctx2.lineWidth = 2;
+      ctx2.stroke();
+
+      // Annotation
+      ctx2.fillStyle = dark ? "#E8E8E8" : "#000000";
+      ctx2.font = "600 11px Inter, sans-serif";
+      ctx2.textAlign = xPx > chart.width / 2 ? "right" : "left";
+      var textX = xPx + (xPx > chart.width / 2 ? -10 : 10);
+      ctx2.fillText(currentRange + " km, P = " + currentProb.toFixed(1) + "%", textX, yPx - 10);
+      ctx2.restore();
+    }
+  };
+
+  sonarProbChart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: labels,
+      datasets: [{
+        data: probs,
+        borderColor: dark ? "#7A8A7D" : "#B3BCB5",
+        backgroundColor: dark ? "rgba(122,138,125,0.15)" : "rgba(179,188,181,0.15)",
+        fill: true,
+        tension: 0.3,
+        pointRadius: 0,
+        borderWidth: 2
+      }]
+    },
+    plugins: [rangeMarkerPlugin],
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title: function(items) { return items[0].label + " km"; },
+            label: function(item) { return "P(detect) = " + parseFloat(item.raw).toFixed(1) + "%"; }
+          },
+          backgroundColor: dark ? "#2A2A2A" : "#000",
+          titleFont: { family: "Inter, sans-serif", weight: 600, size: 12 },
+          bodyFont: { family: "Inter, sans-serif", weight: 600, size: 12 }
+        }
+      },
+      scales: {
+        x: {
+          title: { display: true, text: "Range (km)", color: dark ? "#888" : "#808080", font: { family: "Inter, sans-serif", weight: 600, size: 11 } },
+          ticks: { color: dark ? "#888" : "#808080", font: { family: "Inter, sans-serif", weight: 600, size: 10 }, maxTicksLimit: 10 },
+          grid: { color: dark ? "#2A2A2A" : "#E5E5E5" }
+        },
+        y: {
+          title: { display: true, text: "Detection Probability (%)", color: dark ? "#888" : "#808080", font: { family: "Inter, sans-serif", weight: 600, size: 11 } },
+          min: 0, max: 100,
+          ticks: { color: dark ? "#888" : "#808080", font: { family: "Inter, sans-serif", weight: 600, size: 10 } },
+          grid: { color: dark ? "#2A2A2A" : "#E5E5E5" }
+        }
+      },
+      interaction: { mode: "index", intersect: false }
+    }
+  });
+}
+
+// ==================== NAV HIGHLIGHTING ====================
+function updateNav() {
+  var sections = document.querySelectorAll("section[id]");
+  var navLinks = document.querySelectorAll("nav a[href^='#']");
+  var scrollY = window.scrollY + 80;
+
+  sections.forEach(function(sec) {
+    var top = sec.offsetTop;
+    var bottom = top + sec.offsetHeight;
+    var id = sec.getAttribute("id");
+    navLinks.forEach(function(link) {
+      if (link.getAttribute("href") === "#" + id) {
+        if (scrollY >= top && scrollY < bottom) link.classList.add("active");
+        else link.classList.remove("active");
+      }
+    });
+  });
+}
+window.addEventListener("scroll", updateNav);
+
+// ==================== RESIZE ====================
+var resizeTimer;
+window.addEventListener("resize", function() {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(function() {
+    drawRadar();
+    drawSofar();
+    updateSonar();
+  }, 150);
+});
+
+// ==================== INIT ====================
+initRadarTargets();
+generateClutter(3);
+updateRadar();
+animateRadar();
+sofarAnimTime = 0;
+animateSofar();
+updateSofar();
+updateInfoBudget();
+updateSonar();
+animateSonarOcean();
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>
