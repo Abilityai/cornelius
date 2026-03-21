@@ -6,6 +6,34 @@ This is a **summary index**. For detailed session logs, see `05-Meta/Changelogs/
 
 ---
 
+## 2026-03
+
+### 2026-03-21 (Session C)
+**Vault Management Session** - [[CHANGELOG - Vault Management Session 2026-03-21c]]
+- 23 permanent notes created from Four Luminous source documents
+- 6 threshold notes: Scale (Kairos), Transformation (Mycelium), Succession (The Rite), Long-Term Impact (Dharma), Career Transition (Metanoia), Thresholds as taxonomy
+- 6 client profile notes: archetype, inflection point, brave face, meaning search, readiness, language hesitation
+- 4 brand voice notes: grounded, invitational, spacious, British English
+- 7 intelligence vision notes: Luminous Mind, governance layer, council member, scalability, The Filter, The Constitution, longitudinal play
+- Permanent notes now total 31 - full middle layer of the knowledge graph in place
+
+---
+
+### 2026-03-21 (Session B)
+**Vault Management Session** - [[CHANGELOG - Vault Management Session 2026-03-21b]]
+- 19 permanent notes created from The Luminous Canon and The Seven Vows
+- 12 Canon notes: mission, governance, institutional design, the Seven Seals, knowledge preservation, practitioner identity
+- 7 Vows notes: one atomic note per vow, fully cross-linked to Canon counterparts
+- Foundational layer of Luminous knowledge graph now in place as a connected network of permanent notes
+
+### 2026-03-21
+**Vault Management Session** - [[CHANGELOG - Vault Management Session 2026-03-21]]
+- 5 new thematic MOCs created: The Luminous Canon, The Seven Vows, The Five Thresholds, The Luminous Client, Luminous Intelligence
+- Master Navigation MOC rewritten with real content replacing all placeholder text
+- Full MOC navigation layer now in place across the Luminous knowledge graph
+
+---
+
 ## 2025-01
 
 ### 2025-01-15

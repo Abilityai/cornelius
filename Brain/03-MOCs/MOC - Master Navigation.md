@@ -2,97 +2,50 @@
 type: moc
 level: master
 created: 2025-01-01
-updated: 2025-01-01
+updated: 2026-03-21
+created_by: claude-opus-4-6-20250725
+updated_by: claude-sonnet-4-6
+agent_version: 03.26
 ---
 
 # MOC - Master Navigation
 
-**Welcome to your Second Brain.** Start here to navigate your knowledge graph.
-
-## 🗺️ Thematic MOCs
-
-### Core Knowledge Domains
-- [[MOC - Example Topic 1]] - Description (X notes)
-- [[MOC - Example Topic 2]] - Description (X notes)
-- [[MOC - Example Topic 3]] - Description (X notes)
-
-> **To create a new MOC**: Wait until you have 15+ notes on a theme, then create a new MOC to organize them.
-
-## 📚 Recent Activity
-
-### Latest Permanent Notes
-- [[Your Latest Note]] (YYYY-MM-DD)
-- [[Another Recent Note]] (YYYY-MM-DD)
-- [[One More Note]] (YYYY-MM-DD)
-
-### Recent Discovery Sessions
-- [[CHANGELOG - Connection Discovery YYYY-MM-DD]] - Description
-- [[CHANGELOG - Auto-Discovery Sessions YYYY-MM-DD]] - Description
-
-## 🔍 Quick Access
-
-### By Status
-- **All Permanent Notes** - Browse `02-Permanent/`
-- **All Source Notes** - Browse `01-Sources/`
-- **Open Questions** - See `04-Output/Projects/`
-
-### By Type
-- **Framework Notes** - See `04-Output/Frameworks/`
-- **Published Articles** - See `04-Output/Articles/`
-- **Quick Insights** - See `04-Output/Insights/`
-
-## 🎯 Projects & Output
-
-### Active Projects
-- [[Project - Topic Name]] - Status
-- [[Research Question]] - Status
-
-### Recent Output
-- [[Article - Title]] - Published/Draft
-- [[Framework - Name]] - Status
-- [[Insight Collection]] - Count
-
-## 📊 Vault Statistics
-
-- **Total Notes**: Update after running `/analyze-kb`
-- **Permanent Notes**: Count notes in `02-Permanent/`
-- **MOCs**: Count this and other MOCs
-- **Source Books**: Count notes in `01-Sources/Books/`
-- **Last Updated**: Today's date
+Welcome to the Luminous Second Brain. Start here to navigate the knowledge graph.
 
 ---
 
-## 🚀 Getting Started
+## Thematic MOCs
 
-**New to this vault?** Start with:
-1. Browse `02-Permanent/` to see your insights
-2. Try `/search-vault <topic>` to search
-3. Run `/find-connections` on any note
-4. Review `05-Meta/Changelogs/` for discoveries
+### Foundational Knowledge
 
-**Creating new notes?**
-- Capture quickly in `00-Inbox/Quick Captures/`
-- Process into `02-Permanent/` regularly
-- Link to related notes with `[[wikilinks]]`
-- Update this MOC when themes emerge
+- [[MOC - The Luminous Canon]] - Core philosophy, institutional design, and the Seven Seals: the bedrock document that defines what Luminous is and will always be (12 notes)
+- [[MOC - The Seven Vows]] - The sacred commitments that Luminous practitioners make to embody the mission in their daily conduct (7 notes)
+- [[MOC - The Five Thresholds]] - The organising framework for all Luminous work, mapping the terrain of inner and outer transformation that leaders navigate (6 notes)
 
-**Finding connections?**
-- Run `/find-connections <note name>`
-- Review connection maps in changelogs
-- Add wikilinks between related notes
-- Create new MOCs when clusters form
+### People and Strategy
+
+- [[MOC - The Luminous Client]] - Who Luminous serves, what they carry, and what signals genuine readiness for the work (6 notes)
+- [[MOC - Luminous Intelligence]] - The three-layer vision: the Mind as council member, the Constitution as ethical constraint, the longitudinal play as business model (7 notes)
+
+### Voice and Communication
+
+See permanent notes: Grounded not grandiose, Invitational not prescriptive, Spacious, British English. Full voice guidelines in [[Brand Identity and Voice]].
 
 ---
 
-## 📖 Documentation
+## Quick Access
 
-- `../README.md` - Brain folder overview
-- `../FOLDER-STRUCTURE.md` - Organization guide
-- `../EXAMPLES.md` - Sample notes & workflows
-- `05-Meta/Templates/` - Note templates
+### By Folder
+
+- **Permanent Notes** - Browse `02-Permanent/` (42 notes)
+- **Source Documents** - Browse `01-Sources/` (6 source documents)
+- **Articles** - Browse `04-Output/Articles/`
 
 ---
 
-**This MOC is your home base.** Update it regularly as your knowledge graph grows!
+## Vault Statistics
 
-*Tip: Use `/analyze-kb` monthly to generate comprehensive vault statistics.*
+- **Total Permanent Notes**: 42
+- **Source Documents**: 6
+- **MOCs**: 6 (including this one)
+- **Last Updated**: 2026-03-21
