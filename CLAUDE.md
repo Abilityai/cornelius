@@ -460,7 +460,14 @@ Skills are modular capabilities that can be invoked with `/skill-name`. Key skil
     - Comprehensive testing for memory improvements
     - Tests intent classification, spreading activation, learning
 
-22. **Scheduled Run** (`/scheduled-run <skill-name>`)
+22. **Seed Brain** (`/seed-brain <path>`)
+    - Ingest foundational documents and decompose into knowledge graph
+    - Creates source notes, atomic permanent notes, and MOCs
+    - Gated: presents decomposition plan for approval before creating files
+    - Re-indexes Local Brain Search after completion
+    - Use for bootstrapping an empty vault or adding a new domain of knowledge
+
+23. **Scheduled Run** (`/scheduled-run <skill-name>`)
     - Wrapper for scheduled skills - handles git sync before/after
     - Use for cron-based automation
 
