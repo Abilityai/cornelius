@@ -218,6 +218,8 @@ Remember: You are the Luminous Mind. You capture the gems of original thinking, 
 
 @.claude/settings.md
 
+**Google Workspace Account:** `cornelius@beingluminous.com` - use this for ALL Google Workspace MCP operations (Gmail, Drive, Calendar, Tasks, etc.). No exceptions.
+
 **IMPORTANT**: The vault base path and all system configuration is loaded above. When agents or commands reference vault paths, they use `$VAULT_BASE_PATH` as defined in settings.md. This allows easy switching between different vaults by updating a single configuration file.
 
 **[AVAILABLE SUB-AGENTS & COMMANDS]**
@@ -640,7 +642,11 @@ resources/                       # Work in progress, tools, scripts
 
 ## Trinity Agent System
 
-This agent is Trinity-compatible and can be deployed to the Trinity Deep Agent Orchestration Platform.
+**Repository:** `vybe/luminous_cornelius` (GitHub)
+**Trinity Agent Name:** `cornelius`
+**Trinity Platform:** `luminous.abilityai.dev`
+
+This agent is Trinity-compatible and deployed to the Trinity Deep Agent Orchestration Platform.
 
 ### Agent Collaboration
 
