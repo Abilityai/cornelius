@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Google Workspace Authorization</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            background: #f5f5f5;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-top: 0;
+        }
+        .auth-button {
+            display: inline-block;
+            background: #4285f4;
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 500;
+            margin: 20px 0;
+            transition: background 0.3s;
+        }
+        .auth-button:hover {
+            background: #357ae8;
+        }
+        .instructions {
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .instructions ol {
+            padding-left: 20px;
+        }
+        .instructions li {
+            margin: 10px 0;
+        }
+    </style>
+    <script>
+        // Auto-redirect after 2 seconds
+        setTimeout(function() {
+            window.location.href = document.getElementById('authLink').href;
+        }, 2000);
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Google Workspace Authorization Required</h1>
+        <p>Click the button below to authorize Cornelius to access your Google Workspace:</p>
+
+        <a id="authLink" href="https://accounts.google.com/o/oauth2/auth?response_type=code&client_id=667627606781-7g1hos646f12jhhrb21jm95upqe6g2mv.apps.googleusercontent.com&redirect_uri=http%3A%2F%2Flocalhost%3A8890%2Foauth2callback&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fgmail.readonly+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fgmail.send+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fgmail.compose+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fgmail.modify+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fgmail.labels+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fcalendar+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fcalendar.readonly+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fcalendar.events+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fdrive+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fdrive.readonly+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fdrive.file+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Ftasks+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Ftasks.readonly+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fdocuments.readonly+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fspreadsheets+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fspreadsheets.readonly&access_type=offline&prompt=consent" class="auth-button">
+            Authorize Google Workspace Access
+        </a>
+
+        <div class="instructions">
+            <h3>Instructions:</h3>
+            <ol>
+                <li>You will be redirected automatically in 2 seconds, or click the button above</li>
+                <li>Sign in with your Google account (cornelius@beingluminous.com)</li>
+                <li>Review and accept the permissions requested</li>
+                <li>After authorization, return to Claude Code and retry your command</li>
+            </ol>
+            <p><strong>Note:</strong> The authorization will redirect to localhost:8890, which should be running the Google Workspace MCP server.</p>
+        </div>
+    </div>
+</body>
+</html>
