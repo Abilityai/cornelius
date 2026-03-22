@@ -3,7 +3,7 @@
 ## Model Overview
 
 **Two Tiers:**
-- **Gemini 2.5 Flash Image**: $0.039/image, 1024px, optimized for speed (~22 sec), 500 free daily requests
+- **Gemini 3.1 Flash Image Preview (Nano Banana 2)**: $0.067/image, 1024px, optimized for speed (~22 sec), 500 free daily requests
 - **Nano Banana Pro (Gemini 3 Pro)**: Up to 4K, Google Search grounding, professional-grade (released Nov 20, 2025)
 
 **Core Strengths:**
@@ -202,6 +202,174 @@ FOOTER: [Call to action]
 Style: Horizontal flow, DM Sans font, clear progression.
 Maximum 8 text pieces total.
 ```
+
+---
+
+## Article Illustration Style: Warm Infographic
+
+**Use for:** In-article explanatory diagrams that blend cinematic warmth with clear concept explanation.
+
+This style bridges the gap between:
+- **B-roll/title images** (photographic, emotional, no explanation)
+- **Standard infographics** (cold, clinical, purely functional)
+
+### Warm Infographic Aesthetic
+
+| Element | Specification |
+|---------|---------------|
+| **Background** | Warm charcoal `#2D2926` or cream `#F5F0E8` |
+| **Text Primary** | Warm white `#FAF8F5` or deep brown `#3D3530` |
+| **Accent 1** | Dusty rose `#D4A5A5` |
+| **Accent 2** | Warm coral `#E8B4A0` |
+| **Accent 3** | Muted teal `#7BA3A3` |
+| **Accent 4** | Soft gold `#D4C4A0` |
+| **Style** | Illustrated flat design with soft shadows |
+| **Feel** | Warm, approachable, like a hand-drawn explanation |
+
+### Key Principles
+
+1. **Explain, don't decorate** - Every element must communicate meaning
+2. **Warm palette** - Film-inspired colors, never harsh pure black/white
+3. **Illustrated style** - Flat icons, soft shapes, hand-crafted feel
+4. **Clear hierarchy** - Title → Main concept → Supporting details
+5. **Visual metaphors** - Use relatable imagery to explain abstract concepts
+
+### Prompt Template: Warm Infographic
+
+```
+Create a warm, illustrated infographic explaining [CONCEPT].
+
+STYLE:
+- Warm charcoal background (#2D2926)
+- Soft cream text (#FAF8F5)
+- Illustrated flat design with soft shadows
+- Dusty rose and coral accent colors
+- Hand-crafted, approachable aesthetic
+- Film-inspired warm color grading
+
+CONTENT:
+- [MAIN VISUAL: Describe the central explanatory element]
+- [LABELS: 3-5 key terms with brief explanations]
+- [FLOW/STRUCTURE: How elements connect]
+
+LAYOUT:
+- Title at top in large warm white text
+- Central diagram/illustration
+- Labels with clear visual hierarchy
+- Generous negative space
+
+Keep it simple: maximum 8 text labels, one core concept.
+Aspect ratio: 16:9 horizontal
+```
+
+### CRITICAL: Use Simple Words
+
+AI image generators struggle with complex words. Use short, common words:
+
+| Avoid (misspells) | Use Instead |
+|-------------------|-------------|
+| SOVEREIGNTY | ISOLATE, OWN SPACE |
+| ORCHESTRATION | COORDINATE, TEAMWORK |
+| HIERARCHICAL | TOP-DOWN, LEADER |
+| INFRASTRUCTURE | BUILD, FOUNDATION |
+| OBSERVABILITY | MONITOR, VISIBILITY |
+| GOVERNANCE | CONTROL, AUDIT |
+
+**Rule**: If a word has 4+ syllables, find a simpler alternative.
+
+### Example: Framework Diagram (Warm Style)
+
+```
+Create a warm, illustrated infographic showing "Four Pillars".
+
+STYLE:
+- Warm charcoal background (#2D2926)
+- Soft cream text (#FAF8F5)
+- Illustrated flat design with soft shadows
+- Each pillar uses a different warm accent color
+
+CONTENT:
+- Four illustrated pillars/columns as the central visual
+- Each pillar has an icon and SHORT label (1-2 syllables):
+  1. Shield icon - "ISOLATE" (dusty rose)
+  2. Network icon - "COORDINATE" (coral)
+  3. Lock icon - "CONTROL" (muted teal)
+  4. Eye icon - "MONITOR" (soft gold)
+- Pillars support a roof labeled "SUCCESS"
+- Foundation labeled "YOUR TEAM"
+
+LAYOUT:
+- Title "FOUR PILLARS" large at top
+- Architectural pillar diagram centered
+
+Maximum 8 text labels. Use simple words only.
+Aspect ratio: 16:9 horizontal
+```
+
+### Example: Before/After Comparison (Warm Style)
+
+```
+Create a warm before/after comparison.
+
+STYLE:
+- Warm charcoal background (#2D2926)
+- Left side: muted red tones
+- Right side: warm green tones
+
+CONTENT:
+LEFT ("CHAOS"):
+- 5 dots with tangled messy lines
+- Red X icon
+- Label: "MESSY"
+
+RIGHT ("ORDER"):
+- 5 dots with clean straight lines
+- Green checkmark
+- Label: "CLEAN"
+
+LAYOUT:
+- Title: "CHAOS vs ORDER"
+- VS in center
+- Clear visual split
+
+Maximum 6 text labels. Simple words only.
+Aspect ratio: 16:9 horizontal
+```
+
+### Example: Visual Metaphor (Warm Style)
+
+```
+Create a warm, illustrated visual metaphor showing "Agent Governance as Air Traffic Control".
+
+STYLE:
+- Warm charcoal background (#2D2926)
+- Soft cream and coral tones
+- Illustrated, stylized (not photorealistic)
+- Soft glows and shadows
+
+CONTENT:
+- Stylized control tower in center (illustrated, not photo)
+- 4-5 simplified airplane icons representing agents
+- Dotted flight paths showing coordination
+- Control screens showing monitoring dashboards
+- Labels: "Audit Trails", "Permission Gates", "Kill Switches"
+
+LAYOUT:
+- Dramatic but warm composition
+- Tower as focal point
+- Agents in organized flight patterns around it
+
+Maximum 6 labels. One metaphor: governance = control tower.
+Aspect ratio: 16:9 horizontal
+```
+
+### When to Use Each Style
+
+| Style | Use Case | Example |
+|-------|----------|---------|
+| **Dark Infographic** (black bg) | Social media, carousels, high contrast | LinkedIn posts |
+| **Warm Infographic** (charcoal bg) | Article illustrations, concept explanations | In-article diagrams |
+| **Cinematic Lifestyle** (photo) | Title images, hero shots, B-roll | Article headers |
 
 ---
 

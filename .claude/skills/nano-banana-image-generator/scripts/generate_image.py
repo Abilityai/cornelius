@@ -34,7 +34,8 @@ def find_api_key():
     env_paths = [
         Path(".env"),
         Path.home() / ".env",
-        Path.home() / "Dropbox/Agents/Ruby/.env",
+        Path.home() / "Dropbox/Agents/ruby-internal/.env",
+        Path.home() / "Dropbox/Agents/cornelius_luminous/.env",
     ]
 
     for env_path in env_paths:
@@ -65,7 +66,7 @@ def generate_image(prompt: str, output_path: str, aspect_ratio: str = "1:1") -> 
         print("Error: No API key found. Set GOOGLE_API_KEY or GEMINI_API_KEY.")
         return False
 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key={api_key}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent?key={api_key}"
 
     payload = {
         "contents": [{
