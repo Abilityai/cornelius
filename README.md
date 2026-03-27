@@ -108,10 +108,6 @@ pip install -r requirements.txt
 # 5. Start Claude Code
 cd ../..
 claude
-
-# 6. (Optional) Seed your Brain from foundational documents
-# Inside Claude Code:
-/seed-brain /path/to/your/foundational-docs/
 ```
 
 **Detailed guides:**
@@ -188,18 +184,6 @@ claude
 | `test-memory-system` | `/test-memory-system` | Test memory improvements |
 | `scheduled-run` | `/scheduled-run <skill>` | Wrapper for cron automation |
 | `update-dashboard` | `/update-dashboard` | Update Trinity dashboard metrics |
-| `seed-brain` | `/seed-brain <path>` | Ingest foundational docs into knowledge graph |
-
-### Brain Seeding
-
-Starting with an empty vault? `/seed-brain` bootstraps your knowledge graph from foundational documents (manifesto, frameworks, values, strategy docs, etc.).
-
-It reads your source documents, proposes a decomposition into atomic permanent notes with cross-links, gets your approval, then creates everything - source notes, permanent notes, MOCs, and search index - in one pass. The result is a fully linked, searchable knowledge base ready for connection discovery and content creation.
-
-```bash
-# Inside Claude Code:
-/seed-brain /path/to/your/foundational-docs/
-```
 
 ### Sample Vault (`Brain/`)
 

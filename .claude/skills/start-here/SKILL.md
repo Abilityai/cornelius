@@ -126,28 +126,9 @@ ls ~/.claude/plugins/cache/abilityai/
 | **dev-methodology** | `/dev-methodology:init` | Initialize docs-driven dev cycle in your project |
 | **utilities** | `/save-conversation` or `/investigate-incident` | Ops tools - use as needed |
 
-## Seeding Your Brain
-
-Starting with an empty vault? Use `/seed-brain` to bootstrap your knowledge graph from foundational documents.
-
-Point it at a folder of markdown files - your manifesto, frameworks, values, strategy docs, positioning texts - and it will:
-
-1. **Catalogue** all source documents and check for existing content
-2. **Decompose** each document into atomic permanent notes (one insight per note)
-3. **Cross-link** every note to related concepts, forming a dense knowledge graph
-4. **Create MOCs** (Maps of Content) to make the graph navigable
-5. **Index** everything for semantic search
-
-You review and approve the decomposition plan before any notes are created. The result is a fully linked, searchable knowledge base ready for connection discovery, article writing, and insight capture.
-
-```
-/seed-brain /path/to/your/foundational-docs/
-```
-
 ## Where to Go Next
 
-- **Empty vault?** Start with `/seed-brain` to populate from your foundational documents
-- **Have notes already?** Try `/search-vault <something you think about>` to see what's there
+- **New to the vault?** Start with `/search-vault <something you think about>` to see what's already there
 - **Want to capture something?** Just describe your idea - Cornelius will detect if it's worth saving
 - **Want to write something?** Try `/recall <topic>` first to see what raw material exists, then `/create-article`
 - **Want to explore?** Run `/auto-discovery` for a serendipitous tour of connections in your knowledge graph
