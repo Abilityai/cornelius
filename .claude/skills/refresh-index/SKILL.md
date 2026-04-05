@@ -33,7 +33,7 @@ The FAISS index is not auto-updated. This playbook rebuilds it so semantic searc
 
 Check indexer exists:
 ```bash
-test -f /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_index.sh && echo "OK" || echo "MISSING"
+test -f resources/local-brain-search/run_index.sh && echo "OK" || echo "MISSING"
 ```
 
 If missing, abort.
@@ -41,21 +41,37 @@ If missing, abort.
 ### Step 2: Run Indexer
 
 ```bash
-/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_index.sh
+resources/local-brain-search/run_index.sh
 ```
 
 ### Step 3: Verify Index
 
 Confirm index works:
 ```bash
-/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh --stats --json
+resources/local-brain-search/run_connections.sh --stats --json
 ```
 
 Should return valid JSON with note count > 0.
 
+### Step 4: Re-bootstrap Brain Dependency Graph
+
+The BDG enrichments depend on the LBS graph. After reindexing, re-classify nodes and edges:
+
+```bash
+resources/brain-graph/run_brain_graph.sh bootstrap --force
+```
+
+Verify:
+```bash
+resources/brain-graph/run_brain_graph.sh status
+```
+
+Should show enriched nodes matching the new index count.
+
 ## Outputs
 
-- Rebuilt FAISS index at `resources/local-brain-search/brain_index/`
+- Rebuilt FAISS index at `resources/local-brain-search/data/`
+- Refreshed BDG enrichments at `resources/brain-graph/data/graph_enrichments.json`
 - Stats output confirming note count
 
 ## Error Handling
@@ -65,6 +81,7 @@ Should return valid JSON with note count > 0.
 | Script missing | Abort - check Local Brain Search installation |
 | Index fails | Check Python env, disk space |
 | Stats return 0 notes | Re-run indexer, check Brain path |
+| BDG bootstrap fails | Non-critical - LBS index still works without BDG |
 
 ## Completion Checklist
 
@@ -72,3 +89,4 @@ Should return valid JSON with note count > 0.
 - [ ] Index rebuilt without errors
 - [ ] Stats query returns valid JSON
 - [ ] Note count > 0
+- [ ] BDG re-bootstrapped

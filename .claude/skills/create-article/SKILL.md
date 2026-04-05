@@ -41,10 +41,10 @@ Search the knowledge base for relevant insights:
 
 ```bash
 # Semantic search for topic
-/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_search.sh "your topic" --limit 15 --json
+resources/local-brain-search/run_search.sh "your topic" --limit 15 --json
 
 # Find connections to existing notes
-/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh "Related Note Name" --json
+resources/local-brain-search/run_connections.sh "Related Note Name" --json
 ```
 
 **Key locations to search:**
@@ -52,6 +52,11 @@ Search the knowledge base for relevant insights:
 - `Brain/AI Extracted Notes/` - AI-extracted insights
 - `Brain/Document Insights/` - Research extracts
 - `Brain/03-MOCs/` - Maps of Content for topic overviews
+
+**Enrich with BDG context** (optional - reveals which notes are generative frameworks vs reflective):
+```bash
+resources/brain-graph/run_brain_graph.sh inspect "Key Source Note" --json
+```
 
 ### Step 2: Check Article Index
 
@@ -166,7 +171,7 @@ Adjust content based on target platform:
 This skill can be called headlessly by Ruby agent for content production:
 
 ```bash
-cd /Users/eugene/Dropbox/Agents/Cornelius
+cd "$(git rev-parse --show-toplevel)"
 claude -p "/create-article <topic> for <platform>" --output-format json
 ```
 

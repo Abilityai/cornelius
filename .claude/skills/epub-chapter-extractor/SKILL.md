@@ -12,20 +12,20 @@ Extract each chapter from an EPUB file into its own markdown file.
 When the user wants to extract chapters from an EPUB, run the extraction script with `uv`:
 
 ```bash
-cd ~/.claude/skills/epub-chapter-extractor && /Users/eugene/.local/bin/uv run --with ebooklib --with beautifulsoup4 --with html2text --with lxml python extract_chapters.py "/path/to/book.epub" [output_dir]
+cd ~/.claude/skills/epub-chapter-extractor && uv run --with ebooklib --with beautifulsoup4 --with html2text --with lxml python extract_chapters.py "/path/to/book.epub" [output_dir]
 ```
 
 If `output_dir` is omitted, creates a folder named after the EPUB in the same directory.
 
 ## Example
 
-User: "Extract chapters from /Users/eugene/Books/mybook.epub"
+User: "Extract chapters from /path/to/mybook.epub"
 
 ```bash
-cd ~/.claude/skills/epub-chapter-extractor && /Users/eugene/.local/bin/uv run --with ebooklib --with beautifulsoup4 --with html2text --with lxml python extract_chapters.py "/Users/eugene/Books/mybook.epub"
+cd ~/.claude/skills/epub-chapter-extractor && uv run --with ebooklib --with beautifulsoup4 --with html2text --with lxml python extract_chapters.py "/path/to/mybook.epub"
 ```
 
-Output files will be at `/Users/eugene/Books/mybook/`:
+Output files will be at `/path/to/mybook/`:
 - `01_introduction.md`
 - `02_chapter_one.md`
 - etc.
@@ -33,7 +33,7 @@ Output files will be at `/Users/eugene/Books/mybook/`:
 After extraction, open the output folder:
 
 ```bash
-open /Users/eugene/Books/mybook
+open /path/to/mybook
 ```
 
 ## Output Format

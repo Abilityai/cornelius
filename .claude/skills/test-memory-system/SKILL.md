@@ -58,7 +58,7 @@ Comprehensively test the new memory improvements implemented in Local Brain Sear
 Verify all components are installed and accessible.
 
 ```bash
-cd /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search
+cd resources/local-brain-search
 source venv/bin/activate
 
 # Check files exist
@@ -80,7 +80,7 @@ python -c "from intent import classify_intent; from spreading import spreading_a
 Test that queries are correctly classified into four intent types.
 
 ```bash
-cd /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search
+cd resources/local-brain-search
 source venv/bin/activate
 python intent.py
 ```
@@ -109,7 +109,7 @@ python intent.py
 Compare results between static (traditional) and spreading activation modes.
 
 ```bash
-cd /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search
+cd resources/local-brain-search
 
 # Test 1: Static search
 ./run_search.sh "dopamine and motivation" --mode static --limit 5 --json | python -m json.tool
@@ -139,7 +139,7 @@ cd /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search
 Verify that different intents produce different spreading parameters.
 
 ```bash
-cd /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search
+cd resources/local-brain-search
 
 # Factual query (should use minimal spreading)
 ./run_search.sh "What is dopamine?" --mode spreading --json 2>&1 | grep -E "(iterations|Intent)"
@@ -161,7 +161,7 @@ cd /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search
 Verify that hub notes don't dominate results.
 
 ```bash
-cd /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search
+cd resources/local-brain-search
 
 # Search for topic where Dopamine.md is a known hub
 ./run_search.sh "motivation reward behavior" --mode spreading --limit 10 --json
@@ -185,7 +185,7 @@ cd /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search
 Check current learning system state.
 
 ```bash
-cd /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search
+cd resources/local-brain-search
 
 # Check learning status
 ./run_learning.sh status
@@ -214,7 +214,7 @@ cd /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search
 Verify that search operations are being tracked.
 
 ```bash
-cd /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search
+cd resources/local-brain-search
 
 # Count events before
 BEFORE=$(wc -l < data/usage_history.jsonl)
@@ -242,7 +242,7 @@ tail -5 data/usage_history.jsonl | python -m json.tool
 Verify that different event types produce appropriate Q-value changes.
 
 ```bash
-cd /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search
+cd resources/local-brain-search
 
 # Get current Q-value for a test note
 cat data/q_values.json | python -c "import json,sys; d=json.load(sys.stdin); print(d.get('02-Permanent/Dopamine.md', 'not found'))"
@@ -269,7 +269,7 @@ cat data/q_values.json | python -c "import json,sys; d=json.load(sys.stdin); pri
 Verify that Q-values influence search result ranking.
 
 ```bash
-cd /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search
+cd resources/local-brain-search
 
 # First, artificially boost a note's Q-value
 python -c "
@@ -299,7 +299,7 @@ print('Q-value set for Identity.md')
 Verify that --no-track flag prevents usage logging.
 
 ```bash
-cd /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search
+cd resources/local-brain-search
 
 # Count events before
 BEFORE=$(wc -l < data/usage_history.jsonl)
@@ -322,7 +322,7 @@ echo "Events should be same: before=$BEFORE, after=$AFTER"
 Verify memory_config.py is the single source of truth.
 
 ```bash
-cd /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search
+cd resources/local-brain-search
 
 # Print current configuration
 python memory_config.py
@@ -347,7 +347,7 @@ print('Q-weight:', MEMORY_CONFIG['learning']['q_weight'])
 Measure search latency for both modes.
 
 ```bash
-cd /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search
+cd resources/local-brain-search
 
 # Benchmark static search
 time (for i in {1..5}; do ./run_search.sh "dopamine" --mode static --limit 10 --no-track > /dev/null; done)
@@ -368,7 +368,7 @@ time (for i in {1..5}; do ./run_search.sh "dopamine" --mode spreading --limit 10
 Test boundary conditions.
 
 ```bash
-cd /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search
+cd resources/local-brain-search
 
 # Empty query
 ./run_search.sh "" --mode spreading --limit 5 2>&1
@@ -396,7 +396,7 @@ cd /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search
 After running all tests, generate a comprehensive report.
 
 ```bash
-REPORT_DIR="/Users/eugene/Dropbox/Agents/Cornelius/resources/memory-test-reports"
+REPORT_DIR="resources/memory-test-reports"
 REPORT_FILE="$REPORT_DIR/test-report-$(date +%Y-%m-%d-%H%M).md"
 mkdir -p "$REPORT_DIR"
 ```

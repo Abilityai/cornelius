@@ -63,16 +63,16 @@ Verify core infrastructure is accessible:
 
 ```bash
 # Test 1.1: Check vault path exists
-test -d "/Users/eugene/Dropbox/Agents/Cornelius/Brain" && echo "PASS: Vault path exists" || echo "FAIL: Vault path missing"
+test -d "Brain" && echo "PASS: Vault path exists" || echo "FAIL: Vault path missing"
 
 # Test 1.2: Check permanent notes directory
-test -d "/Users/eugene/Dropbox/Agents/Cornelius/Brain/02-Permanent" && echo "PASS: Permanent notes directory exists" || echo "FAIL: Permanent notes directory missing"
+test -d "Brain/02-Permanent" && echo "PASS: Permanent notes directory exists" || echo "FAIL: Permanent notes directory missing"
 
 # Test 1.3: Check Local Brain Search is available
-test -f "/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_search.sh" && echo "PASS: Local Brain Search scripts exist" || echo "FAIL: Local Brain Search scripts missing"
+test -f "resources/local-brain-search/run_search.sh" && echo "PASS: Local Brain Search scripts exist" || echo "FAIL: Local Brain Search scripts missing"
 
 # Test 1.4: Check Article Index exists
-test -f "/Users/eugene/Dropbox/Agents/Cornelius/Brain/04-Output/Articles/ARTICLE-INDEX.md" && echo "PASS: Article Index exists" || echo "FAIL: Article Index missing"
+test -f "Brain/04-Output/Articles/ARTICLE-INDEX.md" && echo "PASS: Article Index exists" || echo "FAIL: Article Index missing"
 ```
 
 ### 2. Dependency Tests
@@ -84,14 +84,14 @@ Verify external dependencies are installed:
 python3 --version 2>/dev/null && echo "PASS: Python3 available" || echo "FAIL: Python3 not found"
 
 # Test 2.2: uv package manager (for epub-chapter-extractor)
-/Users/eugene/.local/bin/uv --version 2>/dev/null && echo "PASS: uv available" || echo "FAIL: uv not found"
+uv --version 2>/dev/null && echo "PASS: uv available" || echo "FAIL: uv not found"
 
 # Test 2.3: Check Local Brain Search can run (simple test)
-cd /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search && python3 -c "import sqlite3; import json; print('PASS: Core Python modules available')" 2>/dev/null || echo "FAIL: Python modules missing"
+cd resources/local-brain-search && python3 -c "import sqlite3; import json; print('PASS: Core Python modules available')" 2>/dev/null || echo "FAIL: Python modules missing"
 
 # Test 2.4: Check mermaid-diagram MCP is responsive
 # (Just verify the skill file exists - actual MCP test would require invocation)
-test -f "/Users/eugene/Dropbox/Agents/Cornelius/.claude/agents/diagram-generator.md" && echo "PASS: Diagram generator agent configured" || echo "FAIL: Diagram generator agent missing"
+test -f ".claude/agents/diagram-generator.md" && echo "PASS: Diagram generator agent configured" || echo "FAIL: Diagram generator agent missing"
 ```
 
 ### 3. Skills Validation Tests
@@ -100,7 +100,7 @@ Verify skills are properly configured (metadata valid):
 
 ```bash
 # Test 3.1: List all skills and validate structure
-for skill_dir in /Users/eugene/Dropbox/Agents/Cornelius/.claude/skills/*/; do
+for skill_dir in .claude/skills/*/; do
   skill_name=$(basename "$skill_dir")
   if [ -f "${skill_dir}SKILL.md" ]; then
     # Check for required frontmatter
@@ -125,7 +125,7 @@ Verify commands are properly configured:
 
 ```bash
 # Test 4.1: List all commands and validate structure
-for cmd_file in /Users/eugene/Dropbox/Agents/Cornelius/.claude/commands/*.md; do
+for cmd_file in .claude/commands/*.md; do
   cmd_name=$(basename "$cmd_file" .md)
   if head -1 "$cmd_file" | grep -q "^---"; then
     if grep -q "^description:" "$cmd_file"; then
@@ -145,7 +145,7 @@ Verify sub-agents are properly configured:
 
 ```bash
 # Test 5.1: List all agents and validate structure
-for agent_file in /Users/eugene/Dropbox/Agents/Cornelius/.claude/agents/*.md; do
+for agent_file in .claude/agents/*.md; do
   agent_name=$(basename "$agent_file" .md)
   if head -1 "$agent_file" | grep -q "^---"; then
     if grep -q "^name:" "$agent_file" || grep -q "^description:" "$agent_file"; then
@@ -239,13 +239,13 @@ Tests local brain search scripts directly:
 
 ```bash
 # Run semantic search
-/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_search.sh "consciousness" --limit 3 --json
+resources/local-brain-search/run_search.sh "consciousness" --limit 3 --json
 
 # Run connections query
-/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh --stats --json
+resources/local-brain-search/run_connections.sh --stats --json
 
 # Run hub discovery
-/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh --hubs --limit 5 --json
+resources/local-brain-search/run_connections.sh --hubs --limit 5 --json
 ```
 
 **Success criteria:**

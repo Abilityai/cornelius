@@ -140,6 +140,10 @@ resources/local-brain-search/*.faiss
 resources/local-brain-search/*.pkl
 resources/local-brain-search/embeddings/
 
+# Brain search daemon runtime
+resources/local-brain-search/daemon.pid
+resources/local-brain-search/daemon.log
+
 # Python virtual environments
 resources/pdf_env/
 resources/local-brain-search/venv/

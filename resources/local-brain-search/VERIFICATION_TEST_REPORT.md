@@ -1,7 +1,7 @@
 # Local Brain Search System - Verification Test Report
 
 **Test Date:** 2025-12-13
-**System Location:** `/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/`
+**System Location:** `resources/local-brain-search/`
 **Python Environment:** venv/bin/python (activated)
 
 ---

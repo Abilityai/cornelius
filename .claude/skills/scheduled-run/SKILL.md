@@ -4,6 +4,7 @@ description: Wrapper for scheduled playbooks - handles git sync before and after
 argument-hint: <playbook-name>
 automation: autonomous
 allowed-tools: Bash, Skill
+user-invocable: true
 ---
 
 # Scheduled Run
@@ -16,19 +17,26 @@ Wrapper that runs any playbook with git sync. Use this for all scheduled executi
 
 Ensures scheduled playbooks on Trinity stay in sync with the GitHub repository.
 
+## State Dependencies
+
+| Source | Location | Read | Write | Description |
+|--------|----------|------|-------|-------------|
+| Git repo | `.git/` | ✓ | ✓ | Pull before, commit+push after |
+| Playbook output | varies | | ✓ | Whatever the playbook produces |
+
 ## Arguments
 
-`$ARGUMENTS` = The playbook name to run (e.g., `auto-discovery`, `analyze-kb`)
+`$ARGUMENTS` = The playbook name to run (e.g., `refresh-index`, `coherence-sweep`)
 
 ## Process
 
 ### Step 1: Pull Latest Changes
 
 ```bash
-cd /Users/eugene/Dropbox/Agents/Cornelius && git pull --rebase
+git pull --rebase
 ```
 
-If conflicts, abort and log error.
+If conflicts, abort and log error. Do NOT run the playbook on a dirty tree.
 
 ### Step 2: Run the Playbook
 
@@ -43,7 +51,7 @@ Wait for completion.
 ### Step 3: Check for Changes
 
 ```bash
-cd /Users/eugene/Dropbox/Agents/Cornelius && git status --porcelain
+git status --porcelain
 ```
 
 If no changes, skip to completion.
@@ -51,7 +59,7 @@ If no changes, skip to completion.
 ### Step 4: Commit Changes
 
 ```bash
-cd /Users/eugene/Dropbox/Agents/Cornelius && git add -A && git commit -m "$(cat <<'EOF'
+git add -A && git commit -m "$(cat <<'EOF'
 Scheduled: $ARGUMENTS $(date '+%Y-%m-%d %H:%M')
 
 Automated execution via /scheduled-run
@@ -64,7 +72,7 @@ EOF
 ### Step 5: Push to Remote
 
 ```bash
-cd /Users/eugene/Dropbox/Agents/Cornelius && git push
+git push
 ```
 
 ## Error Handling
@@ -75,15 +83,30 @@ cd /Users/eugene/Dropbox/Agents/Cornelius && git push
 | Playbook fails | Still attempt commit/push of partial changes |
 | Push fails | Log error, changes remain local |
 
-## Usage
+## Autonomy Guide
 
-**Schedule format:**
-```
-Daily 5am → /scheduled-run refresh-index
-Sunday 8pm → /scheduled-run auto-discovery
-Sunday 10pm → /scheduled-run analyze-kb
-1st & 15th → /scheduled-run integrate-recent-notes
-```
+**What should be scheduled (mechanical, no creative decisions):**
+
+| Schedule | Command | Cron | Purpose |
+|----------|---------|------|---------|
+| Refresh Index | `/scheduled-run refresh-index` | `0 5 * * *` | FAISS + BDG bootstrap (daily) |
+| GJ Open Refresh | `/scheduled-run gjopen-refresh` | `0 6 * * *` | External forecasting data (daily) |
+| Coherence Sweep | `/scheduled-run coherence-sweep` | `0 6 * * 1` | Weekly Monday report: staleness, health, transitions |
+
+**What should NOT be scheduled (requires human judgment):**
+
+| Skill | Why manual |
+|-------|-----------|
+| `/auto-discovery` | Generates new connections - that's intellectual work |
+| `/deep-research` | Creates new content from external sources |
+| `/detect-tensions` | Productive contradictions need human interpretation |
+| `/compute-lifecycle` | Promotions to framework status need human decision |
+| `/integrate-recent-notes` | Integration choices are creative decisions |
+| `/analyze-kb` | Useful on-demand, not worth weekly automation |
+
+**The principle:** Automate measurement and maintenance. Never automate creation or judgment.
+
+The coherence sweep is the one weekly artifact that earns automation - it's a Monday briefing that says "here's what changed, here's what might be stale, here's what's evolving." You glance at it, act on what matters, ignore the rest.
 
 ## Completion Checklist
 

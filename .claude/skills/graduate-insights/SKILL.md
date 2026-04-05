@@ -107,6 +107,7 @@ When user chooses **Promote**:
    - Verify atomic insight format (single clear idea)
    - Ensure wiki-links use `[[Note Title]]` format
    - Remove source-specific metadata (session info, extraction date)
+   - Note: BDG will auto-classify the layer on next bootstrap (insight or framework based on heuristics)
 
 3. **Optionally refine**:
    Ask user: "Refine title/content before promoting? (or press Enter to keep as-is)"

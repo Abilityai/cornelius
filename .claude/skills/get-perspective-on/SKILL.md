@@ -72,7 +72,7 @@ Why this matters:
 
 When Ruby calls via headless mode:
 ```bash
-cd /Users/eugene/Dropbox/Agents/Cornelius
+cd "$(git rev-parse --show-toplevel)"
 claude -p "/get-perspective-on 'AI adoption barriers'" --output-format json
 ```
 

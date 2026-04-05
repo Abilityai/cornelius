@@ -65,7 +65,7 @@ branches_created: []  # e.g., ["learning/2026-02-18-embodied-cognition"]
 Read or create state file:
 
 ```bash
-cat /Users/eugene/Dropbox/Agents/Cornelius/resources/learn-new-things-log.md 2>/dev/null || echo "No existing state"
+cat resources/learn-new-things-log.md 2>/dev/null || echo "No existing state"
 ```
 
 Parse arguments:
@@ -83,13 +83,13 @@ If argument is "stop", set `phase: "paused"` and exit.
 Check when index was last updated:
 
 ```bash
-ls -la /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/data/brain.faiss
+ls -la resources/local-brain-search/data/brain.faiss
 ```
 
 If older than 24 hours, refresh:
 
 ```bash
-/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_reindex.sh
+resources/local-brain-search/run_reindex.sh
 ```
 
 ### Check Knowledge Base State
@@ -97,7 +97,7 @@ If older than 24 hours, refresh:
 Read current analysis:
 
 ```bash
-head -100 /Users/eugene/Dropbox/Agents/Cornelius/knowledge-base-analysis.md
+head -100 knowledge-base-analysis.md
 ```
 
 Note:
@@ -172,7 +172,7 @@ OUTPUT REQUIREMENTS:
 - 15-25 major papers/developments
 - Full citations with DATES
 - Key findings and novel contributions
-- Save to: /Users/eugene/Dropbox/Agents/Cornelius/resources/[Topic-Slug]-Research-YYYY-MM-DD.md
+- Save to: resources/[Topic-Slug]-Research-YYYY-MM-DD.md
 ```
 
 **On Success:** Continue to Step 5
@@ -316,7 +316,7 @@ BRANCH_NAME="learning/${DATE}-${TOPIC_SLUG}"
 Before creating the learning branch, ensure we're on main:
 
 ```bash
-cd /Users/eugene/Dropbox/Agents/Cornelius
+cd "$(git rev-parse --show-toplevel)"
 git stash --include-untracked -m "Pre-learning stash $(date '+%Y-%m-%d %H:%M')" 2>/dev/null || true
 git checkout main
 git pull origin main 2>/dev/null || true

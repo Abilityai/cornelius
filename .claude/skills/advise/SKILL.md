@@ -36,9 +36,9 @@ From the problem description, identify 3-4 keyword clusters that would match rel
 Run 3-4 searches **in parallel** (single message, multiple Bash calls):
 
 ```bash
-/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_search.sh "search term 1" --limit 3 --json
-/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_search.sh "search term 2" --limit 3 --json
-/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_search.sh "search term 3" --limit 3 --json
+resources/local-brain-search/run_search.sh "search term 1" --limit 3 --json
+resources/local-brain-search/run_search.sh "search term 2" --limit 3 --json
+resources/local-brain-search/run_search.sh "search term 3" --limit 3 --json
 ```
 
 ### Step 3: Read Top Insights
@@ -49,6 +49,15 @@ From the search results, read 2-3 of the most relevant note files **in parallel*
 # Use Read tool on the top-scoring, most relevant files
 ```
 
+### Step 3.5: Check BDG Context (optional, if top results are frameworks)
+
+For any top result that looks like a framework or key insight, check its BDG context:
+```bash
+resources/brain-graph/run_brain_graph.sh inspect "Top Result Name" --json
+```
+
+This reveals: lifecycle phase (is it generative?), staleness (is it still fresh?), and typed edges (what does it drive?). Prioritize generative frameworks over reflective notes. Warn if citing a stale note.
+
 ### Step 4: Synthesize Advice
 
 Combine the retrieved insights to address the original problem:
@@ -56,6 +65,7 @@ Combine the retrieved insights to address the original problem:
 - Cite specific notes: [[Note Title]]
 - Highlight tensions or tradeoffs the KB reveals
 - Give concrete recommendations grounded in your own thinking
+- Prioritize generative notes (lifecycle > 0.6) - these are the user's strongest frameworks
 
 ## Output Format
 

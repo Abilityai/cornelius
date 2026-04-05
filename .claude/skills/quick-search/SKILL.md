@@ -24,10 +24,10 @@ $ARGUMENTS
 
 ```bash
 # 1. Semantic search (6-14s - the unavoidable cost)
-/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_search.sh "$ARGUMENTS" --limit 5 --json
+resources/local-brain-search/run_search.sh "$ARGUMENTS" --limit 5 --json
 
 # 2. Graph connections for likely top hit (0.3s - nearly free)
-/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh "$ARGUMENTS" --json
+resources/local-brain-search/run_connections.sh "$ARGUMENTS" --json
 ```
 
 **Then read the top result file using Read tool.**

@@ -25,10 +25,10 @@ $ARGUMENTS
 1. **Semantic Search** - Use Local Brain Search:
    ```bash
    # For quick lookups, use static mode
-   /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_search.sh "$ARGUMENTS" --limit 5 --json
+   resources/local-brain-search/run_search.sh "$ARGUMENTS" --limit 5 --json
 
    # For finding connections, use spreading mode
-   /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_search.sh "$ARGUMENTS" --mode spreading --limit 5 --json
+   resources/local-brain-search/run_search.sh "$ARGUMENTS" --mode spreading --limit 5 --json
    ```
 
 2. **Keyword Search** - Use `Grep`:

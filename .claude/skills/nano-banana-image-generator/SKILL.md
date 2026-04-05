@@ -1,12 +1,24 @@
 ---
 name: nano-banana-image-generator
-description: Generate images using Google's Nano Banana 2 (Gemini 3.1 Flash Image Preview). Use when creating infographics, diagrams, thumbnails, social media graphics, or any AI-generated images. Costs $0.067/image.
+description: Generate images using Google's Nano Banana (Gemini 2.5 Flash Image). Use when creating infographics, diagrams, thumbnails, social media graphics, or any AI-generated images. Costs $0.039/image.
 allowed-tools: Bash, Read, Write
 ---
 
 # Nano Banana Image Generator
 
-Generate images using Google's Gemini 3.1 Flash Image Preview model (codename: Nano Banana 2).
+Generate images using Google's Gemini 2.5 Flash Image model (codename: Nano Banana).
+
+## State Dependencies
+
+| Source | Location | Read | Write | Description |
+|--------|----------|------|-------|-------------|
+| Generate Script | `~/.claude/skills/nano-banana-image-generator/scripts/generate.sh` | ✓ | | Main generation script |
+| Thumbnail Script | `~/.claude/skills/nano-banana-image-generator/scripts/generate_thumbnail.py` | ✓ | | 16:9 thumbnail generator |
+| Image Script | `~/.claude/skills/nano-banana-image-generator/scripts/generate_image.py` | ✓ | | Python with aspect ratio control |
+| Best Practices | `~/.claude/skills/nano-banana-image-generator/best_practices.md` | ✓ | | Prompt engineering guidelines |
+| API Key | `$GOOGLE_API_KEY` or `$GEMINI_API_KEY` | ✓ | | Required for API access |
+| Output Directory | `$OUTPUT_DIR` or current directory | | ✓ | Where images are saved |
+| Generated Image | User-specified path | | ✓ | Output PNG file |
 
 ## Quick Start
 
@@ -35,7 +47,7 @@ OUTPUT_DIR=/tmp bash ~/.claude/skills/nano-banana-image-generator/scripts/genera
 
 ## Pricing & Limits
 
-- **Cost**: $0.067 per image
+- **Cost**: $0.039 per image
 - **Free tier**: 500 requests/day
 - **Generation time**: ~22 seconds
 - **Resolution**: 1024x1024 (square), 1344x768 (16:9)
@@ -103,3 +115,14 @@ bash scripts/generate.sh "Simple framework diagram with black background. CENTER
 ```bash
 python3 scripts/generate_thumbnail.py "Professional YouTube thumbnail: bold white text 'DEEP AGENTS' on dramatic black background with subtle blue glow, tech aesthetic" deep_agents_thumb.png
 ```
+
+## Completion Checklist
+
+- [ ] API key verified (GOOGLE_API_KEY or GEMINI_API_KEY)
+- [ ] Prompt crafted following best practices (narrative description, not keyword lists)
+- [ ] Critical constraints respected (max 10 boxes, max 10 text pieces, max 3 hierarchy levels)
+- [ ] Appropriate script selected (generate.sh, generate_thumbnail.py, or generate_image.py)
+- [ ] Output directory confirmed or created
+- [ ] Image generated successfully (~22 seconds)
+- [ ] Output file path provided to user
+- [ ] Cost noted ($0.039 per image)

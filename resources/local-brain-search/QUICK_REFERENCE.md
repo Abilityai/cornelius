@@ -9,7 +9,7 @@
 ## One-Minute Setup
 
 ```bash
-cd /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search
+cd resources/local-brain-search
 source venv/bin/activate
 ```
 
@@ -149,7 +149,7 @@ python connections.py --bridges --json | jq '.[:3]'
 
 ### After Adding New Notes
 ```bash
-cd /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search
+cd resources/local-brain-search
 source venv/bin/activate
 python index_brain.py  # Re-index once
 ```
@@ -223,7 +223,7 @@ DEFAULT_SIMILARITY_THRESHOLD = 0.5  # Default quality cutoff
 ## Files Generated
 
 ```
-/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/
+resources/local-brain-search/
 ├── brain.faiss        # Vector index (11.3 MB)
 ├── brain_metadata.pkl # Chunk metadata (5.7 MB)
 ├── brain_graph.pkl    # Connection graph (0.7 MB)

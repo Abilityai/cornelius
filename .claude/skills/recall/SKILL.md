@@ -16,16 +16,16 @@ Use Local Brain Search for all semantic search operations. **Spreading activatio
 **Scripts:**
 ```bash
 # Static search (fast, exact matches)
-/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_search.sh "query" --limit 10 --json
+resources/local-brain-search/run_search.sh "query" --limit 10 --json
 
 # Spreading activation search (follows graph connections)
-/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_search.sh "query" --mode spreading --limit 10 --json
+resources/local-brain-search/run_search.sh "query" --mode spreading --limit 10 --json
 
 # Find connections
-/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh "Note Name" --json
+resources/local-brain-search/run_connections.sh "Note Name" --json
 
 # Find hubs
-/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh --hubs --json
+resources/local-brain-search/run_connections.sh --hubs --json
 ```
 
 ## Search Query
@@ -36,21 +36,21 @@ $ARGUMENTS
 1. **First Layer - Initial Search**:
    - Use spreading activation for better context:
      ```bash
-     /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_search.sh "$ARGUMENTS" --mode spreading --limit 5 --json
+     resources/local-brain-search/run_search.sh "$ARGUMENTS" --mode spreading --limit 5 --json
      ```
    - Use `Read` tool to read the full content of the top 2 results
 
 2. **Second Layer - Direct Associations**:
    - For the top result from layer 1, get connections:
      ```bash
-     /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh "Top Result Note" --json
+     resources/local-brain-search/run_connections.sh "Top Result Note" --json
      ```
    - Use `Read` tool to read the full content of the top 2 connected notes
 
 3. **Third Layer - Extended Network**:
    - For additional context, check hub notes and bridges:
      ```bash
-     /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh --hubs --json
+     resources/local-brain-search/run_connections.sh --hubs --json
      ```
    - This reveals deeper conceptual connections
 

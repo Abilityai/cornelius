@@ -603,7 +603,7 @@ tqdm>=4.65.0       # Progress bars
 
 ## 14. Learnings from Supermemory Project
 
-Your previous project `/Users/eugene/Dropbox/Coding/supermemory/` contains valuable research and implementation patterns relevant to this benchmark:
+Your previous project `<your-supermemory-path>/` contains valuable research and implementation patterns relevant to this benchmark:
 
 ### 14.1 Key Research Insights (from `research_smart_mem.md`)
 

@@ -14,26 +14,26 @@ Use Local Brain Search for all semantic search operations.
 **Scripts:**
 ```bash
 # Semantic search
-/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_search.sh "query" --limit 10 --json
+resources/local-brain-search/run_search.sh "query" --limit 10 --json
 
 # Find connections
-/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh "Note Name" --json
+resources/local-brain-search/run_connections.sh "Note Name" --json
 
 # Get graph statistics
-/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh --stats --json
+resources/local-brain-search/run_connections.sh --stats --json
 
 # Find hub notes
-/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh --hubs --json
+resources/local-brain-search/run_connections.sh --hubs --json
 
 # Find bridge notes
-/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh --bridges --json
+resources/local-brain-search/run_connections.sh --bridges --json
 ```
 
 Follow these steps:
 
 1. Get vault statistics using Local Brain Search:
    ```bash
-   /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh --stats --json
+   resources/local-brain-search/run_connections.sh --stats --json
    ```
 
 2. List all notes with full directory tree using `Bash` find:
@@ -51,11 +51,16 @@ Follow these steps:
 
 5. Use Local Brain Search to identify hub notes and bridges:
    ```bash
-   /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh --hubs --json
-   /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh --bridges --json
+   resources/local-brain-search/run_connections.sh --hubs --json
+   resources/local-brain-search/run_connections.sh --bridges --json
    ```
 
-6. Analyze thematic clusters, hierarchical organization, and conceptual architecture
+6. Pull BDG statistics for layer distribution and lifecycle phases:
+   ```bash
+   resources/brain-graph/run_brain_graph.sh status --json
+   ```
+
+7. Analyze thematic clusters, hierarchical organization, and conceptual architecture
 
 7. Use `Edit` or `Write` to update the `knowledge-base-analysis.md` file with a **condensed report** (target: ~600-800 lines max):
    - Executive summary with key statistics

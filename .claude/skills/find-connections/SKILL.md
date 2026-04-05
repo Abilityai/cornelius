@@ -12,25 +12,25 @@ Use Local Brain Search for all semantic search and connection discovery. **Sprea
 **Scripts:**
 ```bash
 # Spreading activation search (recommended for connection discovery)
-/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_search.sh "query" --mode spreading --limit 10 --json
+resources/local-brain-search/run_search.sh "query" --mode spreading --limit 10 --json
 
 # Static search (for exact lookups)
-/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_search.sh "query" --limit 10 --json
+resources/local-brain-search/run_search.sh "query" --limit 10 --json
 
 # Force synthesis intent (maximum graph exploration)
-/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_search.sh "query" --mode spreading --intent synthesis --json
+resources/local-brain-search/run_search.sh "query" --mode spreading --intent synthesis --json
 
 # Find connections
-/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh "Note Name" --json
+resources/local-brain-search/run_connections.sh "Note Name" --json
 
 # Find hubs
-/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh --hubs --json
+resources/local-brain-search/run_connections.sh --hubs --json
 
 # Find bridges
-/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh --bridges --json
+resources/local-brain-search/run_connections.sh --bridges --json
 
 # Get stats
-/Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh --stats --json
+resources/local-brain-search/run_connections.sh --stats --json
 ```
 
 ---
@@ -60,7 +60,7 @@ Map the conceptual network around the specified note or topic, revealing:
    ```
 2. If given a topic, search using Local Brain Search:
    ```bash
-   /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_search.sh "$ARGUMENTS" --limit 5 --json
+   resources/local-brain-search/run_search.sh "$ARGUMENTS" --limit 5 --json
    ```
 3. Read the anchor note's full content using `Read` tool
 4. Get the exact file path for subsequent operations
@@ -68,7 +68,7 @@ Map the conceptual network around the specified note or topic, revealing:
 ### Phase 2: Immediate Network Mapping
 1. Use Local Brain Search to get connections:
    ```bash
-   /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh "Note Name" --json
+   resources/local-brain-search/run_connections.sh "Note Name" --json
    ```
 2. Identify the top 3-5 most connected notes (both explicit and semantic)
 3. Use `Read` to examine their content and understand connection nature
@@ -76,9 +76,9 @@ Map the conceptual network around the specified note or topic, revealing:
 ### Phase 3: Deep Network Analysis
 1. Get graph statistics and hub notes:
    ```bash
-   /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh --stats --json
-   /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh --hubs --json
-   /Users/eugene/Dropbox/Agents/Cornelius/resources/local-brain-search/run_connections.sh --bridges --json
+   resources/local-brain-search/run_connections.sh --stats --json
+   resources/local-brain-search/run_connections.sh --hubs --json
+   resources/local-brain-search/run_connections.sh --bridges --json
    ```
 2. Map the multi-hop network structure
 3. Identify clusters and bridges
@@ -248,11 +248,27 @@ Structure your findings as follows:
 - Similarity algorithm: Cosine similarity between note embeddings
 - Connection graph: Multi-hop traversal with threshold filtering
 - **Spreading activation**: SYNAPSE-inspired graph traversal (when using `--mode spreading`)
+- **Brain Dependency Graph**: Typed edges (derives-from, instantiates, references, associates, tension) via `resources/brain-graph/run_brain_graph.sh inspect "Note" --json`
 - Pattern detection: AI interpretation of semantic clusters
 - All findings are computational approximations requiring human validation
 - Configuration: `resources/local-brain-search/memory_config.py`
 
 ```
+
+## BDG Integration (Optional Enrichment)
+
+When available, enrich connection analysis with Brain Dependency Graph data:
+
+```bash
+# Get typed edges and lifecycle phase for the anchor note
+resources/brain-graph/run_brain_graph.sh inspect "$ARGUMENTS" --json
+```
+
+This reveals:
+- **Edge types**: derives-from vs references vs tension (not just "related")
+- **Authority direction**: which note is authoritative in each relationship
+- **Lifecycle phase**: reflective, crystallizing, or generative
+- **Staleness**: whether upstream changes have made this note potentially stale
 
 ## Quality Standards
 

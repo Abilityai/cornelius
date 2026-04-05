@@ -4,16 +4,29 @@
 
 Capture insights, discover connections, and synthesize knowledge - with AI assistance.
 
-## What's New in v03.26
+## What's New in v04.26
+
+- **Brain Dependency Graph (BDG)** - Directed, mode-aware dependency graph layered on Local Brain Search. Seven semantic layers (signal -> synthesis), staleness propagation, lifecycle tracking, and tension detection
+- **Staleness propagation** - `/propagate-change` traces which downstream notes need review when a framework changes
+- **Lifecycle scoring** - `/compute-lifecycle` detects reflective -> crystallizing -> generative transitions
+- **Tension detection** - `/detect-tensions` finds productive contradictions (high similarity + opposing conclusions)
+- **Coherence sweeps** - `/coherence-sweep` runs full structural health analysis with staleness and lifecycle reports
+- **Brain merge** - `/brain-merge` compares and selectively merges Brain directories across agent instances
+- **Explanatory images** - `/create-explanatory-image` generates AI diagrams via Nano Banana (Gemini 2.5 Flash)
+- **LBS daemon** - Background search daemon for persistent vector search
+- **36 skills** for insight capture, connection discovery, research, and content creation
+- **10 specialized sub-agents** for different knowledge tasks
+
+<details>
+<summary>v03.26 changes</summary>
 
 - **SYNAPSE-inspired memory** - Spreading activation search with intent classification and usage-based learning
 - **Dialectic engine** - Two sub-agents argue committed positions while orchestrator synthesizes
 - **Autonomous research** - `/learn-new-things` runs full research cycles with git branching
 - **Insight graduation** - `/graduate-insights` promotes draft notes to permanent status with Zettelkasten criteria
-- **30 skills** for insight capture, connection discovery, research, and content creation
-- **10 specialized sub-agents** for different knowledge tasks
 - **Q-value learning** - Search rankings improve over time based on actual usage patterns
 - **Trinity-compatible** - Can be deployed to the Trinity agent orchestration platform
+</details>
 
 ---
 
@@ -49,6 +62,9 @@ Project Cornelius is a **multi-layered knowledge management system** that create
 ├─────────────────────────────────────────┤
 │     Specialized Sub-Agents              │ ← Task-specific capabilities
 │  (vault-manager, connection-finder...)  │
+├─────────────────────────────────────────┤
+│  Brain Dependency Graph (BDG)           │ ← Directed graph with staleness,
+│  (7 semantic layers, lifecycle)         │   lifecycle, and tension tracking
 ├─────────────────────────────────────────┤
 │     Local Brain Search (FAISS)          │ ← Vector search + memory engine
 ├─────────────────────────────────────────┤
@@ -144,6 +160,7 @@ claude
 | `search-vault` | `/search-vault <query>` | Quick semantic + keyword search |
 | `find-connections` | `/find-connections <note>` | Map conceptual network |
 | `auto-discovery` | `/auto-discovery` | Run cross-domain connection discovery |
+| `detect-tensions` | `/detect-tensions` | Find productive contradictions between notes |
 
 **Insight Management**
 
@@ -162,6 +179,7 @@ claude
 | `get-perspective-on` | `/get-perspective-on <topic>` | Extract unique perspective |
 | `synthesize-insights` | `/synthesize-insights` | Combine insights into narrative |
 | `dialectic` | `/dialectic <question>` | Stress-test ideas with opposing positions |
+| `create-explanatory-image` | `/create-explanatory-image` | Generate AI diagrams via Nano Banana |
 
 **Research & Learning**
 
@@ -184,6 +202,16 @@ claude
 | `test-memory-system` | `/test-memory-system` | Test memory improvements |
 | `scheduled-run` | `/scheduled-run <skill>` | Wrapper for cron automation |
 | `update-dashboard` | `/update-dashboard` | Update Trinity dashboard metrics |
+
+**Brain Dependency Graph**
+
+| Skill | Command | Purpose |
+|-------|---------|---------|
+| `coherence-sweep` | `/coherence-sweep` | Full BDG health analysis - staleness, lifecycle, structure |
+| `propagate-change` | `/propagate-change <note>` | Trace which notes need review after a change |
+| `compute-lifecycle` | `/compute-lifecycle` | Detect reflective -> crystallizing -> generative transitions |
+| `detect-tensions` | `/detect-tensions` | Find productive contradictions for synthesis |
+| `brain-merge` | `/brain-merge` | Compare and merge Brain directories across instances |
 
 ### Sample Vault (`Brain/`)
 
@@ -234,6 +262,43 @@ FAISS-powered vector search with SYNAPSE-inspired memory architecture:
 - **Spreading Activation** - Propagates relevance through graph with lateral inhibition
 - **Usage-Based Learning** - Q-values adjust rankings based on what you actually use
 - **Configuration** - Single source of truth in `memory_config.py`
+
+### Brain Dependency Graph (`resources/brain-graph/`)
+
+A directed, mode-aware dependency graph layered on top of Local Brain Search. Every relationship has **direction** (who's authoritative), **mode** (generative vs reflective), and **type** (derives-from, instantiates, references, associates, tension, supersedes).
+
+**Seven Semantic Layers:** signal (1) -> impression (2) -> insight (3) -> framework (4) -> lens (5) -> synthesis (6) -> index (7)
+
+```bash
+# Bootstrap the graph from your vault
+./run_brain_graph.sh bootstrap
+
+# Check graph status
+./run_brain_graph.sh status --json
+
+# Inspect a specific note's dependencies
+./run_brain_graph.sh inspect "Note Name" --json
+
+# Propagate staleness from a changed note
+./run_brain_graph.sh propagate "Note Name" --json
+
+# Compute lifecycle scores (reflective -> crystallizing -> generative)
+./run_brain_graph.sh lifecycle --json
+
+# Find productive contradictions
+./run_brain_graph.sh tensions --json
+
+# Full coherence report
+./run_brain_graph.sh coherence --days 7 --tensions --json
+```
+
+**Key Behaviors:**
+- When a framework note changes, staleness propagates downstream with attenuation
+- Notes transition from reflective -> crystallizing -> generative based on citation patterns
+- Productive contradictions (tension edges) are immune to staleness - surfaced as synthesis opportunities
+- Authority is edge-local, not node-global
+
+**Architecture details:** See `resources/brain-graph/BRAIN-DEPENDENCY-GRAPH-ARCHITECTURE.md`
 
 ---
 
@@ -306,6 +371,13 @@ graph TB
         LEARN[Q-Value Learning]
     end
 
+    subgraph "Dependency Graph"
+        BDG[Brain Dependency Graph]
+        LIFE[Lifecycle Scoring]
+        TENSION[Tension Detection]
+        STALE[Staleness Propagation]
+    end
+
     subgraph "Knowledge Layer"
         BRAIN[Brain / Obsidian Vault]
         FAISS[FAISS Index]
@@ -324,12 +396,18 @@ graph TB
     SPREAD --> FAISS
     SPREAD --> GRAPH
     LEARN --> SPREAD
+    SKILLS --> BDG
+    BDG --> LIFE
+    BDG --> TENSION
+    BDG --> STALE
+    BDG --> GRAPH
     FAISS --> BRAIN
     GRAPH --> BRAIN
 
     style BRAIN fill:#e1f5e1
     style FAISS fill:#ffd700
     style SPREAD fill:#e6e6fa
+    style BDG fill:#ffe0b2
 ```
 
 ---
@@ -338,6 +416,7 @@ graph TB
 
 | Version | Changes |
 |---------|---------|
+| v04.26 | Brain Dependency Graph, staleness propagation, lifecycle scoring, tension detection, coherence sweeps, brain merge, explanatory images, LBS daemon, 36 skills |
 | v03.26 | SYNAPSE memory, dialectic engine, autonomous research, insight graduation, 30 skills |
 | v02.25 | Skills architecture, FAISS search, remove Smart Connections |
 | v01.25 | Initial release with commands, Smart Connections, basic search |
