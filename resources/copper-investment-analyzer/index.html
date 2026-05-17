@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cu - Copper Investment Analyzer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FAF7F2;--bg2:#F2EDE5;--bg3:#E8E0D4;
+  --s:#fff;--s2:#FDFCFA;
+  --bd:#DDD5C8;--bd2:#C8BDA8;
+  --t:#2C2416;--td:#7A6E5D;--tl:#A89B87;
+  --cu:#B87333;--cu2:#CD7F32;--cul:#E8C9A0;--cud:#8B5E3C;
+  --g:#2D7A4F;--gd:#E8F5EE;--gl:#3DA66A;
+  --r:#B83A2E;--rd:#FDEEEC;--rl:#D44E42;
+  --y:#A07B1A;--yd:#FBF5E6;
+  --b:#3A6EA5;--bd3:#E8F0FA;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--t);line-height:1.6;font-weight:400;
+  background-image:url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.65' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23n)' opacity='.025'/%3E%3C/svg%3E");
+}
+
+/* Header */
+.hdr{padding:28px 40px 24px;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:16px;
+  border-bottom:1px solid var(--bd)}
+.hdr h1{font-family:'DM Serif Display',serif;font-size:28px;color:var(--t);font-weight:400;letter-spacing:-0.5px}
+.hdr h1 span{color:var(--cu);font-style:italic}
+.hdr .sub{color:var(--td);font-size:12px;letter-spacing:0.3px;margin-top:4px}
+.hdr .live{display:flex;align-items:baseline;gap:12px}
+.hdr .cu-price{font-family:'JetBrains Mono',monospace;font-size:32px;font-weight:600;color:var(--t);letter-spacing:-1px}
+.hdr .cu-unit{font-size:11px;color:var(--td);text-transform:uppercase;letter-spacing:1px}
+.hdr .cu-change{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500;padding:3px 10px;border-radius:20px}
+
+/* Tabs */
+.tabs{display:flex;padding:0 40px;border-bottom:1px solid var(--bd);overflow-x:auto;gap:0;background:var(--s2)}
+.tab{padding:14px 20px;cursor:pointer;color:var(--td);font-size:12px;font-weight:500;letter-spacing:0.5px;text-transform:uppercase;
+  border-bottom:2px solid transparent;white-space:nowrap;transition:all .2s}
+.tab:hover{color:var(--t)}.tab.active{color:var(--cu);border-bottom-color:var(--cu)}
+
+/* Container */
+.ctr{max-width:1400px;margin:0 auto;padding:28px 40px}
+
+/* Tables */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:10px 12px;border-bottom:2px solid var(--bd);color:var(--td);font-weight:500;font-size:10px;
+  text-transform:uppercase;letter-spacing:0.8px;cursor:pointer;white-space:nowrap}
+th:hover{color:var(--t)}
+td{padding:10px 12px;border-bottom:1px solid var(--bg2);vertical-align:top}
+tr:hover td{background:var(--bg2)}
+
+/* Badges */
+.b{display:inline-block;padding:2px 9px;border-radius:3px;font-size:10px;font-weight:600;letter-spacing:0.3px;text-transform:uppercase}
+.bg{background:var(--gd);color:var(--g)}.br{background:var(--rd);color:var(--r)}.by{background:var(--yd);color:var(--y)}.bb{background:var(--bd3);color:var(--b)}
+
+/* KPI Grid */
+.kpi-g{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:16px;margin-bottom:28px}
+.kpi{background:var(--s);border:1px solid var(--bd);padding:18px 16px;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--bd2)}
+.kpi .l{font-size:10px;color:var(--td);text-transform:uppercase;letter-spacing:0.8px;font-weight:500}
+.kpi .v{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:600;margin-top:6px;letter-spacing:-0.5px}
+.kpi .d{font-size:11px;color:var(--tl);margin-top:4px}
+.kpi.bu::before{background:var(--g)}.kpi.bu .v{color:var(--g)}
+.kpi.be::before{background:var(--r)}.kpi.be .v{color:var(--r)}
+.kpi.ne::before{background:var(--y)}.kpi.ne .v{color:var(--y)}
+.kpi.ac::before{background:var(--cu)}.kpi.ac .v{color:var(--cu)}
+
+/* Bars */
+.bar-c{display:flex;align-items:center;gap:6px}
+.bar{height:4px;border-radius:2px;background:var(--bg3);flex:1;overflow:hidden;min-width:60px}
+.bar-f{height:100%;border-radius:2px}
+.bar-v{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--td);min-width:28px;text-align:right}
+
+/* Sections */
+.sect{font-family:'DM Serif Display',serif;font-size:18px;font-weight:400;margin-bottom:16px;padding-bottom:8px;
+  border-bottom:1px solid var(--bd);color:var(--t)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:24px}@media(max-width:900px){.two{grid-template-columns:1fr}}
+
+/* Cards / Boxes */
+.box{background:var(--s);border:1px solid var(--bd);padding:18px;margin-bottom:14px;transition:border-color .2s}
+.box:hover{border-color:var(--bd2)}
+.box h4{color:var(--cud);margin-bottom:8px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px}
+.box p{font-size:13px;color:var(--td);line-height:1.7}
+
+/* Scenario buttons */
+.sc-btn{padding:10px 18px;border:1px solid var(--bd);background:var(--s);color:var(--t);cursor:pointer;font-size:12px;
+  font-weight:500;transition:all .2s;letter-spacing:0.3px}
+.sc-btn:hover{border-color:var(--cu);color:var(--cu)}
+.sc-btn.active{background:var(--cu);border-color:var(--cu);color:#fff}
+
+/* P&L colors */
+.pnl-p{color:var(--g);font-family:'JetBrains Mono',monospace;font-weight:600}
+.pnl-n{color:var(--r);font-family:'JetBrains Mono',monospace;font-weight:600}
+
+/* Timeline */
+.tl{position:relative;padding-left:32px}
+.tl::before{content:'';position:absolute;left:7px;top:0;bottom:0;width:1px;background:var(--bd)}
+.tl-i{position:relative;margin-bottom:16px;background:var(--s);border:1px solid var(--bd);padding:16px 18px}
+.tl-i::before{content:'';position:absolute;left:-29px;top:20px;width:8px;height:8px;border-radius:50%;
+  border:2px solid var(--cu);background:var(--bg)}
+.tl-i.past::before{background:var(--cu)}
+.tl-i .dt{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cu);font-weight:500;margin-bottom:4px;
+  display:flex;align-items:center;gap:8px}
+.tl-i h4{margin-bottom:4px;font-size:14px;font-weight:500}
+.tl-i .imp{font-size:12px;color:var(--td);line-height:1.6}
+
+/* Supply chain */
+.chain{background:var(--s);border:1px solid var(--bd);margin-bottom:12px;overflow:hidden}
+.chain-h{padding:12px 16px;background:var(--bg2);border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center;gap:12px}
+.chain-h h4{font-size:13px;font-weight:600;white-space:nowrap}.chain-h .tn{font-size:11px;color:var(--td)}
+.chain-b{padding:12px 16px}
+.chip{display:inline-flex;align-items:center;gap:4px;background:var(--bg);border:1px solid var(--bd);padding:5px 12px;margin:3px;font-size:12px}
+.chip .tk{color:var(--cu);font-family:'JetBrains Mono',monospace;font-weight:600;font-size:11px}
+
+/* Filters */
+.flt{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
+.flt label{font-size:10px;color:var(--td);text-transform:uppercase;letter-spacing:0.8px;font-weight:500}
+select{background:var(--s);border:1px solid var(--bd);color:var(--t);padding:6px 12px;font-size:12px;font-family:'Outfit',sans-serif}
+select:focus{outline:none;border-color:var(--cu)}
+input[type=range]{-webkit-appearance:none;background:var(--bg3);height:3px;border-radius:2px;outline:none;width:100px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--cu);cursor:pointer;border:2px solid var(--s)}
+
+/* Score dots */
+.sc-dot{width:6px;height:6px;border-radius:50%;display:inline-block}
+
+/* Signal grid */
+.sig-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:24px}
+@media(max-width:700px){.sig-row{grid-template-columns:1fr}}
+.sig{background:var(--s);border:1px solid var(--bd);padding:16px;position:relative}
+.sig .sl{font-size:10px;color:var(--td);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;font-weight:500}
+.sig .sv{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600}
+.sig .sd{font-size:11px;color:var(--tl);margin-top:6px;line-height:1.5}
+
+/* EV cards */
+.ev-row{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+.ev-card{background:var(--s);border:1px solid var(--bd);padding:18px;flex:1;min-width:200px}
+.ev-card h4{color:var(--td);margin-bottom:6px;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;font-weight:500}
+.ev-card .ev-val{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:600;margin-bottom:4px;letter-spacing:-0.5px}
+
+/* Stagger entrance animations */
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.kpi,.box,.sig,.tl-i,.chain,.ev-card{animation:fadeUp .4s ease both}
+.kpi:nth-child(1){animation-delay:.05s}.kpi:nth-child(2){animation-delay:.1s}.kpi:nth-child(3){animation-delay:.15s}
+.kpi:nth-child(4){animation-delay:.2s}.kpi:nth-child(5){animation-delay:.25s}.kpi:nth-child(6){animation-delay:.3s}
+.kpi:nth-child(7){animation-delay:.35s}.kpi:nth-child(8){animation-delay:.4s}
+.box:nth-child(2){animation-delay:.08s}.box:nth-child(3){animation-delay:.16s}
+.box:nth-child(4){animation-delay:.24s}.box:nth-child(5){animation-delay:.32s}
+.sig:nth-child(n+4){animation-delay:.15s}.sig:nth-child(n+7){animation-delay:.25s}
+.tl-i:nth-child(n+3){animation-delay:.1s}.tl-i:nth-child(n+6){animation-delay:.2s}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--td)}
+
+/* Universe fold-out */
+.uni-row{cursor:pointer;transition:background .15s}
+.uni-row:hover td{background:var(--bg2)}
+.uni-row-open td{background:var(--bg2);border-bottom:1px solid var(--cu)}
+.uni-row .caret{display:inline-block;margin-right:6px;color:var(--cu);transition:transform .2s;font-size:9px}
+.uni-row-open .caret{transform:rotate(90deg)}
+.uni-detail td{background:var(--bg2);padding:0 !important;border-bottom:2px solid var(--bd)}
+.uni-detail-panel{padding:22px 28px;display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:28px;animation:fadeUp .25s ease both}
+@media(max-width:1100px){.uni-detail-panel{grid-template-columns:1fr}}
+.uni-detail-panel .dp-sect{font-size:10px;text-transform:uppercase;letter-spacing:0.8px;color:var(--td);font-weight:600;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--bd)}
+.uni-detail-panel .dp-col h5{font-family:'DM Serif Display',serif;font-weight:400;font-size:15px;color:var(--t);margin-bottom:3px}
+.uni-detail-panel .dp-kf{font-size:13px;color:var(--td);line-height:1.7;margin-bottom:14px}
+.dp-mkt{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;font-size:12px}
+.dp-mkt .k{color:var(--tl);text-transform:uppercase;font-size:10px;letter-spacing:0.5px}
+.dp-mkt .v{font-family:'JetBrains Mono',monospace;color:var(--t);font-weight:600}
+.dp-sc{display:flex;flex-direction:column;gap:6px}
+.dp-sc .row{display:flex;align-items:center;gap:10px;font-size:11px}
+.dp-sc .row .lbl{width:70px;color:var(--td);text-transform:uppercase;letter-spacing:0.3px;font-size:10px}
+.dp-sc .row .bar{height:5px;background:var(--bg3);border-radius:2px;flex:1;overflow:hidden}
+.dp-sc .row .bar-f{height:100%;background:var(--cu);border-radius:2px}
+.dp-sc .row .num{width:18px;text-align:right;font-family:'JetBrains Mono',monospace;color:var(--cu);font-weight:600}
+.dp-ret{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:6px}
+.dp-ret .cell{background:var(--s);border:1px solid var(--bd);padding:8px 10px;text-align:center}
+.dp-ret .cell .l{font-size:9px;text-transform:uppercase;color:var(--td);letter-spacing:0.5px}
+.dp-ret .cell .v{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;margin-top:2px}
+.dp-acid{background:var(--s);border-left:3px solid var(--cu);padding:10px 14px;margin-top:10px;font-size:12px;color:var(--td);line-height:1.6}
+.dp-acid strong{color:var(--cud)}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div>
+    <h1><span>Cu</span> Copper Analyzer</h1>
+    <div class="sub">Post-Acid-Freeze + Hormuz Crisis &middot; May 2026 Rerun &middot; S&P Global, ICSG, Goldman, JPM, Citi, StoneX, Cochilco, Fertecon &middot; <span id="data-ts">No live data</span></div>
+  </div>
+  <div class="live">
+    <div>
+      <div class="cu-price" id="cu-price">--</div>
+      <div class="cu-unit">COMEX Cu /lb</div>
+    </div>
+    <div id="cu-change" class="cu-change">--</div>
+  </div>
+</div>
+<div class="tabs" id="tab-bar"></div>
+<div class="ctr" id="main"></div>
+
+<script>
+// Inline market data fallback (for file:// protocol where fetch fails)
+const INLINE_DATA={"updated":"2026-05-17 16:54","tickers":{"FCX":{"price":63.01,"currency":"USD","change_pct":-4.73,"market_cap":90580639744,"market_cap_fmt":"$90.6B","pe_ratio":33.3,"forward_pe":17.0,"dividend_yield":95.0,"w52_high":70.97,"w52_low":35.15,"ma_50":61.23,"ma_200":51.63,"ytd_return":21.91,"m1_return":-7.72,"beta":1.32,"avg_volume":17251548,"above_50ma":true,"above_200ma":true,"golden_cross":true,"pct_from_high":-11.2,"pct_from_low":79.3},"BHP":{"price":84.4,"currency":"USD","change_pct":-5.09,"market_cap":214405136384,"market_cap_fmt":"$214.4B","pe_ratio":20.9,"forward_pe":15.9,"dividend_yield":315.0,"w52_high":91.45,"w52_low":45.74,"ma_50":76.41,"ma_200":64.14,"ytd_return":39.35,"m1_return":6.2,"beta":0.8,"avg_volume":3316832,"above_50ma":true,"above_200ma":true,"golden_cross":true,"pct_from_high":-7.7,"pct_from_low":84.5},"SCCO":{"price":176.78,"currency":"USD","change_pct":-6.22,"market_cap":147492093952,"market_cap_fmt":"$147.5B","pe_ratio":30.0,"forward_pe":26.5,"dividend_yield":226.0,"w52_high":221.67326,"w52_low":85.60648,"ma_50":176.88,"ma_200":148.5,"ytd_return":22.26,"m1_return":-4.66,"beta":1.08,"avg_volume":1647916,"above_50ma":false,"above_200ma":true,"golden_cross":true,"pct_from_high":-20.3,"pct_from_low":106.5},"IVN":{"price":11.76,"currency":"CAD","change_pct":-6.15,"market_cap":16773013504,"market_cap_fmt":"$16.8B","pe_ratio":98.0,"forward_pe":20.8,"dividend_yield":null,"w52_high":20.34,"w52_low":8.76,"ma_50":11.74,"ma_200":13.66,"ytd_return":-26.68,"m1_return":-5.77,"beta":1.79,"avg_volume":5188217,"above_50ma":true,"above_200ma":false,"golden_cross":false,"pct_from_high":-42.2,"pct_from_low":34.2},"KGHM":{"price":336.15,"currency":"PLN","change_pct":-8.63,"market_cap":67229999104,"market_cap_fmt":"$67.2B","pe_ratio":9.8,"forward_pe":15.6,"dividend_yield":45.0,"w52_high":396.4,"w52_low":117.0,"ma_50":303.45,"ma_200":239.12,"ytd_return":18.57,"m1_return":3.43,"beta":1.23,"avg_volume":945746,"above_50ma":true,"above_200ma":true,"golden_cross":true,"pct_from_high":-15.2,"pct_from_low":187.3},"FM":{"price":34.84,"currency":"CAD","change_pct":-5.84,"market_cap":28854003712,"market_cap_fmt":"$28.9B","pe_ratio":null,"forward_pe":11.9,"dividend_yield":null,"w52_high":45.17,"w52_low":19.46,"ma_50":34.48,"ma_200":32.56,"ytd_return":-6.57,"m1_return":-10.8,"beta":1.94,"avg_volume":3201256,"above_50ma":true,"above_200ma":true,"golden_cross":true,"pct_from_high":-22.9,"pct_from_low":79.0},"TECK.B":{"price":84.34,"currency":"CAD","change_pct":-6.09,"market_cap":41291546624,"market_cap_fmt":"$41.3B","pe_ratio":22.4,"forward_pe":20.8,"dividend_yield":59.0,"w52_high":92.67,"w52_low":42.95,"ma_50":76.27,"ma_200":65.45,"ytd_return":28.03,"m1_return":6.34,"beta":1.57,"avg_volume":1121926,"above_50ma":true,"above_200ma":true,"golden_cross":true,"pct_from_high":-9.0,"pct_from_low":96.4},"HBM":{"price":34.35,"currency":"CAD","change_pct":-8.23,"market_cap":13643685888,"market_cap_fmt":"$13.6B","pe_ratio":15.0,"forward_pe":11.7,"dividend_yield":12.0,"w52_high":38.94,"w52_low":11.32,"ma_50":31.28,"ma_200":26.21,"ytd_return":24.5,"m1_return":0.53,"beta":2.15,"avg_volume":2176485,"above_50ma":true,"above_200ma":true,"golden_cross":true,"pct_from_high":-11.8,"pct_from_low":203.4},"ERO":{"price":37.57,"currency":"CAD","change_pct":-8.57,"market_cap":3917723136,"market_cap_fmt":"$3.9B","pe_ratio":9.8,"forward_pe":5.9,"dividend_yield":null,"w52_high":53.69,"w52_low":17.66,"ma_50":37.72,"ma_200":33.77,"ytd_return":-5.82,"m1_return":-7.12,"beta":1.56,"avg_volume":504262,"above_50ma":false,"above_200ma":true,"golden_cross":true,"pct_from_high":-30.0,"pct_from_low":112.7},"CPER":{"price":38.14,"currency":"USD","change_pct":-4.7,"market_cap":null,"market_cap_fmt":null,"pe_ratio":4.4,"forward_pe":null,"dividend_yield":null,"w52_high":40.78,"w52_low":27.08,"ma_50":35.99,"ma_200":33.1,"ytd_return":9.03,"m1_return":3.25,"beta":null,"avg_volume":859582,"above_50ma":true,"above_200ma":true,"golden_cross":true,"pct_from_high":-6.5,"pct_from_low":40.8},"COPX":{"price":83.05,"currency":"USD","change_pct":-7.08,"market_cap":null,"market_cap_fmt":null,"pe_ratio":22.0,"forward_pe":null,"dividend_yield":243.0,"w52_high":99.99,"w52_low":39.16,"ma_50":80.37,"ma_200":69.76,"ytd_return":13.67,"m1_return":-3.67,"beta":null,"avg_volume":4568188,"above_50ma":true,"above_200ma":true,"golden_cross":true,"pct_from_high":-16.9,"pct_from_low":112.1},"JJCTF":{"price":51.98,"currency":"USD","change_pct":0.0,"market_cap":null,"market_cap_fmt":null,"pe_ratio":null,"forward_pe":null,"dividend_yield":null,"w52_high":81.27,"w52_low":44.27,"ma_50":52.23,"ma_200":51.07,"ytd_return":null,"m1_return":0.0,"beta":null,"avg_volume":14,"above_50ma":false,"above_200ma":true,"golden_cross":true,"pct_from_high":-36.0,"pct_from_low":17.4},"WPM":{"price":130.41,"currency":"USD","change_pct":-6.36,"market_cap":59222454272,"market_cap_fmt":"$59.2B","pe_ratio":33.0,"forward_pe":22.1,"dividend_yield":60.0,"w52_high":165.76,"w52_low":79.0,"ma_50":136.01,"ma_200":120.47,"ytd_return":10.81,"m1_return":-9.89,"beta":1.18,"avg_volume":2381003,"above_50ma":false,"above_200ma":true,"golden_cross":true,"pct_from_high":-21.3,"pct_from_low":65.1},"FNV":{"price":225.38,"currency":"USD","change_pct":-5.3,"market_cap":43465781248,"market_cap_fmt":"$43.5B","pe_ratio":31.7,"forward_pe":22.1,"dividend_yield":78.0,"w52_high":285.67,"w52_low":152.89,"ma_50":244.78,"ma_200":220.38,"ytd_return":8.23,"m1_return":-12.57,"beta":0.89,"avg_volume":826869,"above_50ma":false,"above_200ma":true,"golden_cross":true,"pct_from_high":-21.1,"pct_from_low":47.4},"CAT":{"price":888.31,"currency":"USD","change_pct":-3.47,"market_cap":409148456960,"market_cap_fmt":"$409.1B","pe_ratio":44.2,"forward_pe":29.9,"dividend_yield":68.0,"w52_high":931.35,"w52_low":336.24,"ma_50":782.14,"ma_200":615.04,"ytd_return":49.08,"m1_return":15.19,"beta":1.62,"avg_volume":2534675,"above_50ma":true,"above_200ma":true,"golden_cross":true,"pct_from_high":-4.6,"pct_from_low":164.2},"SAND":{"price":353.7,"currency":"SEK","change_pct":-1.83,"market_cap":443676327936,"market_cap_fmt":"$443.7B","pe_ratio":29.9,"forward_pe":26.0,"dividend_yield":170.0,"w52_high":408.8,"w52_low":200.9,"ma_50":373.47,"ma_200":315.46,"ytd_return":19.06,"m1_return":-10.08,"beta":1.34,"avg_volume":2271726,"above_50ma":false,"above_200ma":true,"golden_cross":true,"pct_from_high":-13.5,"pct_from_low":76.1},"EPIR":{"price":null,"currency":"USD","change_pct":null,"market_cap":null,"market_cap_fmt":null,"pe_ratio":null,"forward_pe":null,"dividend_yield":null,"w52_high":null,"w52_low":null,"ma_50":null,"ma_200":null,"ytd_return":null,"m1_return":null,"beta":null,"avg_volume":null},"Aurubis":{"price":205.2,"currency":"EUR","change_pct":-3.3,"market_cap":8958833664,"market_cap_fmt":"$9.0B","pe_ratio":9.7,"forward_pe":20.5,"dividend_yield":78.0,"w52_high":212.6,"w52_low":76.15,"ma_50":173.76,"ma_200":135.99,"ytd_return":64.22,"m1_return":13.31,"beta":1.31,"avg_volume":190579,"above_50ma":true,"above_200ma":true,"golden_cross":true,"pct_from_high":-3.5,"pct_from_low":169.5},"AA":{"price":62.53,"currency":"USD","change_pct":-5.29,"market_cap":16501032960,"market_cap_fmt":"$16.5B","pe_ratio":16.0,"forward_pe":9.3,"dividend_yield":64.0,"w52_high":75.7,"w52_low":25.83,"ma_50":65.22,"ma_200":49.32,"ytd_return":10.78,"m1_return":-11.19,"beta":1.51,"avg_volume":5650835,"above_50ma":false,"above_200ma":true,"golden_cross":true,"pct_from_high":-17.4,"pct_from_low":142.1},"HG=F":{"price":6.29,"currency":"USD","change_pct":-4.79,"market_cap":null,"market_cap_fmt":null,"pe_ratio":null,"forward_pe":null,"dividend_yield":null,"w52_high":6.645,"w52_low":4.3235,"ma_50":5.87,"ma_200":5.36,"ytd_return":11.61,"m1_return":3.77,"beta":null,"avg_volume":2055,"above_50ma":true,"above_200ma":true,"golden_cross":true,"pct_from_high":-5.3,"pct_from_low":45.6}}};
+
+// ============ DATA ============
+const INV=[
+{tk:"FCX",nm:"Freeport-McMoRan",ex:"NYSE",tp:"miner-major",al:"strong",rk:"medium",lev:90,act:"BUY",
+ kf:"Largest public Cu producer. Grasberg Block Cave restart Q2 2026. Most direct listed leverage.",
+ sc:{su:5,en:4,ai:3,ge:4,ca:4,ma:3},rt:{bear:-20,base:15,bull:45,superbull:80},ch:"mining"},
+{tk:"BHP",nm:"BHP Group",ex:"NYSE",tp:"miner-major",al:"strong",rk:"low",lev:50,act:"BUY",
+ kf:"Escondida (world's largest Cu mine). Cu #1 priority post-Anglo bid. Diversified dampens pure Cu leverage.",
+ sc:{su:4,en:4,ai:3,ge:3,ca:2,ma:5},rt:{bear:-10,base:10,bull:25,superbull:45},ch:"mining"},
+{tk:"SCCO",nm:"Southern Copper",ex:"NYSE",tp:"miner-major",al:"strong",rk:"medium",lev:85,act:"BUY",
+ kf:"Premium low-cost producer. Mexico + Peru. Long reserve life. Heavy SX-EW exposure at Toquepala/Cuajone/Buenavista drags super-bull vs peers in acid-freeze scenarios. May be priced in after 66% 2025 rally.",
+ sc:{su:5,en:4,ai:3,ge:3,ca:2,ma:3},rt:{bear:-15,base:12,bull:32,superbull:48},ch:"mining"},
+{tk:"IVN",nm:"Ivanhoe Mines",ex:"TSX",tp:"miner-major",al:"strong",rk:"high",lev:95,act:"BUY",
+ kf:"Kamoa-Kakula: 388K t 2025. New smelter Dec 2025 produces its own acid as byproduct. Pure sulfide concentrator route = zero SX-EW exposure. Western Forelands could double deposit. DRC risk.",
+ sc:{su:5,en:4,ai:3,ge:2,ca:4,ma:4},rt:{bear:-25,base:20,bull:58,superbull:115},ch:"mining"},
+{tk:"KGHM",nm:"KGHM Polska Miedz",ex:"WSE",tp:"miner-major",al:"moderate",rk:"medium",lev:70,act:"BUY",
+ kf:"Polish state-controlled. European exposure. Sierra Gorda (Chile). Undervalued vs peers.",
+ sc:{su:3,en:3,ai:2,ge:4,ca:2,ma:2},rt:{bear:-15,base:10,bull:30,superbull:50},ch:"mining"},
+{tk:"FM",nm:"First Quantum Minerals",ex:"TSX",tp:"miner-mid",al:"tactical",rk:"high",lev:80,act:"AVOID",
+ kf:"Cobre Panama: even restart = diluted economics (royalties 2%\u21928-15%, state equity 20-40%). At CAD $31, bull case CAD $35-45 (not $50-65). Resource nationalism + 3.3x leverage = wrong asymmetry. Acid-freeze tail adds modest upside via Zambian concentrate, but Panama binary dominates total thesis.",
+ sc:{su:4,en:3,ai:2,ge:1,ca:3,ma:3},rt:{bear:-55,base:5,bull:28,superbull:55},ch:"mining"},
+{tk:"TECK.B",nm:"Teck Resources",ex:"TSX",tp:"miner-mid",al:"moderate",rk:"medium",lev:65,act:"BUY",
+ kf:"Post-coal Cu focus. QB2 ramp. Potential Anglo merger (Anglo Teck). Highland Valley.",
+ sc:{su:3,en:3,ai:2,ge:3,ca:3,ma:5},rt:{bear:-18,base:12,bull:35,superbull:55},ch:"mining"},
+{tk:"HBM",nm:"Hudbay Minerals",ex:"TSX",tp:"miner-mid",al:"moderate",rk:"high",lev:75,act:"BUY",
+ kf:"Peru + Canada. Cu-gold mix. M&A target premium in consolidating market.",
+ sc:{su:3,en:3,ai:2,ge:2,ca:2,ma:4},rt:{bear:-25,base:15,bull:40,superbull:70},ch:"mining"},
+{tk:"ERO",nm:"Ero Copper",ex:"TSX",tp:"miner-mid",al:"moderate",rk:"high",lev:85,act:"BUY",
+ kf:"Brazil focused. Tucuma + MCSA. Pure-play copper. Small cap, high operational leverage.",
+ sc:{su:3,en:3,ai:2,ge:2,ca:2,ma:4},rt:{bear:-30,base:18,bull:50,superbull:85},ch:"mining"},
+{tk:"CPER",nm:"US Copper Index Fund",ex:"NYSE",tp:"etf",al:"strong",rk:"medium",lev:100,act:"BUY",
+ kf:"Direct copper futures ETF. No company risk. Tracking error from roll/contango.",
+ sc:{su:5,en:5,ai:5,ge:5,ca:3,ma:0},rt:{bear:-15,base:8,bull:30,superbull:50},ch:"commodity"},
+{tk:"COPX",nm:"Global X Copper Miners ETF",ex:"NYSE",tp:"etf",al:"strong",rk:"medium",lev:80,act:"BUY",
+ kf:"Basket of mining equities. Diversified company risk. Operational leverage.",
+ sc:{su:4,en:4,ai:3,ge:3,ca:3,ma:3},rt:{bear:-22,base:14,bull:40,superbull:70},ch:"mining"},
+{tk:"JJCTF",nm:"iPath Bloomberg Cu ETN",ex:"NYSE",tp:"etf",al:"strong",rk:"medium",lev:100,act:"HOLD",
+ kf:"Cu subindex ETN. Direct exposure. Counterparty risk (Barclays). Roll costs.",
+ sc:{su:5,en:5,ai:5,ge:5,ca:3,ma:0},rt:{bear:-15,base:8,bull:30,superbull:50},ch:"commodity"},
+{tk:"HG=F",nm:"COMEX Copper Futures",ex:"CME",tp:"futures",al:"strong",rk:"high",lev:100,act:"LONG",
+ kf:"Direct leverage. Most liquid US contract. Options for defined-risk expression.",
+ sc:{su:5,en:5,ai:5,ge:5,ca:5,ma:0},rt:{bear:-20,base:10,bull:35,superbull:55},ch:"commodity"},
+{tk:"WPM",nm:"Wheaton Precious Metals",ex:"NYSE",tp:"royalty",al:"moderate",rk:"low",lev:25,act:"HOLD",
+ kf:"Cu streaming (Salobo, Constancia). Diversified Au/Ag/Cu. Lower leverage, lower risk.",
+ sc:{su:2,en:2,ai:1,ge:2,ca:1,ma:1},rt:{bear:-5,base:8,bull:18,superbull:30},ch:"royalty"},
+{tk:"FNV",nm:"Franco-Nevada",ex:"NYSE",tp:"royalty",al:"moderate",rk:"low",lev:15,act:"HOLD",
+ kf:"Small Cu royalty. Primarily gold. Cobre Panama royalty (large but uncertain).",
+ sc:{su:2,en:1,ai:1,ge:2,ca:3,ma:1},rt:{bear:-3,base:5,bull:15,superbull:25},ch:"royalty"},
+{tk:"CAT",nm:"Caterpillar",ex:"NYSE",tp:"equipment",al:"moderate",rk:"low",lev:20,act:"HOLD",
+ kf:"Mining equipment. 2.5x more rock = more equipment demand. Diversified beyond mining.",
+ sc:{su:3,en:2,ai:1,ge:1,ca:1,ma:0},rt:{bear:-8,base:8,bull:15,superbull:25},ch:"equipment"},
+{tk:"EPIR",nm:"Epiroc",ex:"STO",tp:"equipment",al:"moderate",rk:"low",lev:30,act:"BUY",
+ kf:"Pure mining/infra equipment. Automation + electrification. Best positioned for ore grade decline.",
+ sc:{su:4,en:3,ai:2,ge:1,ca:1,ma:1},rt:{bear:-10,base:10,bull:22,superbull:35},ch:"equipment"},
+{tk:"Aurubis",nm:"Aurubis AG",ex:"ETR",tp:"recycling",al:"moderate",rk:"medium",lev:50,act:"BUY",
+ kf:"Europe's largest Cu refiner + major recycler. Benefits from both primary and secondary themes. ACID STANDOUT: smelter captures its own H2SO4 byproduct (3.5-4.2 t/t Cu). In acid-freeze scenarios, Aurubis dual-monetizes refined Cu premium AND scarce acid. Cleanest Western long on the tail.",
+ sc:{su:3,en:3,ai:2,ge:3,ca:2,ma:2},rt:{bear:-12,base:10,bull:30,superbull:60},ch:"recycling"},
+{tk:"AA",nm:"Alcoa (Aluminum)",ex:"NYSE",tp:"equipment",al:"hedge",rk:"medium",lev:-20,act:"PAIR TRADE",
+ kf:"Primary Cu substitute. Al substitution increases at $4+/lb Cu. Most easy subs done. Marginal hedge.",
+ sc:{su:1,en:2,ai:1,ge:1,ca:1,ma:0},rt:{bear:10,base:5,bull:-5,superbull:-10},ch:"substitute"},
+];
+
+// Scenario probabilities post-rerun (May 17, 2026): bear case partly played out and reversed.
+// Acid freeze now ACTIVE, not tail. Hormuz crisis ongoing. Floor raised. Distribution shifted bullish.
+const SCEN={
+  bear:{nm:"Bear",pr:"$11,000-12,500/t",pb:15,cond:"Acid crisis resolves quickly + Cobre Panama restart approved + Hormuz reopens + China demand fades. Floor lifted from prior bear case due to confirmed concentrate scarcity (TC/RCs at $0). Crash to $9-10K no longer probable."},
+  base:{nm:"Base",pr:"$13,000-15,000/t",pb:40,cond:"Acid crisis lingers, modest deficit confirmed, Cobre Panama denial or delay, gradual demand recovery. Current spot $14K is squarely in this range. Goldman May target ($12-12.7K) is below this band - they remain too bearish."},
+  bull:{nm:"Bull",pr:"$15,000-17,000/t",pb:30,cond:"Acid crisis worsens or formalized via Chinese export control list addition, no Cobre Panama restart, Hormuz remains shut, AI/grid demand accelerates. Cleanest expression: Aurubis, IVN, Mosaic. SCCO lagged due to SX-EW drag."},
+  superbull:{nm:"Super-Bull",pr:"$17,000-20,000/t",pb:15,cond:"Multiple compounding shocks + China stimulus reignites physical demand + AI data center copper acceleration. Yangshan premium >$100/t. Inventory drawdown across all exchanges. Tail risk: Hormuz escalation."}
+};
+
+const CATS=[
+  {dt:"Aug 2023",ti:"China adds gallium, germanium to export controls",im:"Precedent: Chinese dual-use material export restriction pattern begins. Demonstrates asymmetric lever capability.",tp:"past",sg:"medium"},
+  {dt:"Dec 2023",ti:"China adds graphite to export control list",im:"Precedent: third critical material added in 4 months. Graphite used for EV anodes. Creates template for chokepoint weaponization.",tp:"past",sg:"medium"},
+  {dt:"2024-2025",ti:"Kazatomprom repeatedly cites sulfuric acid shortage",im:"BULLISH precedent: Kazakhstan uranium ISR cuts driven by acid input constraint. Demonstrates how non-market inputs can cap commodity supply. Direct template for Chile/Cu acid risk.",tp:"past",sg:"high"},
+  {dt:"Dec 2025",ti:"2026 TC/RC benchmark: $0/t",im:"Antofagasta agrees ZERO processing charges with Chinese smelter. Historic first. Confirms acute concentrate scarcity. Has held into May 2026 as structural signal.",tp:"past",sg:"critical"},
+  {dt:"Jan 6, 2026",ti:"Cu record $13,387/t on LME",im:"22% rally from Nov lows. S&P Global publishes 'Copper in the Age of AI' study.",tp:"past",sg:"high"},
+  {dt:"Jan 2026",ti:"Panama authorizes stockpile processing",im:"Mulino allows export of 70,000t stored concentrate from Cobre Panama. Positive signal for restart.",tp:"past",sg:"high"},
+  {dt:"Jan 2026",ti:"Kazatomprom -10% 2026 guidance (acid-driven)",im:"BULLISH precedent that came home in May: same acid chokepoint pattern is now active for copper via Chile after Chinese export ban May 1.",tp:"past",sg:"high"},
+  {dt:"Feb 28, 2026",ti:"STRAIT OF HORMUZ CLOSES (missed in March bear case)",im:"CRITICAL EVENT: Iran blockades Hormuz after US/Israel strikes. Vessel traffic -97%. Brent to $114. 22,500 mariners trapped on 1,550+ vessels. Middle East sulphur supply (1/3 of global) disrupted. This was already active when the March 20 bear case was published yet was not mentioned anywhere.",tp:"past",sg:"critical"},
+  {dt:"Feb 2026",ti:"Global inventories hit 1.01 MMT (23-yr high)",im:"COMEX at 536K MT (tariff hoard). Has since rebalanced: SHFE drew 433->89K, LME below 100K, COMEX still elevated.",tp:"past",sg:"medium"},
+  {dt:"Mar 2026",ti:"Yangshan premium collapses to $34/t - Chinese buyers strike",im:"BEARISH at the time. Recovered to $51-66 by May as physical market re-engaged on supply shock. The bear case kill criterion ($60-80 sustained) effectively fired.",tp:"past",sg:"critical"},
+  {dt:"Mar 20, 2026",ti:"Cornelius bear case published (RATED 4.2/10 IN RETROSPECT)",im:"$9-11K/t target. 9-pillar analysis. Did not mention Hormuz crisis already underway. Underweighted acid freeze probability (5-12% per own Apr analysis - happened in 3-4 weeks).",tp:"past",sg:"critical"},
+  {dt:"Mar 2026",ti:"Chinese acid exports to Chile cease completely",im:"FIRST TOTAL INTERRUPTION since July 2023. Acid CFR Mejillones $190 -> $300 (Apr 8) -> $380 (Apr 15). The April 10 scenario analysis was already playing out.",tp:"past",sg:"critical"},
+  {dt:"Apr 10, 2026",ti:"Cornelius acid scenario analysis published (RATED 8.7/10)",im:"Modeled exact mechanism that materialized 3 weeks later. Identified Aurubis, IVN, Mosaic as winners. The save of the analytical work.",tp:"past",sg:"critical"},
+  {dt:"Apr 2026",ti:"Copper bottoms ~$11.5K, begins reversal",im:"Bear case partially played out before being overwhelmed. SHFE inventory crashed 433K -> 89K. COPX troughed near $67.",tp:"past",sg:"high"},
+  {dt:"Apr 22, 2026",ti:"FCX hits ATH $70.36",im:"Equity leadership confirms structural bull. Smelter-leveraged names lead: Aurubis +33%, TECK +35%, HBM +39%, KGHM +31%.",tp:"past",sg:"high"},
+  {dt:"May 1, 2026",ti:"CHINA SULPHURIC ACID EXPORT BAN EFFECTIVE",im:"The scenario gamed at 5-12% probability. Domestic Chinese producers told to halt exports. 1.1 MMT/y Chilean cathode now at structural risk (20% of Chilean output).",tp:"past",sg:"critical"},
+  {dt:"May 13, 2026",ti:"Cu hits $14,091/t LME / $6.50/lb COMEX (new high)",im:"Above March bear case start. Bull case scenarios now active. Probabilities revised: bear 15%, base 40%, bull 30%, super-bull 15%.",tp:"current",sg:"critical"},
+  {dt:"May 2026",ti:"Aurubis Q2 results: €315/t European premium (record)",im:"Smelter-byproduct acid now meaningful revenue. Validates the April 10 'Aurubis is the cleanest acid trade' call. Stock +33% from March.",tp:"current",sg:"high"},
+  {dt:"Ongoing",ti:"Acid CFR Chile price (Mejillones)",im:"Currently ~$380/t (crisis level). Was normal $35-80. Tracks acid freeze severity. Source: CRU, Argus, Fertecon.",tp:"current",sg:"critical"},
+  {dt:"Ongoing",ti:"Chinese H2SO4 monthly export volumes",im:"Effectively zero to Chile since March. Watch for any quota relaxation or formalized export controls list addition.",tp:"current",sg:"critical"},
+  {dt:"Jun 2026",ti:"COBRE PANAMA DECISION (3-5 weeks away)",im:"Binary for FM stock. Restart adds 300kt to global supply, copper gives back $1-1.5K. Denial = bull case unconstrained. Even restart = diluted terms for FM (royalties 2->8-15%, state equity 20-40%).",tp:"upcoming",sg:"critical"},
+  {dt:"Jun 2026",ti:"US Section 232 tariff decision",im:"Commerce sec recommendation expected. If imposed: COMEX-LME spread blows out, US-bound flows continue. If cancelled: 500K+ COMEX inventory returns to global market = bearish.",tp:"upcoming",sg:"high"},
+  {dt:"Q3 2026",ti:"Hormuz reopening (potential)",im:"If diplomatic resolution lands: Middle East sulphur trade resumes, acid pressure partially eases. Bearish for copper, but only partial offset to Chinese ban.",tp:"upcoming",sg:"high"},
+  {dt:"Q2-Q3 2026",ti:"DRC/Chile supply pipeline delivers",im:"Kamoa-Kakula 380-420K, Chile 13 projects adding ~500K t/y. Real tonnage. But: Chilean SX-EW now constrained by acid - the pipeline math no longer holds for SX-EW outputs.",tp:"upcoming",sg:"high"},
+  {dt:"Q3 2026",ti:"Yangshan premium watch >$80/t",im:"Sustained move above $80 confirms full demand re-engagement. Already at $51-66 in May. Sets up potential super-bull scenario if China stimulus adds to acid-driven supply shock.",tp:"upcoming",sg:"high"},
+  {dt:"2027+",ti:"Structural deficit becomes visible",im:"BULLISH: Long-term supply-demand math undeniable. Acid chokepoint joins ore grade decline, dev timelines, permitting, water as structural supply constraint stack.",tp:"future",sg:"high"},
+];
+
+const CHAIN=[
+  {nm:"Mining / Extraction",th:"Supply constrained long-term. BUT resource nationalism caps equity upside >$5/lb. Prefer physical Cu over miners at high prices.",cos:["FCX","BHP","SCCO","IVN","FM","TECK.B","KGHM","HBM","ERO"]},
+  {nm:"Smelting / Refining",th:"TC/RC at $0 benchmark. China dominates 14 MMT, growing to 17. Government halting 2 MMT new capacity. Smelters also produce byproduct H2SO4 (3.5-4.2 t/t Cu) - strategic asset if Chinese acid exports freeze.",cos:["Aurubis","IVN"]},
+  {nm:"Physical / Commodity",th:"Direct price exposure. $8,800/t floor. Asymmetric upside. Roll costs in contango.",cos:["CPER","JJCTF","HG=F"]},
+  {nm:"Mining Equipment",th:"Ore grade decline forces 2.5x more rock processing. Underground transitions need specialized kit.",cos:["CAT","EPIR"]},
+  {nm:"Royalty / Streaming",th:"Lower leverage, lower risk. Benefits from price without execution risk.",cos:["WPM","FNV"]},
+  {nm:"Recycling / Secondary",th:"4.2% CAGR (2x primary growth). 25-40 year structural lag. Long-dated option on circular economy.",cos:["Aurubis"]},
+];
+
+// ============ SULPHURIC ACID SCENARIO DATA ============
+// Scenario: China completely freezes H2SO4 exports. Source: hekate/04-Output/Research/china-sulphuric-acid-freeze-copper-2026-04/
+const ACID={
+  EXP:{
+    // Exposure score: +2 strong win / +1 win / 0 neutral / -1 loss / -2 strong loss
+    FCX:{s:0,n:"Mixed: El Abra / Morenci SX-EW exposed, Grasberg sulfide helps. Net mild positive on higher Cu."},
+    BHP:{s:0,n:"Escondida has both SX-EW oxide and sulfide circuits. Diversified portfolio dampens signal."},
+    SCCO:{s:-2,n:"Heavy SX-EW at Toquepala, Cuajone, Buenavista. Mexico/Peru sourcing acid harder. Tonnage loss may exceed Cu price lift."},
+    IVN:{s:2,n:"Pure sulfide → Kamoa-Kakula smelter. New Dec-2025 smelter produces its own acid. Zero SX-EW exposure."},
+    KGHM:{s:1,n:"Smelter-integrated Polish producer. No SX-EW. European cathode premium widens."},
+    FM:{s:-1,n:"Zambia concentrate largely insulated, but Cobre Panama binary dominates total thesis."},
+    "TECK.B":{s:0,n:"QB2 mostly concentrator with some leach. Mixed exposure."},
+    HBM:{s:1,n:"Peru + Canada sulfide concentrate. Benefits from Cu + concentrate scarcity."},
+    ERO:{s:1,n:"Brazil pure sulfide (Tucuma, MCSA). Acid-independent."},
+    CPER:{s:1,n:"Direct Cu futures ETF. Benefits from refined market tightening."},
+    COPX:{s:0,n:"Diversified basket; winners and losers average out."},
+    JJCTF:{s:1,n:"Direct Cu exposure via ETN."},
+    "HG=F":{s:1,n:"Direct futures. Benefits from refined cathode scarcity."},
+    WPM:{s:0,n:"Streaming (Salobo sulfide). Modest exposure."},
+    FNV:{s:0,n:"Primarily gold; small Cu streaming."},
+    CAT:{s:0,n:"Equipment demand indirect."},
+    EPIR:{s:0,n:"Equipment demand indirect."},
+    SAND:{s:0,n:"Small Cu exposure."},
+    Aurubis:{s:2,n:"European primary + secondary smelter. Captures own acid as byproduct. Benefits on both refined Cu price AND acid monetization. Cleanest long."},
+    AA:{s:1,n:"Cu spike on acid freeze accelerates aluminum substitution in cables/HVAC. Partially irreversible."}
+  },
+  PRODUCTS:[
+    {nm:"Refined Copper",dir:"+",mag:"+$1,500-3,000/t",vol:"250-500 kt/y loss",why:"Chilean SX-EW cathode loss. Year-1 loss ≈ Goldman's 300 kt 2026 surplus. Neutralizes bear case."},
+    {nm:"Phosphate Fertilizers",dir:"++",mag:"+40-80%",vol:"3-6 Mt acid diverted",why:"60% of global acid goes to phosphate. Biggest absolute volume channel. DAP/MAP/TSP spike. Food cost shock downstream."},
+    {nm:"Uranium (Kazakh ISR)",dir:"+",mag:"+$15-25/lb spot",vol:"3-5 Mlb U3O8/y",why:"Kazatomprom already cut 10% on acid constraint. Freeze compounds it. Acid-independent miners (Cameco McArthur, Cigar Lake) win."},
+    {nm:"Lithium Hydroxide (ex-China)",dir:"+",mag:"+10-25%",vol:"Refining squeeze",why:"Spodumene conversion needs 7-10t acid/t LCE. Non-Chinese refiners (ALB Kwinana, SQM, Arcadium) bid for tight ex-China acid."},
+    {nm:"Lithium Hydroxide (China)",dir:"−",mag:"Flat to −5%",vol:"Captive acid",why:"COUNTERINTUITIVE: Chinese refiners keep domestic acid → strategic dominance strengthened. Weakens Western CRM diversification narrative."},
+    {nm:"Nickel Sulfate (HPAL)",dir:"−",mag:"Premium widens",vol:"50-150 kt Ni/y",why:"Indonesian HPAL acid-hungry (4-6 t/t Ni). Some Chinese-integrated ops insulated. Class-1 sulfide nickel (Norilsk, BHP Nickel West) benefits."},
+    {nm:"Cobalt Sulfate",dir:"=",mag:"Modest firm",vol:"Small",why:"Mostly captive Chinese refining pathway. Marginal impact."},
+    {nm:"Aluminum (Cu substitute)",dir:"+",mag:"Modest positive",vol:"Accelerated sub",why:"Cu price spike accelerates aluminum substitution in grid cables/HVAC. Ratchet effect — partially irreversible demand destruction for Cu."},
+    {nm:"Zinc (byproduct acid)",dir:"+",mag:"Floor support",vol:"Small",why:"Zinc smelters are acid producers. Improved byproduct credit supports zinc cost curve."},
+    {nm:"Grains / Food (2nd-order)",dir:"+",mag:"2027 crop cost shock",vol:"Variable",why:"Phosphate fertilizer cost pass-through to grain/oilseed production, esp. India, Brazil, Sub-Saharan Africa."}
+  ],
+  PROBS:{
+    full:{p:"5-12%",lbl:"Complete freeze ≥6mo",col:"r"},
+    partial:{p:"25-35%",lbl:"Partial (50%+ cut)",col:"y"},
+    status:{p:"55-65%",lbl:"Status quo / gradual",col:"g"}
+  },
+  CAUSAL:[
+    "China freezes sulphuric acid exports",
+    "Chilean acid inventory (2-6 wk buffer) depletes",
+    "SX-EW operators throttle heap leach cycles",
+    "Cathode output drops 250-500 kt in year 1",
+    "Refined Cu market tightens without concentrate relief",
+    "Goldman 300kt surplus forecast → neutralized",
+    "Copper flips from surplus to deficit; +$1,500-3,000/t in 3-9mo",
+    "Phosphate (+40-80%), uranium (+$15-25/lb), ex-China lithium (+10-25%) all squeezed",
+    "Chinese lithium refiner strategic dominance reinforced",
+    "CRM diversification narrative weakened",
+  ],
+  MONITOR:[
+    {l:"Acid CFR Chile USD/t",v:"<$80 normal",d:"Stress >$150. Crisis >$300. Source: CRU, Argus, Fertecon."},
+    {l:"China H2SO4 exports (mo)",v:"~300-500 kt",d:"Sharp decline = earliest signal. Source: China Customs monthly."},
+    {l:"Chilean SX-EW cathode (mo)",v:"~130-150 kt/mo",d:"YoY decline >5% = high conviction. Source: Cochilco (~6wk lag)."},
+    {l:"Acid vessel arrivals Mejillones",v:"Normal traffic",d:"Real-time signal via Kpler / MarineTraffic."},
+    {l:"DAP Tampa fertilizer",v:"~$580/t",d:"Leads Cu by days on any freeze announcement. Phosphate = bigger absolute move."},
+    {l:"Kazatomprom guidance",v:"-10% 2026 (baseline)",d:"Further cuts = acid pressure spreading to uranium."},
+    {l:"China acid export controls list",v:"Not listed",d:"If added to dual-use/strategic list = high-signal event."},
+    {l:"Chilean cathode→China exports",v:"Net exporter",d:"Flip to net importer = structural tightening confirmed."}
+  ],
+  TRIGGERS:[
+    "Environmental crackdown: Chinese smelter emissions tightening or a transport incident → precautionary halt.",
+    "Strategic export control: China has sequentially added gallium, germanium, graphite, antimony, REE tech. Acid is not on any Western CRM list — asymmetric lever.",
+    "Domestic absorption: Chinese lithium, phosphate, and nickel HPAL demand ramps faster than smelter acid supply (most likely PARTIAL rather than complete).",
+    "Geopolitical shock: Taiwan, South China Sea, US-China decoupling Phase 4+."
+  ],
+  SCEN_ADJ:[
+    ['Bear','$8.5-9.5K/t',20,5,-15],
+    ['Base','$10-12K/t',50,30,-20],
+    ['Bull','$13-15K/t',25,45,+20],
+    ['Super-Bull','$15K+/t',5,20,+15]
+  ]
+};
+
+let mktData=null;
+let curScen='base';
+// May 17, 2026 rerun: acid freeze ACTIVE (no longer tail), Hormuz crisis ongoing.
+// Distribution shifted bullish; floor raised on confirmed concentrate scarcity.
+let scenProbs={bear:15,base:40,bull:30,superbull:15};
+
+// ============ DOM HELPERS ============
+function $(tag,at,ch){
+  const e=document.createElement(tag);
+  if(at)for(const[k,v]of Object.entries(at)){
+    if(k==='text')e.textContent=v;else if(k==='cls')e.className=v;
+    else if(k==='onclick')e.addEventListener('click',v);
+    else if(k==='style')e.setAttribute('style',v);
+    else e.setAttribute(k,v);
+  }
+  if(ch)(Array.isArray(ch)?ch:[ch]).forEach(c=>{if(typeof c==='string')e.appendChild(document.createTextNode(c));else if(c)e.appendChild(c)});
+  return e;
+}
+function badge(t,c){return $('span',{cls:'b b'+c,text:t})}
+function abadge(a){const m={strong:'g',moderate:'y',tactical:'b',hedge:'r'},l={strong:'Strong Bull',moderate:'Moderate',tactical:'Tactical',hedge:'Hedge'};return badge(l[a]||a,m[a]||'y')}
+function rbadge(r){return badge(r.charAt(0).toUpperCase()+r.slice(1),{low:'g',medium:'y',high:'r'}[r])}
+function actbadge(a){return badge(a,a.includes('BUY')||a==='LONG'?'g':a==='AVOID'?'r':a.includes('HOLD')?'y':'b')}
+function levbar(v){const abs=Math.abs(v),col=v>=0?'var(--cu)':'var(--r)';
+  return $('div',{cls:'bar-c'},[$('div',{cls:'bar'},[$('div',{cls:'bar-f',style:'width:'+abs+'%;background:'+col})]),$('div',{cls:'bar-v',text:v+'%'})])}
+function scell(v){const c=v>=4?'var(--g)':v>=3?'var(--y)':v>=2?'var(--td)':'var(--r)';
+  return $('td',{},[$('div',{cls:'sc-cell',style:'display:flex;align-items:center;gap:4px'},[$('span',{cls:'sc-dot',style:'background:'+c}),document.createTextNode(v)])])}
+function pctSpan(v,inv){if(v==null)return $('span',{text:'--',style:'color:var(--td)'});
+  const pos=inv?v<0:v>0;return $('span',{text:(v>0?'+':'')+v.toFixed(1)+'%',style:'font-family:JetBrains Mono,monospace;color:'+(pos?'var(--g)':'var(--r)')+';font-weight:600'})}
+
+function getMkt(tk){return mktData&&mktData.tickers&&mktData.tickers[tk]?mktData.tickers[tk]:null}
+
+// ============ TABS ============
+const panels=['dashboard','universe','scenarios','timing','catalysts','supplychain','scorecard','acidrisk'];
+const pnames=['Dashboard','Universe','Scenarios','Timing','Catalysts','Supply Chain','Scorecard','Acid Risk'];
+function buildTabs(){const bar=document.getElementById('tab-bar');
+  panels.forEach((id,i)=>{const t=$('div',{cls:'tab'+(i===0?' active':''),text:pnames[i],onclick:()=>showPanel(id)});t.dataset.panel=id;bar.appendChild(t)})}
+function showPanel(id){document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.panel===id));
+  const m=document.getElementById('main');while(m.firstChild)m.removeChild(m.firstChild);R[id](m)}
+
+// ============ DASHBOARD ============
+function renderDash(root){
+  const cu=getMkt('HG=F');
+  const cuPriceLb=cu&&cu.price?cu.price:5.76;
+  const cuPriceT=Math.round(cuPriceLb*2204.62);
+  const kpis=[
+    {l:'Cu Price (per tonne)',v:'$'+cuPriceT.toLocaleString(),d:'$'+cuPriceLb.toFixed(2)+'/lb COMEX &middot; rebounded from April $11.5K trough',c:cuPriceT>13000?'bu':cuPriceT>11000?'ne':'be'},
+    {l:'Yangshan Premium',v:'$51-66/t',d:'BULLISH - buyers returning. Up from $34/t in March.',c:'bu'},
+    {l:'Combined Exchange Inventory',v:'1.01M MT',d:'COMEX high (tariff hoard) &middot; SHFE 433K→89K &middot; LME <100K',c:'ne'},
+    {l:'Structural Deficit 2040',v:'10 MMT',d:'S&P Global, Jan 2026 (long-term bull)',c:'ac'},
+    {l:'2026 TC/RC Benchmark',v:'$0/t',d:'Historic zero. Concentrate scarcity confirmed',c:'bu'},
+    {l:'China Acid Export Ban',v:'ACTIVE',d:'Effective May 1, 2026. CFR Chile doubled in 7wk: $190→$380',c:'bu'},
+    {l:'Strait of Hormuz',v:'CLOSED',d:'Since Feb 28, 2026. Sulphur supply disruption. Brent $114.',c:'bu'},
+    {l:'Cobre Panama Decision',v:'JUN 2026',d:'Binary catalyst &middot; ~3-5 weeks away. 300kt restart swing.',c:'ac'},
+    {l:'Incentive Price Floor',v:'$8,800/t',d:'$4.00/lb - below = all dev stops',c:'ac'},
+  ];
+  const g=$('div',{cls:'kpi-g'});
+  kpis.forEach(k=>g.appendChild($('div',{cls:'kpi '+k.c},[$('div',{cls:'l',text:k.l}),$('div',{cls:'v',text:k.v}),$('div',{cls:'d',text:k.d})])));
+  root.appendChild(g);
+
+  const tw=$('div',{cls:'two'});
+  const left=$('div');
+  left.appendChild($('div',{cls:'sect',text:'Thesis Summary'}));
+  [{t:'MAY 2026 RERUN: Bear Case Invalidated',p:'The March 20 bear case ($9-11K target) was wrong. Copper bottomed at $11.5K in early April and rallied to $14.1K by mid-May. Two catalysts overwhelmed the bear thesis: (1) Strait of Hormuz closure (Feb 28, ongoing) disrupting Middle East sulphur trade, (2) China sulphuric acid export ban effective May 1, 2026 - the exact scenario gamed out in the April 10 Acid Risk analysis at 5-12% probability. Yangshan premium recovered $34->$51-66/t. SHFE inventory drew 433kt->89kt. The April 10 scenario analysis is now the operative framework.'},
+   {t:'BULL: Structural Deficit (3-10yr) - VALIDATED',p:'17-25yr mine development. Ore grades down 60%. 10 MMT gap by 2040 (S&P Global). Energy transition + AI/data centers + defense. TC/RCs at $0/t (record low) confirm concentrate scarcity. Aurubis hiked 2026 EU premium to record $315/t. Chinese smelters cutting 10%+ in 2026. The non-obvious upside lever (sulphuric acid chokepoint) materialized: Chilean SX-EW now structurally at risk for 200-500 kt year-1 cathode loss. The bull case is no longer structural only - it is current.'},
+   {t:'KEY INSIGHT: Geopolitics Trumped Cyclical Bear',p:'The bear case assumed normal commodity flows. It missed an active crisis: Strait of Hormuz had been closed for 3 weeks when the bear case was published. The inflationary oil shock ($114 Brent) flipped the macro regime, and the sulphur/acid disruption flipped the supply curve. Lesson: scan for active geopolitical crises BEFORE publishing directional commodity calls. Pillar-counting is not conviction - 9 correlated bearish pillars can all be wrong if the rescue catalyst sits in a single tail risk.'},
+   {t:'RESOURCE NATIONALISM + NON-PRICE BOTTLENECKS',p:'Higher Cu prices trigger host govt renegotiation (Chile royalties up to 46.5%, DRC windfall taxes, Panama contract invalidation, Indonesia forced divestiture). Non-price bottlenecks stack: ore grade decline, 17-25yr dev timelines, water/permits, and now actively binding sulphuric acid supply. For an investor at $14K, the cleanest expression is acid-capturing smelters (Aurubis +33%) and sulfide-only miners (IVN) - not heavy SX-EW exposure (SCCO lagged the rally for this reason).'},
+   {t:'COBRE PANAMA - THE NEXT BINARY (June 2026)',p:'Panama President Mulino expects decision by June. Audit completed. If RESTART: adds 300kt to global supply, partially offsets acid-freeze impact, copper could give back $1-1.5K. If DENIED or DELAYED: bull case fully unconstrained. FM stock most directly exposed. Even restart = diluted terms for FM (royalties 2%->8-15%, state equity 20-40%). The June decision is the next pivot, ~3-5 weeks away.'},
+   {t:'POSITIONING UPDATE (May 17, 2026)',p:'Close legacy COPX puts (kill criterion fired in April when SHFE drew below 300kt). Top picks: AURUBIS (33% YTD, record EU premium, acid byproduct revenue), IVANHOE (lagged the rally, sulfide-only, Kamoa Phase 3 2027), MOSAIC/NUTRIEN (phosphate is biggest absolute move from acid crisis), CAMECO (Kazakh constraint compounded by sulphur shortage). Avoid: SCCO (SX-EW), FM (Cobre Panama binary). Probabilities shifted: bear 15%, base 40%, bull 30%, super-bull 15%. See hekate/04-Output/Research/copper-rerun-assessment-2026-05/ for full self-rated assessment.'}
+  ].forEach(b=>left.appendChild($('div',{cls:'box'},[$('h4',{text:b.t}),$('p',{text:b.p})])));
+  tw.appendChild(left);
+
+  const right=$('div');
+  right.appendChild($('div',{cls:'sect',text:'Market Snapshot'}));
+  const mktTbl=$('table');
+  const mh=$('thead');const mhr=$('tr');
+  ['Ticker','Price','1M','YTD','vs 52w High','Signal'].forEach(h=>mhr.appendChild($('th',{text:h})));
+  mh.appendChild(mhr);mktTbl.appendChild(mh);
+  const mb=$('tbody');
+  const keyTks=['HG=F','FCX','BHP','SCCO','IVN','FM','CPER','COPX'];
+  keyTks.forEach(tk=>{
+    const d=getMkt(tk);
+    const tr=$('tr');
+    tr.appendChild($('td',{},[$('strong',{text:tk,style:'font-family:JetBrains Mono,monospace;color:var(--cu)'})]));
+    if(d&&d.price){
+      const cur=d.currency!=='USD'?' '+d.currency:'';
+      tr.appendChild($('td',{text:'$'+d.price.toFixed(2)+cur,style:'font-family:JetBrains Mono,monospace'}));
+      const m1td=$('td');m1td.appendChild(pctSpan(d.m1_return));tr.appendChild(m1td);
+      const ytdtd=$('td');ytdtd.appendChild(pctSpan(d.ytd_return));tr.appendChild(ytdtd);
+      const hightd=$('td');hightd.appendChild(pctSpan(d.pct_from_high));tr.appendChild(hightd);
+      const sig=d.above_200ma===false?'Below 200MA':'Above 200MA';
+      const sigcol=d.above_200ma?'bg':'br';
+      const sigtd=$('td');sigtd.appendChild(badge(sig,sigcol));
+      if(d.golden_cross)sigtd.appendChild(badge(' Golden Cross','bg'));
+      tr.appendChild(sigtd);
+    } else {
+      for(let j=0;j<5;j++)tr.appendChild($('td',{text:'--',style:'color:var(--td)'}));
+    }
+    mb.appendChild(tr);
+  });
+  mktTbl.appendChild(mb);right.appendChild(mktTbl);
+
+  right.appendChild($('div',{cls:'sect',text:'Bank Forecasts',style:'margin-top:20px'}));
+  const ftbl=$('table');const fh=$('thead');const fhr=$('tr');
+  ['Bank','2026 Avg','Commentary'].forEach(h=>fhr.appendChild($('th',{text:h})));
+  fh.appendChild(fhr);ftbl.appendChild(fh);
+  const fb=$('tbody');
+  [['Goldman Sachs (May)','$12,700 Q2 → $12,000 H2','Cut earlier bearish call. "Strong grid + power infra demand keeps prices >$10K." H2 weakness on tariff clarity.'],
+   ['Citigroup','$13-15K/t','Validated. "Long-awaited supply shortage." Acid freeze + Hormuz unmodeled tailwind.'],
+   ['JPMorgan','~$12-13K/t','Deficit narrative confirmed. Multi-year structural call.'],
+   ['Morgan Stanley','Base $10.65K / Bull $12.78K','Most conservative major. Bull scenario already exceeded.'],
+   ['StoneX (Mar)','$11,490 avg [STALE]','March bearish call invalidated by acid + Hormuz catalysts.'],
+   ['World Bank (Jan)','~$9,800 [STALE]','January forecast - significantly below current spot $14.1K LME.']
+  ].forEach(r=>{const tr=$('tr');r.forEach(c=>tr.appendChild($('td',{text:c})));fb.appendChild(tr)});
+  ftbl.appendChild(fb);right.appendChild(ftbl);
+  tw.appendChild(right);root.appendChild(tw);
+}
+
+// ============ UNIVERSE ============
+function renderUni(root){
+  const flt=$('div',{cls:'flt'});
+  function addF(l,id,opts){flt.appendChild($('label',{text:l}));const s=$('select',{id:id});
+    opts.forEach(([v,t])=>s.appendChild($('option',{value:v,text:t})));s.addEventListener('change',()=>buildUni(root));flt.appendChild(s)}
+  addF('Type:','ft',[['all','All'],['miner-major','Majors'],['miner-mid','Mid-Caps'],['etf','ETFs'],['futures','Futures'],['royalty','Royalty'],['equipment','Equipment'],['recycling','Recycling']]);
+  addF('Alignment:','fa',[['all','All'],['strong','Strong Bull'],['moderate','Moderate'],['tactical','Tactical'],['hedge','Hedge']]);
+  addF('Risk:','fr',[['all','All'],['low','Low'],['medium','Medium'],['high','High']]);
+  root.appendChild(flt);root.appendChild($('div',{id:'uni-wrap'}));buildUni(root);
+}
+function buildUni(){
+  const w=document.getElementById('uni-wrap');if(!w)return;while(w.firstChild)w.removeChild(w.firstChild);
+  const ft=document.getElementById('ft')?.value||'all',fa=document.getElementById('fa')?.value||'all',fr=document.getElementById('fr')?.value||'all';
+  let items=INV;if(ft!=='all')items=items.filter(i=>i.tp===ft);if(fa!=='all')items=items.filter(i=>i.al===fa);if(fr!=='all')items=items.filter(i=>i.rk===fr);
+  const t=$('table');const th=$('thead');const hr=$('tr');
+  ['Ticker','Price','Mkt Cap','P/E','YTD','1M','Alignment','Cu Lev','Risk','Key Factor','Action'].forEach(h=>hr.appendChild($('th',{text:h})));
+  th.appendChild(hr);t.appendChild(th);
+  const tb=$('tbody');
+  items.forEach(i=>{
+    const d=getMkt(i.tk);
+    const tr=$('tr',{cls:'uni-row'});
+    tr.addEventListener('click',()=>toggleDetail(tr,i));
+    const tkTd=$('td');
+    tkTd.appendChild($('span',{cls:'caret',text:'\u25B6'}));
+    tkTd.appendChild($('strong',{text:i.tk,style:'font-family:JetBrains Mono,monospace;color:var(--cu)'}));tkTd.appendChild($('br'));
+    tkTd.appendChild($('span',{text:i.ex,style:'font-size:10px;color:var(--tl);margin-left:15px'}));tr.appendChild(tkTd);
+    if(d&&d.price){
+      const cur=d.currency!=='USD'?' '+d.currency:'';
+      tr.appendChild($('td',{text:'$'+d.price.toFixed(2)+cur,style:'font-family:JetBrains Mono,monospace'}));
+      tr.appendChild($('td',{text:d.market_cap_fmt||'--',style:'color:var(--td)'}));
+      tr.appendChild($('td',{text:d.forward_pe?d.forward_pe+'x':'--',style:'font-family:JetBrains Mono,monospace;color:var(--td)'}));
+      const ytdTd=$('td');ytdTd.appendChild(pctSpan(d.ytd_return));tr.appendChild(ytdTd);
+      const m1Td=$('td');m1Td.appendChild(pctSpan(d.m1_return));tr.appendChild(m1Td);
+    } else { for(let j=0;j<5;j++)tr.appendChild($('td',{text:'--',style:'color:var(--td)'})) }
+    const alTd=$('td');alTd.appendChild(abadge(i.al));tr.appendChild(alTd);
+    const lvTd=$('td');lvTd.appendChild(levbar(i.lev));tr.appendChild(lvTd);
+    const rkTd=$('td');rkTd.appendChild(rbadge(i.rk));tr.appendChild(rkTd);
+    tr.appendChild($('td',{text:i.kf,style:'font-size:12px;max-width:260px'}));
+    const acTd=$('td');acTd.appendChild(actbadge(i.act));tr.appendChild(acTd);
+    tb.appendChild(tr);
+  });
+  t.appendChild(tb);w.appendChild(t);
+}
+
+function toggleDetail(tr,i){
+  const next=tr.nextElementSibling;
+  if(next&&next.classList.contains('uni-detail')){
+    next.remove();tr.classList.remove('uni-row-open');return;
+  }
+  document.querySelectorAll('.uni-detail').forEach(el=>el.remove());
+  document.querySelectorAll('.uni-row-open').forEach(el=>el.classList.remove('uni-row-open'));
+  tr.classList.add('uni-row-open');
+  const detailTr=document.createElement('tr');detailTr.className='uni-detail';
+  const td=document.createElement('td');td.setAttribute('colspan','11');
+  td.appendChild(buildDetailPanel(i));
+  detailTr.appendChild(td);
+  tr.parentNode.insertBefore(detailTr,tr.nextSibling);
+}
+
+function buildDetailPanel(i){
+  const d=getMkt(i.tk);
+  const panel=$('div',{cls:'uni-detail-panel'});
+
+  // Col 1: thesis + acid
+  const c1=$('div',{cls:'dp-col'});
+  c1.appendChild($('h5',{text:i.nm}));
+  c1.appendChild($('div',{text:i.tk+' \u00B7 '+i.ex+' \u00B7 '+i.tp.replace(/-/g,' '),style:'font-size:11px;color:var(--tl);margin-bottom:12px;letter-spacing:0.3px'}));
+  c1.appendChild($('div',{cls:'dp-sect',text:'Thesis'}));
+  c1.appendChild($('div',{cls:'dp-kf',text:i.kf}));
+  const actWrap=$('div',{style:'display:flex;gap:8px;align-items:center;margin-bottom:12px'});
+  actWrap.appendChild($('span',{text:'Action:',style:'font-size:10px;color:var(--td);text-transform:uppercase;letter-spacing:0.5px'}));
+  actWrap.appendChild(actbadge(i.act));
+  actWrap.appendChild($('span',{text:'\u00B7',style:'color:var(--tl)'}));
+  actWrap.appendChild(abadge(i.al));
+  actWrap.appendChild($('span',{text:'\u00B7',style:'color:var(--tl)'}));
+  actWrap.appendChild(rbadge(i.rk));
+  c1.appendChild(actWrap);
+
+  // Acid exposure
+  const ae=ACID.EXP[i.tk];
+  if(ae){
+    c1.appendChild($('div',{cls:'dp-sect',text:'H2SO4 Freeze Exposure'}));
+    const aCol=ae.s===2?'bg':ae.s===1?'bg':ae.s===0?'bb':ae.s===-1?'by':'br';
+    const aLbl=ae.s===2?'STRONG WIN':ae.s===1?'WIN':ae.s===0?'NEUTRAL':ae.s===-1?'LOSS':'STRONG LOSS';
+    const aBox=$('div',{cls:'dp-acid'});
+    const aHead=$('div',{style:'margin-bottom:4px'});aHead.appendChild(badge(aLbl,aCol));aBox.appendChild(aHead);
+    aBox.appendChild(document.createTextNode(ae.n));
+    c1.appendChild(aBox);
+  }
+  panel.appendChild(c1);
+
+  // Col 2: market data + scorecard
+  const c2=$('div',{cls:'dp-col'});
+  c2.appendChild($('div',{cls:'dp-sect',text:'Market Data'}));
+  const mkt=$('div',{cls:'dp-mkt'});
+  if(d&&d.price){
+    const cur=d.currency!=='USD'?' '+d.currency:'';
+    const rows=[
+      ['Price','$'+d.price.toFixed(2)+cur],
+      ['Market Cap',d.market_cap_fmt||'--'],
+      ['Fwd P/E',d.forward_pe?d.forward_pe+'x':'--'],
+      ['YTD',d.ytd_return!=null?(d.ytd_return>0?'+':'')+d.ytd_return.toFixed(1)+'%':'--'],
+      ['1-Month',d.m1_return!=null?(d.m1_return>0?'+':'')+d.m1_return.toFixed(1)+'%':'--'],
+      ['Beta',d.beta!=null?d.beta.toFixed(2):'--'],
+      ['52w High','$'+(d.w52_high||0).toFixed(2)],
+      ['52w Low','$'+(d.w52_low||0).toFixed(2)],
+      ['vs High',(d.pct_from_high!=null?d.pct_from_high.toFixed(1)+'%':'--')],
+      ['50-day MA',d.ma_50!=null?'$'+d.ma_50.toFixed(2):'--'],
+      ['200-day MA',d.ma_200!=null?'$'+d.ma_200.toFixed(2):'--'],
+      ['Above 200MA',d.above_200ma==null?'--':(d.above_200ma?'Yes':'No')]
+    ];
+    rows.forEach(([k,v])=>{
+      mkt.appendChild($('span',{cls:'k',text:k}));
+      mkt.appendChild($('span',{cls:'v',text:String(v)}));
+    });
+  } else {
+    mkt.appendChild($('span',{cls:'k',text:'No market data'}));
+    mkt.appendChild($('span',{cls:'v',text:'--'}));
+  }
+  c2.appendChild(mkt);
+
+  // Scorecard
+  c2.appendChild($('div',{cls:'dp-sect',text:'Thesis Scorecard',style:'margin-top:14px'}));
+  const sc=$('div',{cls:'dp-sc'});
+  const scLabels=[['su','Supply'],['en','Energy'],['ai','AI'],['ge','Geo'],['ca','Catalyst'],['ma','M&A']];
+  scLabels.forEach(([k,l])=>{
+    const row=$('div',{cls:'row'});
+    row.appendChild($('span',{cls:'lbl',text:l}));
+    const bar=$('div',{cls:'bar'});
+    const fill=$('div',{cls:'bar-f',style:'width:'+((i.sc[k]||0)*20)+'%'});
+    bar.appendChild(fill);row.appendChild(bar);
+    row.appendChild($('span',{cls:'num',text:String(i.sc[k]||0)}));
+    sc.appendChild(row);
+  });
+  const tot=Object.values(i.sc).reduce((a,b)=>a+b,0);
+  const totRow=$('div',{cls:'row',style:'margin-top:4px;padding-top:6px;border-top:1px solid var(--bd)'});
+  totRow.appendChild($('span',{cls:'lbl',text:'Total',style:'color:var(--cud);font-weight:700'}));
+  totRow.appendChild($('span',{text:String(tot)+'/30',style:'font-family:JetBrains Mono,monospace;color:var(--cu);font-weight:700;font-size:12px'}));
+  sc.appendChild(totRow);
+  c2.appendChild(sc);
+  panel.appendChild(c2);
+
+  // Col 3: scenario returns + leverage + chain
+  const c3=$('div',{cls:'dp-col'});
+  c3.appendChild($('div',{cls:'dp-sect',text:'Scenario Returns'}));
+  const rets=$('div',{cls:'dp-ret'});
+  [['Bear','bear','r'],['Base','base','y'],['Bull','bull','g'],['Super','superbull','g']].forEach(([l,k])=>{
+    const cell=$('div',{cls:'cell'});
+    cell.appendChild($('div',{cls:'l',text:l}));
+    const v=i.rt[k];
+    cell.appendChild($('div',{cls:'v',style:'color:'+(v>=0?'var(--g)':'var(--r)'),text:(v>=0?'+':'')+v+'%'}));
+    rets.appendChild(cell);
+  });
+  c3.appendChild(rets);
+
+  // Leverage
+  c3.appendChild($('div',{cls:'dp-sect',text:'Cu Leverage',style:'margin-top:14px'}));
+  const lvWrap=$('div',{style:'margin-top:6px'});
+  lvWrap.appendChild(levbar(i.lev));
+  c3.appendChild(lvWrap);
+
+  // EV
+  const total=scenProbs.bear+scenProbs.base+scenProbs.bull+scenProbs.superbull||100;
+  const ev=(scenProbs.bear*i.rt.bear+scenProbs.base*i.rt.base+scenProbs.bull*i.rt.bull+scenProbs.superbull*i.rt.superbull)/total;
+  c3.appendChild($('div',{cls:'dp-sect',text:'Expected Value (prob-wtd)',style:'margin-top:14px'}));
+  const evBox=$('div',{style:'font-family:JetBrains Mono,monospace;font-size:22px;font-weight:700;color:'+(ev>=0?'var(--g)':'var(--r)')+';margin-top:6px'});
+  evBox.textContent=(ev>=0?'+':'')+ev.toFixed(1)+'%';
+  c3.appendChild(evBox);
+  c3.appendChild($('div',{style:'font-size:10px;color:var(--tl);margin-top:2px',text:'Uses current scenario sliders'}));
+
+  // Chain association
+  const chainLayer=CHAIN.find(c=>c.cos.includes(i.tk));
+  if(chainLayer){
+    c3.appendChild($('div',{cls:'dp-sect',text:'Value Chain',style:'margin-top:14px'}));
+    c3.appendChild($('div',{style:'font-size:12px;color:var(--t);margin-top:6px;font-weight:600',text:chainLayer.nm}));
+    c3.appendChild($('div',{style:'font-size:11px;color:var(--td);margin-top:4px;line-height:1.5',text:chainLayer.th}));
+  }
+  panel.appendChild(c3);
+
+  return panel;
+}
+
+// ============ SCENARIOS ============
+function renderScen(root){
+  const ctrl=$('div',{style:'display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px'});
+  Object.entries(SCEN).forEach(([k,s])=>{
+    ctrl.appendChild($('button',{cls:'sc-btn'+(k==='base'?' active':''),text:s.nm+' ('+s.pr+') '+s.pb+'%',
+      onclick:e=>{curScen=k;document.querySelectorAll('.sc-btn').forEach(b=>b.classList.remove('active'));e.target.classList.add('active');rebuildScen()}}))});
+  root.appendChild(ctrl);
+  root.appendChild($('div',{cls:'sect',text:'Adjust Scenario Probabilities'}));
+  const slRow=$('div',{cls:'flt',id:'sl-row'});
+  Object.entries(SCEN).forEach(([k,s])=>{
+    slRow.appendChild($('label',{text:s.nm+':'}));
+    const sp=$('span',{id:'sp-'+k,text:scenProbs[k]+'%',style:'font-family:JetBrains Mono,monospace;color:var(--cu);font-weight:600;min-width:32px;display:inline-block'});
+    const sl=$('input',{type:'range',min:'0',max:'100',value:String(scenProbs[k]),id:'sl-'+k});
+    sl.addEventListener('input',()=>{scenProbs[k]=parseInt(sl.value);sp.textContent=scenProbs[k]+'%';rebuildEV()});
+    slRow.appendChild(sl);slRow.appendChild(sp);
+  });
+  root.appendChild(slRow);
+  root.appendChild($('div',{id:'ev-row',cls:'ev-row'}));
+  root.appendChild($('div',{id:'sc-detail',cls:'box',style:'margin-bottom:16px'}));
+  root.appendChild($('div',{id:'sc-tbl-wrap'}));
+  rebuildScen();rebuildEV();
+}
+function rebuildScen(){
+  const s=SCEN[curScen];const d=document.getElementById('sc-detail');if(!d)return;
+  while(d.firstChild)d.removeChild(d.firstChild);
+  d.appendChild($('h4',{text:s.nm+' \u2014 '+s.pr+' ('+s.pb+'% base probability)'}));
+  d.appendChild($('p',{text:s.cond}));
+  const w=document.getElementById('sc-tbl-wrap');if(!w)return;while(w.firstChild)w.removeChild(w.firstChild);
+  const sorted=[...INV].sort((a,b)=>b.rt[curScen]-a.rt[curScen]);
+  const t=$('table');const th=$('thead');const hr=$('tr');
+  ['Ticker','Name','Type','Est. Return','Confidence','Rationale'].forEach(h=>hr.appendChild($('th',{text:h})));
+  th.appendChild(hr);t.appendChild(th);
+  const tb=$('tbody');
+  sorted.forEach(i=>{
+    const ret=i.rt[curScen];const tr=$('tr');
+    tr.appendChild($('td',{},[$('strong',{text:i.tk,style:'font-family:JetBrains Mono,monospace;color:var(--cu)'})]));
+    tr.appendChild($('td',{text:i.nm}));tr.appendChild($('td',{text:i.tp.replace(/-/g,' ')}));
+    tr.appendChild($('td',{cls:ret>=0?'pnl-p':'pnl-n',text:(ret>=0?'+':'')+ret+'%'}));
+    tr.appendChild($('td',{text:i.al==='strong'?'High':i.al==='moderate'?'Medium':'Low'}));
+    tr.appendChild($('td',{text:i.kf,style:'font-size:12px;max-width:320px'}));tb.appendChild(tr)});
+  t.appendChild(tb);w.appendChild(t);
+}
+function rebuildEV(){
+  const evr=document.getElementById('ev-row');if(!evr)return;while(evr.firstChild)evr.removeChild(evr.firstChild);
+  const total=scenProbs.bear+scenProbs.base+scenProbs.bull+scenProbs.superbull;
+  const cuEV=(scenProbs.bear*9750+scenProbs.base*11250+scenProbs.bull*13000+scenProbs.superbull*15000)/total;
+  const cuNow=getMkt('HG=F')&&getMkt('HG=F').price?Math.round(getMkt('HG=F').price*2204.62):12700;
+  const cuUp=((cuEV-cuNow)/cuNow*100).toFixed(1);
+  const evs=INV.map(i=>{const ev=(scenProbs.bear*i.rt.bear+scenProbs.base*i.rt.base+scenProbs.bull*i.rt.bull+scenProbs.superbull*i.rt.superbull)/total;return{...i,ev:Math.round(ev*10)/10}}).sort((a,b)=>b.ev-a.ev);
+
+  const c1=$('div',{cls:'ev-card'});c1.appendChild($('h4',{text:'Expected Cu Price'}));
+  c1.appendChild($('div',{cls:'ev-val',style:'color:var(--cu)',text:'$'+Math.round(cuEV).toLocaleString()+'/t'}));
+  c1.appendChild($('div',{cls:'d',text:'vs current ~$'+cuNow.toLocaleString()+' = '+cuUp+'% implied'}));
+  evr.appendChild(c1);
+
+  const c2=$('div',{cls:'ev-card'});c2.appendChild($('h4',{text:'Best EV: '+evs[0].tk}));
+  c2.appendChild($('div',{cls:'ev-val',style:'color:var(--g)',text:'+'+evs[0].ev+'%'}));
+  c2.appendChild($('div',{cls:'d',text:evs[0].nm}));evr.appendChild(c2);
+
+  const c3=$('div',{cls:'ev-card'});c3.appendChild($('h4',{text:'2nd: '+evs[1].tk+' | 3rd: '+evs[2].tk}));
+  c3.appendChild($('div',{cls:'ev-val',style:'color:var(--g)',text:'+'+evs[1].ev+'% | +'+evs[2].ev+'%'}));
+  c3.appendChild($('div',{cls:'d',text:'Probability-weighted expected returns'}));evr.appendChild(c3);
+
+  const c4=$('div',{cls:'ev-card'});c4.appendChild($('h4',{text:'Prob Sanity Check'}));
+  const ok=Math.abs(total-100)<1;
+  c4.appendChild($('div',{cls:'ev-val',style:'color:'+(ok?'var(--g)':'var(--r)'),text:total+'%'}));
+  c4.appendChild($('div',{cls:'d',text:ok?'Probabilities sum to ~100%':'Adjust sliders to sum to 100%'}));evr.appendChild(c4);
+}
+
+// ============ MARKET TIMING ============
+function renderTiming(root){
+  root.appendChild($('div',{cls:'sect',text:'Market Timing Signals'}));
+  const cu=getMkt('HG=F');const fcx=getMkt('FCX');const copx=getMkt('COPX');
+  const cuPrice=cu&&cu.price?cu.price:5.76;const cuT=Math.round(cuPrice*2204.62);
+  const signals=[
+    {l:'Yangshan Import Premium',v:'$34/t',d:'CRITICAL: Buyers strike. Normal $60-100. Below $50 = demand rejection.',bull:false},
+    {l:'SHFE Net Positioning',v:'Max Short Since 2021',d:'Chinese industrial players with physical visibility are bearish.',bull:false},
+    {l:'CFTC Spec Net Longs',v:'80th Percentile',d:'Western specs max long. Unwind risk = rapid 15-25% correction.',bull:false},
+    {l:'Global Visible Stocks',v:'1.39M MT (23yr high)',d:'COMEX 536K + SHFE 433K. Contradicts shortage narrative.',bull:false},
+    {l:'China Mfg PMI',v:'49.0 (Feb 2026)',d:'Second consecutive month in contraction.',bull:false},
+    {l:'Cu vs 200-day MA',v:cu&&cu.above_200ma!==undefined?(cu.above_200ma?'ABOVE':'BELOW'):'--',
+     d:cu&&cu.ma_200?'200MA: $'+cu.ma_200.toFixed(2)+'/lb':'',bull:cu?cu.above_200ma:null},
+    {l:'TC/RC Benchmark 2026',v:'$0/tonne',d:'Historic zero. Concentrate scarcity signal.',bull:true},
+    {l:'Chinese Smelter Cuts',v:'>10% in 2026',d:'Govt halted ~2 MMT new capacity. Bullish for refined supply.',bull:true},
+    {l:'Cu vs Incentive Floor',v:cuT>8800?Math.round((cuT-8800)/8800*100)+'% above':'AT FLOOR',
+     d:'$8,800/t ($4.00/lb) = price floor',bull:cuT>9500},
+    {l:'Al Substitution Trend',v:'Accelerating',d:'State Grid Al tenders +40%. Partially irreversible demand destruction.',bull:false},
+    {l:'Resource Nationalism',v:'Active Cycle',d:'Chile royalties, DRC windfall tax, Panama. Caps equity upside >$5/lb.',bull:false},
+    {l:'Cobre Panama',v:'Decision June 2026',d:'Even restart = diluted economics for FM. Binary for stock, not for Cu.',bull:null},
+    {l:'H2SO4 Freeze Risk (China)',v:'Tail (5-12%)',d:'Full freeze scenario: 250-500 kt cathode loss, neutralizes GS surplus. See Acid Risk tab.',bull:null},
+    {l:'Acid CFR Chile',v:'Monitor',d:'Normal <$80/t. Stress >$150. Crisis >$300. Earliest leading indicator.',bull:null},
+  ];
+
+  const sigGrid=$('div',{cls:'sig-row'});
+  signals.forEach(s=>{
+    const col=s.bull===true?'var(--g)':s.bull===false?'var(--r)':'var(--y)';
+    const sig=$('div',{cls:'sig'});
+    sig.appendChild($('div',{cls:'sl',text:s.l}));
+    sig.appendChild($('div',{cls:'sv',style:'color:'+col,text:s.v}));
+    sig.appendChild($('div',{cls:'sd',text:s.d}));
+    sigGrid.appendChild(sig);
+  });
+  root.appendChild(sigGrid);
+
+  const bullCount=signals.filter(s=>s.bull===true).length;
+  const bearCount=signals.filter(s=>s.bull===false).length;
+  const netSignal=bullCount-bearCount;
+  const netBox=$('div',{cls:'box',style:'margin-bottom:24px'});
+  const netCol=netSignal>=3?'var(--g)':netSignal>=-1?'var(--y)':'var(--r)';
+  const netLabel=netSignal>=3?'BULLISH':netSignal>=1?'LEAN BULLISH':netSignal>=-2?'CAUTIOUS':'BEARISH';
+  netBox.appendChild($('h4',{text:'Net Signal: '+bullCount+' bull / '+bearCount+' bear = '+netLabel,style:'color:'+netCol}));
+  netBox.appendChild($('p',{text:'Short-term (6-24mo): BEARISH. Physical market in acute demand destruction. Yangshan at $34, inventories at 23yr high, Chinese industrials max short. Long-term (3-10yr): BULLISH. Structural deficit is mathematical certainty. Best strategy: wait for near-term correction to $9.5-11K/t, then build structural long. For equities, prefer physical/futures over miners due to resource nationalism cap on upside.'}));
+  root.appendChild(netBox);
+
+  root.appendChild($('div',{cls:'sect',text:'Entry & Exit Framework'}));
+  const tw=$('div',{cls:'two'});
+  const entryBox=$('div');
+  entryBox.appendChild($('div',{cls:'box'},[$('h4',{text:'NEAR-TERM: BEAR HEDGE (Now)'}),
+    $('p',{text:'COPX puts (3-6mo, 15-20% OTM). 1-2% of portfolio. Defined risk. COPX delivers 1.5-2x copper downside via miner operating leverage. September 2026 expiry to capture Q2-Q3 correction window.'})]));
+  entryBox.appendChild($('div',{cls:'box'},[$('h4',{text:'ACCUMULATE LONG (After Correction)'}),
+    $('p',{text:'Cu below $10,000/t (~$4.50/lb) AND Yangshan recovers above $60/t AND SHFE inventory draws below 300K t. This is the structural entry point - near incentive floor with physical market confirming recovery. Prefer physical copper (CPER, Sprott COP.UN) over miners.'})]));
+  entryBox.appendChild($('div',{cls:'box'},[$('h4',{text:'WAIT - DO NOT ENTER LONG NOW'}),
+    $('p',{text:'Physical market in acute demand destruction. Inventories at 23-yr high. Specs max long. The market is pricing 2030 into 2026 spot. Best long entry on further pullback toward $9,500-10,500/t.'})]));
+  tw.appendChild(entryBox);
+  const exitBox=$('div');
+  exitBox.appendChild($('div',{cls:'box'},[$('h4',{text:'BEAR CASE FAILING IF'}),
+    $('p',{text:'Yangshan premium recovers above $80/t (buyers returning). SHFE inventory draws below 300K t. China PMI prints above 50.5 for two consecutive months. COPX outflows exceed $500M/month (capitulation). If 3 of 4 occur: close bear hedges, rotate to structural long.'})]));
+  exitBox.appendChild($('div',{cls:'box'},[$('h4',{text:'BULL THESIS INVALIDATION'}),
+    $('p',{text:'TC/RCs return to +$30/t (scarcity resolved). Substitute breakthrough. Deep-sea mining at >500K tpa. China pivots away from grid electrification. All three demand pillars slowing simultaneously.'})]));
+  exitBox.appendChild($('div',{cls:'box'},[$('h4',{text:'RESOURCE NATIONALISM WARNING'}),
+    $('p',{text:'Above $5/lb: prefer physical copper/futures over mining equities. Host governments capture increasing share of upside (Chile royalties, DRC windfall tax, Panama renegotiation, Indonesia divestiture). Physical copper = 100% of price move. Miners = price minus govt take.'})]));
+  tw.appendChild(exitBox);
+  root.appendChild(tw);
+
+  root.appendChild($('div',{cls:'sect',text:'Position Sizing Guide'}));
+  const posBox=$('div',{cls:'box'});
+  posBox.appendChild($('h4',{text:'Thesis-Aligned Allocation'}));
+  const posTbl=$('table');const pth=$('thead');const phr=$('tr');
+  ['Vehicle','Allocation %','Role','When to Enter'].forEach(h=>phr.appendChild($('th',{text:h})));
+  pth.appendChild(phr);posTbl.appendChild(pth);
+  const ptb=$('tbody');
+  [['COPX puts (Sep 2026)','1-2%','Bear hedge','NOW - defined risk, 1.5-2x Cu leverage'],
+   ['Cash reserve','40-50%','Dry powder for correction','Deploy on Cu <$10,000/t'],
+   ['CPER or HG futures','15-20%','Core Cu exposure (post-correction)','After Yangshan >$60, SHFE draws'],
+   ['FCX + SCCO','10-15%','Major miner leverage','After correction + resource natl. discount'],
+   ['Sprott COP.UN','5-10%','Physical Cu, no futures drag','After NYSE listing, Cu <$10K'],
+   ['IVN','3-5%','High-growth, high-risk','DRC stability, Cu recovery confirmed'],
+   ['FM','0%','AVOID at current levels','Only at CAD $15-20 (resource natl. priced in)'],
+  ].forEach(r=>{const tr=$('tr');r.forEach(c=>tr.appendChild($('td',{text:c})));ptb.appendChild(tr)});
+  posTbl.appendChild(ptb);posBox.appendChild(posTbl);root.appendChild(posBox);
+}
+
+// ============ CATALYSTS ============
+function renderCats(root){
+  root.appendChild($('div',{cls:'sect',text:'Catalyst Timeline'}));
+  const tl=$('div',{cls:'tl'});
+  CATS.forEach(c=>{
+    const scol={critical:'r',high:'y',medium:'b'}[c.sg]||'b';
+    const item=$('div',{cls:'tl-i'+(c.tp==='past'?' past':'')});
+    const dtDiv=$('div',{cls:'dt'});dtDiv.appendChild(document.createTextNode(c.dt+' '));dtDiv.appendChild(badge(c.sg.toUpperCase(),scol));
+    item.appendChild(dtDiv);item.appendChild($('h4',{text:c.ti}));item.appendChild($('div',{cls:'imp',text:c.im}));tl.appendChild(item)});
+  root.appendChild(tl);
+}
+
+// ============ SUPPLY CHAIN ============
+function renderChain(root){
+  root.appendChild($('div',{cls:'sect',text:'Copper Value Chain'}));
+  CHAIN.forEach(layer=>{
+    const el=$('div',{cls:'chain'});
+    el.appendChild($('div',{cls:'chain-h'},[$('h4',{text:layer.nm}),$('span',{cls:'tn',text:layer.th})]));
+    const body=$('div',{cls:'chain-b'});
+    layer.cos.forEach(tk=>{const inv=INV.find(i=>i.tk===tk);const nm=inv?inv.nm:tk;
+      const d=getMkt(tk);const priceStr=d&&d.price?' $'+d.price.toFixed(2):'';
+      body.appendChild($('span',{cls:'chip'},[$('span',{cls:'tk',text:tk}),document.createTextNode(' '+nm+priceStr)]))});
+    el.appendChild(body);root.appendChild(el)});
+}
+
+// ============ SCORECARD ============
+function renderScore(root){
+  root.appendChild($('div',{cls:'sect',text:'Thesis Scorecard'}));
+  root.appendChild($('p',{text:'Each factor 0-5. Higher total = more thesis-aligned. EV = probability-weighted expected return.',style:'color:var(--td);font-size:12px;margin-bottom:14px'}));
+  const t=$('table');const th=$('thead');const hr=$('tr');
+  ['Ticker','Name','Supply','Energy','AI','Geo','Catalyst','M&A','Total','EV','Verdict'].forEach(h=>hr.appendChild($('th',{text:h})));
+  th.appendChild(hr);t.appendChild(th);
+  const total=scenProbs.bear+scenProbs.base+scenProbs.bull+scenProbs.superbull||100;
+  const scored=INV.map(i=>{const tot=Object.values(i.sc).reduce((a,b)=>a+b,0);
+    const ev=(scenProbs.bear*i.rt.bear+scenProbs.base*i.rt.base+scenProbs.bull*i.rt.bull+scenProbs.superbull*i.rt.superbull)/total;
+    return{...i,tot,ev:Math.round(ev*10)/10}}).sort((a,b)=>b.tot-a.tot);
+  const tb=$('tbody');
+  scored.forEach(i=>{
+    const tr=$('tr');
+    tr.appendChild($('td',{},[$('strong',{text:i.tk,style:'font-family:JetBrains Mono,monospace;color:var(--cu)'})]));
+    tr.appendChild($('td',{text:i.nm}));
+    tr.appendChild(scell(i.sc.su));tr.appendChild(scell(i.sc.en));tr.appendChild(scell(i.sc.ai));
+    tr.appendChild(scell(i.sc.ge));tr.appendChild(scell(i.sc.ca));tr.appendChild(scell(i.sc.ma));
+    tr.appendChild($('td',{text:String(i.tot),style:'font-family:JetBrains Mono,monospace;font-weight:700;color:var(--cu)'}));
+    const evTd=$('td');evTd.appendChild($('span',{text:(i.ev>=0?'+':'')+i.ev+'%',style:'font-family:JetBrains Mono,monospace;color:'+(i.ev>=0?'var(--g)':'var(--r)')+';font-weight:600'}));
+    tr.appendChild(evTd);
+    const vTd=$('td');
+    if(i.tot>=24)vTd.appendChild(badge('Strong Buy','g'));else if(i.tot>=18)vTd.appendChild(badge('Buy','y'));
+    else if(i.tot>=12)vTd.appendChild(badge('Hold','b'));else vTd.appendChild(badge('Avoid','r'));
+    tr.appendChild(vTd);tb.appendChild(tr)});
+  t.appendChild(tb);root.appendChild(t);
+}
+
+// ============ ACID RISK ============
+function renderAcid(root){
+  // Hero box
+  const hero=$('div',{cls:'box',style:'margin-bottom:20px;border-left:3px solid var(--cu)'});
+  hero.appendChild($('h4',{text:'SCENARIO: CHINA FREEZES SULPHURIC ACID EXPORTS'}));
+  hero.appendChild($('p',{text:'A complete Chinese H2SO4 export freeze would flip copper from the current bear trajectory back to the structural bull case within 3-9 months. The mechanism runs through Chilean SX-EW cathode production (≥1.5 Mt/y, 30-45% dependent on Chinese acid imports), not Chinese smelting. Year-1 cathode loss of 250-500 kt is roughly the same magnitude as Goldman\'s 300 kt 2026 surplus forecast - enough to neutralize the entire bear-case supply pillar. The biggest absolute price moves, however, are NOT in copper: phosphate fertilizers (+40-80%), uranium (+$15-25/lb), and ex-China lithium hydroxide (+10-25%) all squeeze harder than copper does.'}));
+  root.appendChild(hero);
+
+  // Headline KPIs
+  const kpis=[
+    {l:'Chilean SX-EW at risk',v:'1.5-1.8 Mt/y',d:'~20% of Chilean output, all in acid pathway',c:'ac'},
+    {l:'Year-1 cathode loss',v:'250-500 kt',d:'≈ Goldman 300 kt 2026 surplus. Bear case neutralized.',c:'be'},
+    {l:'Cu price impact',v:'+$1.5-3K/t',d:'3-9 month rally. Bear → mid-bull regime.',c:'bu'},
+    {l:'Full freeze probability',v:'5-12%',d:'24mo horizon. Partial: 25-35%.',c:'ne'},
+    {l:'China share of Chile acid imports',v:'30-45%',d:'The swing pool in global acid trade',c:'ac'},
+    {l:'Phosphate price spike',v:'+40-80%',d:'Biggest absolute move. 60% of acid → phosphate',c:'be'},
+    {l:'Substitution timeline',v:'24-36 mo',d:'New acid plant build. No fast fix.',c:'ne'},
+    {l:'Mine acid buffer',v:'2-6 weeks',d:'No strategic national reserve',c:'be'}
+  ];
+  const g=$('div',{cls:'kpi-g'});
+  kpis.forEach(k=>g.appendChild($('div',{cls:'kpi '+k.c},[$('div',{cls:'l',text:k.l}),$('div',{cls:'v',text:k.v}),$('div',{cls:'d',text:k.d})])));
+  root.appendChild(g);
+
+  // Mechanism + causal chain
+  const tw1=$('div',{cls:'two'});
+  const leftCol=$('div');
+  leftCol.appendChild($('div',{cls:'sect',text:'The Mechanism'}));
+  [
+    {t:'SMELTING: PRODUCES ACID',p:'75-80% of global Cu mine output enters smelters as concentrate. Every tonne of smelted Cu generates 3.5-4.2 t of byproduct H2SO4 from SO2 capture. Global smelter acid output: 70-90 Mt/y. China\'s 14.3 Mt Cu smelting capacity is the single largest byproduct acid block on earth.'},
+    {t:'SX-EW: CONSUMES ACID',p:'18-22% of global Cu mine output comes via heap leach + SX-EW. Consumes 2.5-5 t H2SO4 per tonne of cathode. Chile is overwhelmingly the largest SX-EW producer (1.5-1.8 Mt/y of cathode). Total Chilean mining acid demand is 8-11 Mt/y including lithium and iodine.'},
+    {t:'CHILE: STRUCTURAL IMPORTER',p:'Chilean smelters produce only 5-7 Mt acid domestically. Structural 3-5 Mt/y import deficit. Main suppliers: China, Peru, Japan, Korea, Mexico. China is the marginal swing pool because Japanese/Korean volumes are long-term contracted while Chinese exports are the residual.'},
+    {t:'WHY ACID IS A COPPER STORY',p:'Global smelter acid and SX-EW consumption roughly net out at a global level. But the geography is mismatched. Chile is short; China is the largest swing supplier. A Chinese freeze turns a geographically balanced market into an acute Chilean shortage with no fast substitution path.'}
+  ].forEach(b=>leftCol.appendChild($('div',{cls:'box'},[$('h4',{text:b.t}),$('p',{text:b.p})])));
+  tw1.appendChild(leftCol);
+
+  const rightCol=$('div');
+  rightCol.appendChild($('div',{cls:'sect',text:'Transmission Chain (3-9 months)'}));
+  const chainBox=$('div',{cls:'box'});
+  chainBox.appendChild($('h4',{text:'CAUSAL SEQUENCE'}));
+  const ol=$('ol',{style:'font-size:13px;color:var(--td);line-height:1.9;padding-left:22px;margin-top:6px'});
+  ACID.CAUSAL.forEach(step=>ol.appendChild($('li',{text:step,style:'margin-bottom:2px'})));
+  chainBox.appendChild(ol);
+  rightCol.appendChild(chainBox);
+  const amplBox=$('div',{cls:'box'});
+  amplBox.appendChild($('h4',{text:'WHY THIS HITS HARDER NOW'}));
+  amplBox.appendChild($('p',{text:'Three pre-existing conditions amplify any acid shock: (1) TC/RCs at $0 benchmark — concentrate market already desperate, no spare smelter slack. (2) The 2025 "surplus" is mostly COMEX tariff-front-running inventory, not free-floating supply. (3) Yangshan at $34 means Chinese fabricators are already on strike. A clean copper rally is NOT available; the path is volatile, not smooth. Best-conviction trades are in adjacent markets, not Cu itself.'}));
+  rightCol.appendChild(amplBox);
+  const cobreBox=$('div',{cls:'box'});
+  cobreBox.appendChild($('h4',{text:'INTERACTION WITH COBRE PANAMA'}));
+  cobreBox.appendChild($('p',{text:'If both the acid freeze and the June 2026 Cobre Panama restart happen together, they cancel at the cathode level but shift geography: Panama feeds Chinese smelters, acid freeze pulls cathode out of Chile. The bear case requires restart PLUS no new disruption. Acid freeze removes that second condition by itself.'}));
+  rightCol.appendChild(cobreBox);
+  tw1.appendChild(rightCol);
+  root.appendChild(tw1);
+
+  // Product impact matrix
+  root.appendChild($('div',{cls:'sect',text:'Product Impact Matrix',style:'margin-top:24px'}));
+  const pt=$('table');
+  const pth=$('thead');const phr=$('tr');
+  ['Product','Direction','Magnitude','Volume at Risk','Mechanism'].forEach(h=>phr.appendChild($('th',{text:h})));
+  pth.appendChild(phr);pt.appendChild(pth);
+  const ptb=$('tbody');
+  ACID.PRODUCTS.forEach(p=>{
+    const tr=$('tr');
+    tr.appendChild($('td',{},[$('strong',{text:p.nm})]));
+    const dirCol=p.dir==='++'?'g':p.dir==='+'?'g':p.dir==='−'?'r':'y';
+    const dirLbl=p.dir==='++'?'STRONG +':p.dir==='+'?'POSITIVE':p.dir==='−'?'NEGATIVE':'NEUTRAL';
+    const dirTd=$('td');dirTd.appendChild(badge(dirLbl,dirCol));tr.appendChild(dirTd);
+    tr.appendChild($('td',{text:p.mag,style:'font-family:JetBrains Mono,monospace;font-size:12px'}));
+    tr.appendChild($('td',{text:p.vol,style:'font-size:12px;color:var(--td)'}));
+    tr.appendChild($('td',{text:p.why,style:'font-size:12px;max-width:440px'}));
+    ptb.appendChild(tr);
+  });
+  pt.appendChild(ptb);root.appendChild(pt);
+
+  // Equity exposure table
+  root.appendChild($('div',{cls:'sect',text:'Equity Exposure (Universe Cross-Reference)',style:'margin-top:24px'}));
+  const et=$('table');
+  const eth=$('thead');const ehr=$('tr');
+  ['Ticker','Name','Exposure','Rationale'].forEach(h=>ehr.appendChild($('th',{text:h})));
+  eth.appendChild(ehr);et.appendChild(eth);
+  const etb=$('tbody');
+  const sortedExp=Object.entries(ACID.EXP).sort((a,b)=>b[1].s-a[1].s);
+  sortedExp.forEach(([tk,exp])=>{
+    const inv=INV.find(i=>i.tk===tk);const nm=inv?inv.nm:tk;
+    const tr=$('tr');
+    tr.appendChild($('td',{},[$('strong',{text:tk,style:'font-family:JetBrains Mono,monospace;color:var(--cu)'})]));
+    tr.appendChild($('td',{text:nm}));
+    const expCol=exp.s===2?'g':exp.s===1?'g':exp.s===0?'b':exp.s===-1?'y':'r';
+    const expLbl=exp.s===2?'STRONG WIN':exp.s===1?'WIN':exp.s===0?'NEUTRAL':exp.s===-1?'LOSS':'STRONG LOSS';
+    const expTd=$('td');expTd.appendChild(badge(expLbl,expCol));tr.appendChild(expTd);
+    tr.appendChild($('td',{text:exp.n,style:'font-size:12px;max-width:540px'}));
+    etb.appendChild(tr);
+  });
+  et.appendChild(etb);root.appendChild(et);
+
+  // Probability cards
+  root.appendChild($('div',{cls:'sect',text:'Probability Assessment (24-Month Horizon)',style:'margin-top:24px'}));
+  const probRow=$('div',{cls:'ev-row'});
+  Object.entries(ACID.PROBS).forEach(([k,p])=>{
+    const c=$('div',{cls:'ev-card'});
+    c.appendChild($('h4',{text:p.lbl}));
+    const col=p.col==='r'?'var(--r)':p.col==='y'?'var(--y)':'var(--g)';
+    c.appendChild($('div',{cls:'ev-val',style:'color:'+col,text:p.p}));
+    c.appendChild($('div',{cls:'d',text:k==='full'?'Stress-test upper bound':k==='partial'?'Most likely tightening mode':'Base case: no disruption'}));
+    probRow.appendChild(c);
+  });
+  root.appendChild(probRow);
+
+  // Triggers
+  const triggerBox=$('div',{cls:'box'});
+  triggerBox.appendChild($('h4',{text:'PLAUSIBLE TRIGGERS'}));
+  const triggerUl=$('ul',{style:'font-size:13px;color:var(--td);line-height:1.8;padding-left:20px;margin-top:6px'});
+  ACID.TRIGGERS.forEach(t=>triggerUl.appendChild($('li',{text:t,style:'margin-bottom:3px'})));
+  triggerBox.appendChild(triggerUl);
+  root.appendChild(triggerBox);
+
+  // Scenario adjustment table
+  root.appendChild($('div',{cls:'sect',text:'Copper Scenario Distribution: Acid Freeze Adjustment',style:'margin-top:24px'}));
+  const adjTbl=$('table');
+  const ath=$('thead');const ahr=$('tr');
+  ['Scenario','Range','Baseline %','Acid Freeze %','Delta'].forEach(h=>ahr.appendChild($('th',{text:h})));
+  ath.appendChild(ahr);adjTbl.appendChild(ath);
+  const atb=$('tbody');
+  ACID.SCEN_ADJ.forEach(r=>{
+    const tr=$('tr');
+    tr.appendChild($('td',{},[$('strong',{text:r[0]})]));
+    tr.appendChild($('td',{text:r[1],style:'font-family:JetBrains Mono,monospace'}));
+    tr.appendChild($('td',{text:r[2]+'%',style:'color:var(--td)'}));
+    tr.appendChild($('td',{text:r[3]+'%',style:'font-family:JetBrains Mono,monospace;color:var(--cu);font-weight:600'}));
+    const deltaCol=r[4]>0?'var(--g)':'var(--r)';
+    const deltaStr=(r[4]>0?'+':'')+r[4]+'pp';
+    tr.appendChild($('td',{text:deltaStr,style:'color:'+deltaCol+';font-weight:600;font-family:JetBrains Mono,monospace'}));
+    atb.appendChild(tr);
+  });
+  adjTbl.appendChild(atb);root.appendChild(adjTbl);
+  const adjNote=$('div',{style:'font-size:11px;color:var(--tl);margin-top:6px;font-style:italic'});
+  adjNote.textContent='Probability-weighted Cu price lift vs baseline: ~$1,700-2,500/t. The Chinese buyer-strike dynamic caps the super-bull ceiling in the first 6 months.';
+  root.appendChild(adjNote);
+
+  // Monitoring watchlist
+  root.appendChild($('div',{cls:'sect',text:'Monitoring Watchlist',style:'margin-top:24px'}));
+  const monGrid=$('div',{cls:'sig-row'});
+  ACID.MONITOR.forEach(m=>{
+    const sig=$('div',{cls:'sig'});
+    sig.appendChild($('div',{cls:'sl',text:m.l}));
+    sig.appendChild($('div',{cls:'sv',style:'color:var(--cu)',text:m.v}));
+    sig.appendChild($('div',{cls:'sd',text:m.d}));
+    monGrid.appendChild(sig);
+  });
+  root.appendChild(monGrid);
+
+  // Verdict / trade
+  const vBox=$('div',{cls:'box',style:'margin-top:20px;border-left:3px solid var(--g)'});
+  vBox.appendChild($('h4',{text:'THE TRADE'}));
+  vBox.appendChild($('p',{text:'Not "buy copper." The cleaner expressions: (1) LONG acid-capturing smelters (Aurubis, Japanese majors) + pure sulfide miners (Ivanhoe). (2) LONG phosphate fertilizer majors (Mosaic, Nutrien, CF) - biggest absolute price response. (3) LONG uranium stack (Cameco, Sprott SPUT) as Kazakh cuts worsen. (4) PAIR: long Chinese lithium converters vs short ex-China hydroxide refiners (ALB, SQM, Arcadium). Copper itself is messier than a clean breakout because the Chinese physical buyer strike persists through the first move.'}));
+  root.appendChild(vBox);
+
+  // Under-priced risks
+  const upBox=$('div',{cls:'box',style:'margin-top:14px;border-left:3px solid var(--cu)'});
+  upBox.appendChild($('h4',{text:'WHAT THE MARKET IS NOT PRICING'}));
+  const upUl=$('ul',{style:'font-size:13px;color:var(--td);line-height:1.8;padding-left:20px;margin-top:6px'});
+  [
+    'Chilean cathode production is not risk-priced against acid in any major broker model. Kazakh uranium was treated as a company-specific surprise; Chile is the same template at larger scale.',
+    'Phosphate crisis risk is not copper-linked in consensus models. The DAP desk and the HG=F desk are different people at different firms. A freeze correlates these overnight.',
+    'Chinese lithium refining dominance is STRENGTHENED, not weakened, by acid chokepoints. Western CRM diversification narratives assume the opposite. Some Chinese advantages are chemically locked in.'
+  ].forEach(t=>upUl.appendChild($('li',{text:t,style:'margin-bottom:4px'})));
+  upBox.appendChild(upUl);
+  root.appendChild(upBox);
+
+  // Source pointer
+  const srcBox=$('div',{cls:'box',style:'margin-top:14px;background:var(--bg2)'});
+  srcBox.appendChild($('h4',{text:'SOURCE'}));
+  srcBox.appendChild($('p',{text:'Full analysis: hekate/04-Output/Research/china-sulphuric-acid-freeze-copper-2026-04/. Builds on Copper Demand/Supply Model (2026-03-14), Copper Bear Case (2026-03-20), and Kazakhstan Acid Constraint template (2026-03-21). Volume estimates require USGS / Cochilco / Fertecon verification before operational use. This is a scenario analysis and stress test, not a forecast.'}));
+  root.appendChild(srcBox);
+}
+
+// ============ INIT ============
+const R={dashboard:renderDash,universe:renderUni,scenarios:renderScen,timing:renderTiming,catalysts:renderCats,supplychain:renderChain,scorecard:renderScore,acidrisk:renderAcid};
+
+function updateHeader(){
+  const cu=getMkt('HG=F');
+  if(cu&&cu.price){
+    document.getElementById('cu-price').textContent='$'+cu.price.toFixed(3);
+    const chEl=document.getElementById('cu-change');
+    if(cu.change_pct!=null){
+      chEl.textContent=(cu.change_pct>=0?'+':'')+cu.change_pct.toFixed(2)+'%';
+      chEl.style.background=cu.change_pct>=0?'var(--gd)':'var(--rd)';
+      chEl.style.color=cu.change_pct>=0?'var(--g)':'var(--r)';
+    }
+  }
+  if(mktData&&mktData.updated)document.getElementById('data-ts').textContent='Data: '+mktData.updated;
+}
+
+async function loadData(){
+  try{
+    const resp=await fetch('market_data.json');
+    if(resp.ok){mktData=await resp.json();updateHeader()}
+  }catch(e){
+    try{
+      const xhr=new XMLHttpRequest();
+      xhr.open('GET','market_data.json',false);
+      xhr.send();
+      if(xhr.status===200||xhr.status===0){mktData=JSON.parse(xhr.responseText);updateHeader()}
+    }catch(e2){
+      if(typeof INLINE_DATA!=='undefined'){mktData=INLINE_DATA;updateHeader()}
+      else{console.log('No market data. Run: uv run --python 3.12 --with yfinance python fetch_data.py')}
+    }
+  }
+  buildTabs();showPanel('dashboard');
+}
+loadData();
+</script>
+</body>
+</html>
