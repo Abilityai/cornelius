@@ -33,6 +33,10 @@ TICKERS = {
     "TECK.B": "TECK-B.TO",
     "HBM":    "HBM.TO",
     "ERO":    "ERO.TO",
+    # High-cost torque names (added for operating-leverage analysis)
+    "CS":     "CS.TO",
+    "LUN":    "LUN.TO",
+    "ANTO":   "ANTO.L",
     # ETFs
     "CPER":   "CPER",
     "COPX":   "COPX",

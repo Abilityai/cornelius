@@ -189,7 +189,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
 <div class="hdr">
   <div>
     <h1><span>Cu</span> Copper Analyzer</h1>
-    <div class="sub">Post-Acid-Freeze + Hormuz Crisis &middot; May 2026 Rerun &middot; S&P Global, ICSG, Goldman, JPM, Citi, StoneX, Cochilco, Fertecon &middot; <span id="data-ts">No live data</span></div>
+    <div class="sub">Operating-Leverage Rerun &middot; June 2026 &middot; Cu ~$13,966/t / $6.48/lb &middot; S&P Global, ICSG, Goldman, JPM, Citi, StoneX, Cochilco, Fertecon &middot; <span id="data-ts">No live data</span></div>
   </div>
   <div class="live">
     <div>
@@ -404,6 +404,7 @@ function $(tag,at,ch){
   const e=document.createElement(tag);
   if(at)for(const[k,v]of Object.entries(at)){
     if(k==='text')e.textContent=v;else if(k==='cls')e.className=v;
+    else if(k==='html')e.innerHTML=v;
     else if(k==='onclick')e.addEventListener('click',v);
     else if(k==='style')e.setAttribute('style',v);
     else e.setAttribute(k,v);
@@ -425,8 +426,8 @@ function pctSpan(v,inv){if(v==null)return $('span',{text:'--',style:'color:var(-
 function getMkt(tk){return mktData&&mktData.tickers&&mktData.tickers[tk]?mktData.tickers[tk]:null}
 
 // ============ TABS ============
-const panels=['dashboard','universe','scenarios','timing','catalysts','supplychain','scorecard','acidrisk'];
-const pnames=['Dashboard','Universe','Scenarios','Timing','Catalysts','Supply Chain','Scorecard','Acid Risk'];
+const panels=['dashboard','universe','opleverage','scenarios','timing','catalysts','supplychain','scorecard','acidrisk'];
+const pnames=['Dashboard','Universe','Op Leverage','Scenarios','Timing','Catalysts','Supply Chain','Scorecard','Acid Risk'];
 function buildTabs(){const bar=document.getElementById('tab-bar');
   panels.forEach((id,i)=>{const t=$('div',{cls:'tab'+(i===0?' active':''),text:pnames[i],onclick:()=>showPanel(id)});t.dataset.panel=id;bar.appendChild(t)})}
 function showPanel(id){document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.panel===id));
@@ -1074,7 +1075,100 @@ function renderAcid(root){
 }
 
 // ============ INIT ============
-const R={dashboard:renderDash,universe:renderUni,scenarios:renderScen,timing:renderTiming,catalysts:renderCats,supplychain:renderChain,scorecard:renderScore,acidrisk:renderAcid};
+// ============ OPERATING LEVERAGE / COST CURVE ============
+// Thesis: worst-margin (highest-cost) producers have the most torque to copper.
+// They win most in a bull run and crater most in a flat/bear market.
+// Cost data = 2025 actuals / 2026 guidance ($/lb). cu = copper % of revenue.
+const OL=[
+ {tk:'HBM',  nm:'Hudbay',          net:-0.22, aisc:1.74, cu:62, beta:2.15, cls:'byproduct', note:'Negative cash cost is GOLD credits (Pampacancha, now depleting), not efficiency. Torque is gold + small-cap, not Cu margin.'},
+ {tk:'SCCO', nm:'Southern Copper', net:0.58,  aisc:1.85, cu:78, beta:1.08, cls:'defensive', note:'True low-cost anchor. Lowest torque. The name to rotate INTO if you turn neutral-to-bearish copper.'},
+ {tk:'BHP',  nm:'BHP Group',       net:1.19,  aisc:2.00, cu:29, beta:0.80, cls:'defensive', note:'Iron-ore diversification dilutes Cu torque. Beta 0.80 = the natural hedge against the high-cost sleeve.'},
+ {tk:'ANTO', nm:'Antofagasta',     net:1.19,  aisc:2.45, cu:87, beta:1.35, cls:'cleanish',  note:'Moderate. Net cost is gold/moly-credit dependent; all-Chile royalty exposure.'},
+ {tk:'FCX',  nm:'Freeport',        net:1.75,  aisc:2.60, cu:65, beta:1.32, cls:'partial',   note:'Grasberg gold does the cost heavy-lifting. Cost structure impaired by Sept-2025 mudflow until ~2027. A Grasberg-restart bet.'},
+ {tk:'LUN',  nm:'Lundin Mining',   net:1.87,  aisc:2.65, cu:75, beta:1.98, cls:'cleanish',  note:'Moderate-high cost, clean-ish. Chilean concentration + Caserones integration risk.'},
+ {tk:'ERO',  nm:'Ero Copper',      net:2.06,  aisc:2.70, cu:92, beta:1.56, cls:'clean',     note:'CLEAN TORQUE. Pure copper, small-cap amplified, lagging YTD (catch-up room). Watch Brazil/Tucuma execution.'},
+ {tk:'IVN',  nm:'Ivanhoe',         net:2.16,  aisc:2.75, cu:92, beta:1.79, cls:'trap',      note:'Exceptional asset, but DRC risk + 2025 Kakula seismic/flooding decoupled it (YTD -23%). Buy on operational clarity, not as a torque proxy.'},
+ {tk:'TECK.B',nm:'Teck Resources', net:2.03,  aisc:3.20, cu:85, beta:1.57, cls:'clean',     note:'CLEAN-ISH. Post-coal pure copper. QB2 tailings constraint is SOLVABLE (2-3yr). High torque, large-cap.'},
+ {tk:'CS',   nm:'Capstone Copper', net:2.44,  aisc:3.30, cu:92, beta:2.08, cls:'clean',     note:'PUREST TORQUE. Highest clean cost, 92% copper, no binary. The core of the torque sleeve.'},
+ {tk:'KGHM', nm:'KGHM',            net:2.58,  aisc:3.30, cu:72, beta:1.23, cls:'torquetrap', note:'TORQUE TRAP. Genuinely high-cost, but the Polish state copper tax captures the upside. Returned +23% vs FM +46% on identical cost.'},
+ {tk:'FM',   nm:'First Quantum',   net:2.00,  aisc:3.40, cu:92, beta:1.94, cls:'trap',      note:'MAXIMUM TORQUE + EXTREME binary (Cobre Panama). +46% in a month as Panama anticipation cleared. A bet on Panama politics, not copper. Size for the binary.'},
+];
+const olClsMap={clean:['Clean torque','g'],cleanish:['Clean-ish','y'],defensive:['Defensive','b'],byproduct:['By-product','b'],partial:['Partial trap','y'],trap:['Value trap','r'],torquetrap:['Torque trap','r']};
+function olTorque(P,aisc){const m=P-aisc;if(m<=0)return null;return P/m;}
+function olTorqueCell(P,aisc){const t=olTorque(P,aisc);
+  if(t===null)return $('td',{text:'NEG',style:'font-family:JetBrains Mono,monospace;color:var(--r);font-weight:700'});
+  const hot=t>=4,warm=t>=2.5;const col=hot?'var(--r)':warm?'var(--cu)':'var(--td)';
+  return $('td',{text:t.toFixed(2)+'x',style:'font-family:JetBrains Mono,monospace;color:'+col+';font-weight:'+(hot?'700':'600')});}
+function renderOpLev(root){
+  const cu=getMkt('HG=F');const spot=cu&&cu.price?cu.price:6.48;
+  root.appendChild($('div',{cls:'sect',text:'Operating Leverage / Cost-Curve Torque'}));
+  root.appendChild($('p',{html:'<strong>Thesis:</strong> in a copper bull run the best performers are the WORST-margin (highest-cost) producers - thin margins mean each $1 copper move is a larger % earnings swing. Inversely they crater most in a flat/bear market. Torque = Price / (Price - AISC). Sorted low-to-high cost = low-to-high torque.',style:'color:var(--td);font-size:12.5px;line-height:1.7;margin-bottom:14px;max-width:980px'}));
+
+  // KPI strip - empirical validation
+  const kpis=[
+    {l:'corr(Beta, 1M return)',v:'+0.71',d:'+0.82 ex-IVN. Beta predicts bull-run outperformance STRONGLY.',c:'bu'},
+    {l:'corr(raw AISC, 1M return)',v:'+0.25',d:'Raw cost is a NOISY proxy - 3 wedges confound it.',c:'ne'},
+    {l:'High-cost cohort 1M',v:'+28.8%',d:'AISC >= $2.65 avg (CS,FM,TECK,ERO,KGHM,IVN,LUN)',c:'bu'},
+    {l:'Low-cost cohort 1M',v:'+25.0%',d:'AISC < $2.65 avg (SCCO,BHP,ANTO,FCX,HBM)',c:'ne'},
+    {l:'Bull-run leaders',v:'FM/HBM/CS',d:'+46% / +42% / +41% - the highest-torque names led',c:'bu'},
+    {l:'Spot Cu (torque ref)',v:'$'+spot.toFixed(2)+'/lb',d:'Torque benign at record price; explodes as Cu falls',c:'ac'},
+  ];
+  const g=$('div',{cls:'kpi-g'});
+  kpis.forEach(k=>g.appendChild($('div',{cls:'kpi '+k.c},[$('div',{cls:'l',text:k.l}),$('div',{cls:'v',text:k.v}),$('div',{cls:'d',text:k.d})])));
+  root.appendChild(g);
+
+  // Torque table
+  root.appendChild($('div',{cls:'sect',text:'Cost-Curve Ladder & Earnings Torque',style:'margin-top:22px'}));
+  root.appendChild($('p',{html:'Torque columns = % earnings change per 1% copper move, at four copper prices. Watch the convexity: benign at spot, vertical (and NEG = cash-flow-negative) as copper resets toward the high-cost cohort’s wall (~$3.30-3.40).',style:'color:var(--td);font-size:12px;margin-bottom:12px'}));
+  const t=$('table');const th=$('thead');const hr=$('tr');
+  ['Ticker','Name','Net C1','AISC','Cu%','Beta','Torque@spot','@$5.00','@$4.00','@$3.50','1M','YTD','Class'].forEach(h=>hr.appendChild($('th',{text:h})));
+  th.appendChild(hr);t.appendChild(th);
+  const tb=$('tbody');
+  OL.slice().sort((a,b)=>a.aisc-b.aisc).forEach(i=>{
+    const d=getMkt(i.tk);
+    const tr=$('tr');
+    tr.appendChild($('td',{},[$('strong',{text:i.tk,style:'font-family:JetBrains Mono,monospace;color:var(--cu)'})]));
+    tr.appendChild($('td',{text:i.nm,style:'font-size:12px'}));
+    tr.appendChild($('td',{text:'$'+i.net.toFixed(2),style:'font-family:JetBrains Mono,monospace;color:var(--td)'}));
+    tr.appendChild($('td',{text:'$'+i.aisc.toFixed(2),style:'font-family:JetBrains Mono,monospace;font-weight:600'}));
+    tr.appendChild($('td',{text:i.cu+'%',style:'font-family:JetBrains Mono,monospace;color:'+(i.cu>=85?'var(--cu)':'var(--td)')}));
+    tr.appendChild($('td',{text:i.beta.toFixed(2),style:'font-family:JetBrains Mono,monospace;font-weight:600;color:'+(i.beta>=1.7?'var(--cu)':'var(--td)')}));
+    tr.appendChild(olTorqueCell(spot,i.aisc));
+    tr.appendChild(olTorqueCell(5.00,i.aisc));
+    tr.appendChild(olTorqueCell(4.00,i.aisc));
+    tr.appendChild(olTorqueCell(3.50,i.aisc));
+    const m1=$('td');m1.appendChild(d?pctSpan(d.m1_return):$('span',{text:'--'}));tr.appendChild(m1);
+    const yt=$('td');yt.appendChild(d?pctSpan(d.ytd_return):$('span',{text:'--'}));tr.appendChild(yt);
+    const cl=$('td');cl.appendChild(badge(olClsMap[i.cls][0],olClsMap[i.cls][1]));tr.appendChild(cl);
+    tb.appendChild(tr);
+  });
+  t.appendChild(tb);root.appendChild(t);
+
+  // Two-column: clean torque vs traps + the three wedges
+  const tw=$('div',{cls:'two',style:'margin-top:22px'});
+  const left=$('div');
+  left.appendChild($('div',{cls:'sect',text:'How to Express It'}));
+  [{t:'CLEAN-TORQUE LONG BASKET (bullish-copper sleeve)',p:'CAPSTONE (CS) - highest clean cost, 92% Cu, beta 2.08, no binary: the purest expression. ERO - pure small-cap torque, lagging YTD = catch-up room. TECK - cleanest large-cap torque, QB2 solvable. FM - maximum torque + resolving Panama binary; size for the binary, not as a core hold.'},
+   {t:'AVOID AS TORQUE PLAYS (despite high nominal cost)',p:'KGHM - Polish state tax captures the upside (torque trap). IVN - DRC + seismic decouple it near-term (buy on clarity, not as a proxy). FCX - Grasberg-impaired cost structure until ~2027 (a restart bet).'},
+   {t:'LOW-TORQUE DEFENSIVES (flat/bear sleeve)',p:'SCCO and BHP - fat margins, lowest torque, the names to rotate INTO if you turn neutral-to-bearish. A long-SCCO / short-FM pair is a relatively pure "copper goes sideways or down" trade that harvests the cost-curve convexity directly.'},
+   {t:'ONE-NUMBER TAKEAWAY',p:'Beta is the tradeable encoding of the whole thesis. Sort the universe by beta; overweight the top in a bull tape, the bottom in a bear tape - then overlay the value-trap filter to strip out names whose high beta is a state-tax wedge, a binary event, or a gold subsidy rather than genuine copper operating leverage.'}
+  ].forEach(b=>left.appendChild($('div',{cls:'box'},[$('h4',{text:b.t}),$('p',{text:b.p})])));
+  tw.appendChild(left);
+
+  const right=$('div');
+  right.appendChild($('div',{cls:'sect',text:'Why Raw Cost ≠ Return: The 3 Wedges'}));
+  [{t:'1. By-product subsidy (Hudbay illusion)',p:'A low net cash cost can be built from gold/silver/moly credits, not efficiency. HBM screens lowest-cost (neg C1) yet ripped +42% - its torque is gold + small-cap leverage, and it decays as the by-product grade depletes. Same caveat: FCX (Grasberg gold), SCCO (zinc/silver/moly).'},
+   {t:'2. Financial / small-cap leverage (amplifier)',p:'Beta bundles operating leverage + balance-sheet leverage + liquidity. CS (2.08) and LUN (1.98) carry more debt and smaller floats than cost alone implies - additive to the thesis but it means beta overstates the pure operating-leverage component.'},
+   {t:'3. Value extraction (KGHM torque trap)',p:'KGHM is genuinely high-cost but the Polish copper tax escalates with the price and captures the torque. It returned +23% vs FM +46% on near-identical AISC. A high-cost producer in a high-extraction jurisdiction = the leverage accrues to the government, not the shareholder.'},
+   {t:'CONVEXITY = the inverse claim',p:'At spot ($6.48) the torque spread is benign (1.4-2.1x). At $3.50/lb it explodes: FM 35x, CS/KGHM 17.5x, TECK 11.7x vs SCCO/BHP ~2x - and below ~$3.40 the high-cost cohort goes cash-flow-negative while SCCO/BHP still mint $1.50+/lb. That non-linear collapse is WHY they fall the most.'}
+  ].forEach(b=>right.appendChild($('div',{cls:'box'},[$('h4',{text:b.t}),$('p',{text:b.p})])));
+  tw.appendChild(right);
+  root.appendChild(tw);
+
+  root.appendChild($('p',{html:'Full analysis: <code>hekate/04-Output/Research/copper-operating-leverage-2026-06/</code> &middot; Framework notes: operating-leverage-cost-curve-torque, value-trap-vs-clean-torque, beta-as-priced-operating-leverage. Caveat: n=12, single bull-run window - corroborating, not a multi-cycle backtest.',style:'color:var(--tl);font-size:11px;margin-top:18px;border-top:1px solid var(--bd);padding-top:12px'}));
+}
+
+const R={dashboard:renderDash,universe:renderUni,opleverage:renderOpLev,scenarios:renderScen,timing:renderTiming,catalysts:renderCats,supplychain:renderChain,scorecard:renderScore,acidrisk:renderAcid};
 
 function updateHeader(){
   const cu=getMkt('HG=F');
