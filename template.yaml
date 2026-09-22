@@ -21,10 +21,21 @@ resources:
   memory: "4g"
 
 # Optional Metadata
-version: "1.25.0"
-author: "Your Name"
-updated: "2026-03-12"
+version: "1.25.1"
+author: "Ability.ai"
+updated: "2026-09-11"
 tagline: "Your insight harvester, second brain partner, and KB-grounded advisor"
+
+# trinity-enterprise#93: every agent created from this template must land in a
+# user-owned copy, never bind to the shared upstream `Abilityai/cornelius`.
+# This template sets `git.push_enabled: true` with `commit_paths` that include
+# `Brain/` — a personal knowledge base. Without this declaration the creation
+# gate never fires: an outside user's PAT cannot write to the upstream (a
+# failing push loop), and for anyone with org write access it is a live path
+# from a private KB into a public repo (the ent#162 class, reached with no
+# attacker). Read as a TOP-LEVEL key by `_build_template`; the enforcing value
+# is the literal string `required`.
+fork_to_own: required
 
 use_cases:
   - "Get KB-grounded advice on problems using your own frameworks"
