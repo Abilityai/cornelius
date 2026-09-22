@@ -20,6 +20,17 @@ resources:
   cpu: "2"
   memory: "4g"
 
+# Claude Code plugins this agent depends on. Trinity installs these headlessly
+# on every container boot (trinity#1704) so the selection survives a
+# fresh-volume rebuild. trinity@abilityai backs the mcp__trinity__* tools used
+# throughout this repo's /trinity:* skills.
+plugins:
+  marketplaces:
+    - name: abilityai
+      source: abilityai/abilities
+  installed:
+    - trinity@abilityai
+
 # Optional Metadata
 version: "1.25.0"
 author: "Your Name"
