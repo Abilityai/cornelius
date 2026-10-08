@@ -33,6 +33,7 @@ settings.local.json
 # explicit trailing rules (last match wins).
 .trinity/*
 !.trinity/setup.sh
+!.trinity/bootstrap.sh
 !.trinity/brain-orb/
 .trinity/brain-orb/state.json
 .trinity/brain-orb/voice-postprocess.json

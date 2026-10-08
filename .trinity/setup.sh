@@ -27,11 +27,19 @@ if [ -f "$VIZ_DIR/data.seed.json" ] && [ ! -f "$VIZ_DIR/data.json" ]; then
     echo "Brain Orb: seeded data.json from data.seed.json"
 fi
 
-# --- Local brain search daemon ----------------------------------------------
-# Start the search daemon so queries hit memory instead of disk. run_daemon.sh
-# fails soft when the venv/deps aren't bootstrapped yet.
-DAEMON_SCRIPT="$AGENT_DIR/resources/local-brain-search/run_daemon.sh"
-if [ -x "$DAEMON_SCRIPT" ]; then
+# --- Local brain search: first-boot bootstrap, then the daemon ---------------
+# A fresh fork has the prebuilt index but no venv, and the index carries the
+# build machine's paths. If the engine is not importable yet, launch the
+# bootstrap DETACHED (venv -> pip -> daemon -> reindex -> smoke search; log in
+# ~/.trinity-bootstrap.log, marker ~/.trinity-bootstrap.done) and return at
+# once - startup must never block. /first-run finishes and verifies it.
+LBS="$AGENT_DIR/resources/local-brain-search"
+BOOTSTRAP="$AGENT_DIR/.trinity/bootstrap.sh"
+if [ -x "$LBS/venv/bin/python" ] && "$LBS/venv/bin/python" -c "import faiss, sentence_transformers" >/dev/null 2>&1; then
     echo "Starting brain search daemon..."
-    "$DAEMON_SCRIPT" start || true
+    "$LBS/run_daemon.sh" start || true
+elif [ -f "$BOOTSTRAP" ] && [ ! -f "$HOME/.trinity-bootstrap.done" ]; then
+    chmod +x "$BOOTSTRAP" 2>/dev/null || true
+    echo "Brain search engine not built yet - starting first-boot bootstrap in the background (see ~/.trinity-bootstrap.log, or run /first-run)"
+    nohup bash "$BOOTSTRAP" >/dev/null 2>&1 &
 fi
