@@ -183,6 +183,20 @@ Report any **ALARM** line (a scope that both grew and got more crowded) in the
 run summary. Compare only the matched-n column — raw NN1 rises with note count
 for free and is not comparable across scopes or dates.
 
+### Step 7: Restart the search daemon (MANDATORY after a rebuild)
+
+The daemon serves the index it loaded at start. After a rebuild its `build_id` no
+longer matches the files on disk, `run_search.sh` refuses the stale daemon and falls
+back to the CLI path, which loads the embedding model on **every** search - a
+`/advise` with six searches goes from seconds to ten minutes. Restart it:
+
+```bash
+cd resources/local-brain-search && ./run_daemon.sh restart && sleep 3 && curl -s --max-time 3 http://127.0.0.1:7437/health
+```
+
+Expect `{"status":"ok", ... "build_id": <n>, "chunks": <n>}`. If the daemon will not
+come up, say so in the report: searches still work, only slower.
+
 ## Outputs
 
 - Rebuilt FAISS index at `resources/local-brain-search/data/`
@@ -205,6 +219,8 @@ for free and is not comparable across scopes or dates.
 | Redundancy script fails | Non-critical - the index and BDG are still valid. Log and continue; the metric is a trend signal, one missing sample is harmless |
 
 ## Completion Checklist
+
+- [ ] Search daemon restarted and `/health` reports the new `build_id`
 
 - [ ] Indexer script exists
 - [ ] Index rebuilt without errors
