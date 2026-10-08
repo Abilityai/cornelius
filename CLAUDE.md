@@ -684,10 +684,7 @@ resources/                       # Work in progress, tools, scripts
 
 ### Deploy Cornelius to Trinity
 
-**Option 1: Ability.ai cloud** (fastest)
-- Sign up at [ability.ai](https://ability.ai) and deploy from the web UI
-
-**Option 2: Self-host Trinity**
+**Self-host Trinity** (open source, on your own infrastructure)
 ```bash
 # One-line install
 curl -fsSL https://raw.githubusercontent.com/abilityai/trinity/main/install.sh | bash

@@ -1,20 +1,20 @@
 # Project Cornelius
 
-**An open template for a second brain that thinks between conversations - built on Claude Code + Obsidian, run on [Trinity](https://github.com/Abilityai/trinity).**
+**Compounding intelligence your company owns** - the cognitive architecture that makes your work compound, built on Claude Code + Obsidian and run on [Trinity](https://github.com/Abilityai/trinity), the operating system for AI-native companies.
 
-Cornelius reads, incubates ideas, and grows its own knowledge between conversations. It captures *your* thinking in your own voice, finds the connections you missed, argues open questions on a schedule, and stops every conclusion at one human gate before it becomes part of what you believe.
+Cornelius turns what you and your company do into knowledge you keep and build on - without retraining a model. It captures *your* thinking in your own voice, finds the connections you missed, works on open questions on a schedule, and stops every conclusion at one human gate before it becomes part of what you believe.
 
-> **Governed self-improvement, with receipts.** Every note carries who authored the thinking (you, an external source, or the AI). Nothing the AI concludes becomes endorsed knowledge without your explicit act, and every change leaves a git trail. Growth is a dial - with your hand on it.
+> **Compounds, with receipts.** Every note records who authored the thinking (you, an external source, or the AI). Nothing the AI concludes becomes endorsed knowledge without your explicit act, and every change leaves a git trail. Adaptive improvement inside strict governance - growth is a dial, with your hand on it.
 
-**Where this comes from.** Cornelius runs in production at [Ability AI](https://ability.ai) as a Self-Improving Cognitive System - the running instance our lab studies (*are these systems measurably learning from their own experience? We are measuring it, and will publish the receipts*). This repository is its open template: the memory engine, the governance contracts, and the everyday thinking tools ship here as they stabilize. Components of the autonomous loop are released once they have soaked in production.
+**Where this comes from.** [Ability AI](https://ability.ai) is the lab for AI-native companies, and Cornelius is our cognitive architecture for making a company's work compound. It runs in production on our own work. This repository is its open template: the memory engine, the governance contracts, and the everyday thinking tools ship here as they stabilize; components of the autonomous loop are released once they have soaked in production.
 
-**Why it is yours.** It runs on your machine or your own Trinity server, on plain Markdown files, against any model. The more a system improves itself, the more it matters who owns it - compounding intelligence on rented ground compounds for the landlord.
+**Why it is yours.** It runs on your machine or your own Trinity server, on plain Markdown files, against any model - export it and walk away. The more a system improves itself, the more it matters who owns it: compounding intelligence on rented ground compounds for the landlord.
 
 ### Built for Trinity: the compounding intelligence engine
 
-Cornelius is designed to be the **compounding intelligence engine** inside **[Trinity](https://github.com/Abilityai/trinity)** - the open-source, self-hosted platform for building and running Self-Improving Cognitive Systems that you own. On Trinity, Cornelius becomes a persistent brain rather than a chat session:
+Cornelius is designed to be the **compounding intelligence engine** inside **[Trinity](https://github.com/Abilityai/trinity)** - the operating system for AI-native companies, where agents and workflows run with permissions, state, governance, and receipts. Open source and self-hosted. On Trinity, Cornelius becomes a persistent brain rather than a chat session:
 
-- 🏢 **A company brain** - the place your organization's experience accumulates and stays: decisions, research, records of people, clients, and competitors, and the reasoning behind them. Other agents in your Trinity fleet consult it, so what one agent learns, the others can use - and it does not walk out the door when a person does.
+- 🏢 **A company brain** - the place your organization's experience accumulates and stays: decisions, research, records of people, clients, and competitors, and the reasoning behind them. Other agents in your Trinity fleet consult it, so what one agent records, the others can build on - and it does not walk out the door when a person does.
 - 🧠 **A personal brain** - your own thinking, captured in your own voice, connected across everything you read, and kept working on your open questions while you are away.
 
 Trinity supplies what a compounding brain needs and a laptop does not: always-on scheduled loops (incubation, domain watch, research), agent-to-agent delegation, an isolated container with your data on your infrastructure, the live Brain Orb visualization, and receipts - git history, audit logs, and human gates on every change.
@@ -214,7 +214,7 @@ claude
 
 Running locally is fine for development. Cornelius becomes a compounding intelligence engine - your company brain or your personal brain - when it runs persistently on **[Trinity](https://github.com/Abilityai/trinity)**: scheduled research, incubation loops, domain watching, and the rest of your agent fleet consulting it.
 
-Trinity is the open-source, self-hosted platform for building and running Self-Improving Cognitive Systems that you own. Each agent runs in an isolated Docker container with cron scheduling, real-time monitoring, and agent-to-agent delegation.
+Trinity is the operating system for AI-native companies - open source and self-hosted; compounding intelligence your company owns. Each agent runs in an isolated Docker container with cron scheduling, real-time monitoring, and agent-to-agent delegation.
 
 On Trinity, Cornelius also gets the **Brain Orb** - a live 3D visualization of this knowledge base on the agent's Brain tab, with scope mounting (per-book sub-scopes included), voice-drivable KB search, and capture/link/refresh actions that write back into the vault. The seeded KB renders out of the box (`data.seed.json`); the hook contract ships in `.trinity/brain-orb/` (requires a Trinity base image from 2026-07 or later, with the platform's Brain Orb flags enabled).
 
