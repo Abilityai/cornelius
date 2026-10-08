@@ -104,9 +104,15 @@ sub_agents:
 
 # Skills (Slash Commands)
 skills:
+  # First install
+  - name: first-run
+    description: "One command from a fresh copy to the first answer: build the search engine, start the daemon, rebuild the index for this machine, smoke-test, report"
+
   # Problem-Solving & Advice
   - name: advise
     description: "KB-grounded problem-solving with framework application and citations"
+  - name: decide
+    description: "Structure a real decision - option set, decision type, matching rule, tripwires"
   - name: dialectic
     description: "Stress-test ideas with two committed positions and structural synthesis"
 

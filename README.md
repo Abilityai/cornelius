@@ -218,6 +218,8 @@ Trinity is the operating system for AI-native companies - open source and self-h
 
 On Trinity, Cornelius also gets the **Brain Orb** - a live 3D visualization of this knowledge base on the agent's Brain tab, with scope mounting (per-book sub-scopes included), voice-drivable KB search, and capture/link/refresh actions that write back into the vault. The seeded KB renders out of the box (`data.seed.json`); the hook contract ships in `.trinity/brain-orb/` (requires a Trinity base image from 2026-07 or later, with the platform's Brain Orb flags enabled).
 
+**From the Trinity Library:** open Library → Agents → *Cornelius — Second Brain* → Use Template. The template declares `fork_to_own: required`, so Trinity first copies the repository into a GitHub repo you name (it needs a token that can create it) and the agent commits its vault there. On first boot the container builds the search engine in the background; in the agent's chat, type **`/first-run`** to finish and verify it (venv, daemon, index rebuilt for this machine, one smoke search), then ask your first `/recall`.
+
 **Fastest path:** Use the `trinity` plugin from the [Abilities marketplace](https://github.com/Abilityai/abilities):
 
 ```bash
