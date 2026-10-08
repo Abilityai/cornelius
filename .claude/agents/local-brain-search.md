@@ -139,7 +139,8 @@ resources/local-brain-search/run_index.sh
 4. Builds FAISS index
 5. Builds NetworkX graph with:
    - Explicit edges (wiki-links)
-   - Semantic edges (similarity > 0.65)
+   - Semantic edges (chunk-to-chunk cosine > 0.65 - a HIGH-scoring space: median edge weight
+     0.869. Do not compare these to search scores; see `resources/local-brain-search/SIMILARITY-CALIBRATION.md`)
 6. Saves to `data/` folder
 
 **Typical timing:** ~15 seconds for 1200+ notes
@@ -156,7 +157,9 @@ resources/local-brain-search/run_index.sh
 Preview of content...
 ```
 
-- Percentage = cosine similarity (higher = more relevant)
+- Percentage = ranking score, **not** raw cosine - `static_search()` overwrites it with a Q-value
+  adjustment and re-sorts, so it shifts with `--limit`. Never report it as a measured similarity
+  (see `resources/local-brain-search/SIMILARITY-CALIBRATION.md` -> Trap 1)
 - Section = which heading/chunk matched
 - Path = full file path
 

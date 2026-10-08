@@ -2,7 +2,6 @@
 name: integrate-recent-notes
 description: Find notes created in the last 14 days and discover their connections to the knowledge base
 automation: autonomous
-schedule: "0 19 1,15 * *"
 allowed-tools: Read, Write, Bash, Glob, Grep
 ---
 

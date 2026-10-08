@@ -50,6 +50,7 @@ class NodeEnrichment:
     """Enrichment metadata for a single note."""
     layer: str                              # Layer enum value
     lifecycle: float = 0.0                  # 0.0 (reflective) to 1.0 (generative)
+    lifecycle_source: str = "proxy"         # "proxy" (bootstrap estimate) or "engine" (full lifecycle.py computation)
     staleness_score: float = 0.0            # 0.0 (fresh) to 1.0 (definitely stale)
     last_coherence_check: Optional[str] = None  # ISO date
     classification_confidence: float = 0.5  # How confident the layer classification is
@@ -87,6 +88,7 @@ class TensionRecord:
     description: str = ""
     synthesis_artifacts: list[str] = field(default_factory=list)
     detected: str = ""  # ISO date
+    promoted: bool = False  # curated promotion: pair is typed as a `tension` edge at every bootstrap
 
     def to_dict(self) -> dict:
         return asdict(self)

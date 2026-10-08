@@ -1,6 +1,7 @@
 ---
 name: extract-document-insights
 description: Extract insights from external documents (research papers, books, articles). Spawns document-insight-extractor subagent. Requires session name.
+automation: autonomous
 allowed-tools: [Task]
 user-invocable: true
 arg-description: "<session name> <file path or content description>"

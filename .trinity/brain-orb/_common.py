@@ -5,7 +5,7 @@ contract Trinity's agent-server brokers (docker/base-image/agent_server/routers/
 brain_orb.py). This module holds what they share: root resolution, the scope
 discovery + state file, and the canonical scope-primitive imports.
 
-Canonical source: cornelius-internal (synced to the public abilityai/cornelius
+Canonical source: a private upstream instance (synced to the public abilityai/cornelius
 template via /sync-to-public). Contract version: 1.
 """
 import json

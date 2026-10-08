@@ -42,6 +42,17 @@ cd $PROJECT_ROOT/resources/local-brain-search
 ./run_search.sh "query" --mode spreading --json
 ```
 
+## Reading the scores (start here)
+
+**A similarity score has no meaning without its population** - the same 0.75 is routine in graph
+space, reachable-but-rare in query space, and physically unreachable for newly ingested material
+searched against `core`. The printed `similarity` is also **not raw cosine**: `static_search()`
+overwrites it with a Q-value ranking adjustment and re-sorts, so it shifts with `--limit`.
+
+Canonical contract, live distributions, the full threshold inventory, and three traps:
+**[SIMILARITY-CALIBRATION.md](SIMILARITY-CALIBRATION.md)**. Re-measure with
+`venv/bin/python calibrate_similarity.py`.
+
 ## Search Modes
 
 ### Static Mode (default)

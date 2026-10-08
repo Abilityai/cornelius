@@ -7,9 +7,14 @@ user-invocable: true
 argument-hint: <source path or URL> [session name]
 effort: high
 metadata:
-  version: "1.0"
+  version: "1.2"
   created: 2026-06-03
+  updated: 2026-09-02
   author: Cornelius
+  changelog:
+    - "1.2: Link rails + measurement discipline (2026-09-02 ingestion run). AUTO_LINK_THRESHOLD 0.75 -> 0.45 with a MANDATORY conceptual-validity filter (0.75 was unreachable in this population - new material tops out at 0.560 against core - and had produced 0 auto-links in every run to date); link by FILENAME not frontmatter title, with a resolve check over the extractor's links too; Step 3 must chain run_brain_graph.sh lifecycle after bootstrap --force; three measurement traps documented (Q-adjusted similarity is not raw cosine and is unstable in --limit; build_scope_selector needs resolved folders; scope tokens must be explicit). Calibration reasoning moved to resources/local-brain-search/SIMILARITY-CALIBRATION.md - the earlier ceiling claim in this file was a small-sample artifact and is corrected there"
+    - "1.1: Step 6b - a source that declares its own incompleteness (\"investigation ongoing\", \"postmortem pending\", \"results forthcoming\", \"phase 2 to follow\") must register a DATED row in Brain/05-Meta/Watching/PENDING-SOURCES.md, which /domain-watch Step 5.5 probes when the due date passes. Human-directed (the user 2026-08-27) after the Hugging Face postmortem miss: the expectation was recorded in a session changelog and nothing ever re-read it"
+    - "1.0: Initial version"
 ---
 
 # Ingest Source
@@ -28,7 +33,7 @@ The design principle (established in the architecture discussion): **insights ar
 
 | Knob | Default | Purpose |
 |------|---------|---------|
-| `AUTO_LINK_THRESHOLD` | `0.75` | Only auto-write links at or above this cosine similarity. Below → logged as review candidates, not written. |
+| `AUTO_LINK_THRESHOLD` | `0.45` | Only auto-write links at or above this **raw cosine** similarity. Below → logged as review candidates, not written. **Recalibrated 2026-09-02 from `0.75`**, which had produced 0 auto-links in every run of this skill to date (ledger: 2026-08-08 / 08-12 / 08-15 / 08-26 / 09-02 all recorded "0 auto-links, max sim 0.42-0.63"). **The reason is population, not a broken metric** — see `resources/local-brain-search/SIMILARITY-CALIBRATION.md`. New external material queried against `core` tops out at **0.560** (median 0.474, n=18 measured on one ingestion session), so a 0.75 threshold is unreachable *here* while remaining reachable for 40% of notes vault-wide. At 0.45 score noise is real, so a **conceptual-validity filter is mandatory** on top of the number — see Step 5. |
 | `LINKS_PER_NOTE` | `5` | Max auto-links written per new note (top-k). Caps combinatorial blowup. |
 | `MUTATE_EXISTING_NOTES` | `false` | If false, only the NEW notes get edited (links written FROM new → existing). Existing/hub notes are never mutated by auto-linking. |
 | `REJECT_ON_TIER` | `rejected` | If the extractor tiers the source `rejected` (content-farm / regurgitated), abort and notify. |
@@ -46,6 +51,7 @@ These are the autonomous substitute for the two approval gates a `gated` version
 | FAISS index + BDG | `resources/local-brain-search/`, `resources/brain-graph/` | ✓ | ✓ | Refreshed mid-pipeline |
 | Changelogs | `Brain/05-Meta/Changelogs/` | | ✓ | Per-source ingestion report |
 | Ingest ledger | `resources/ingest-workspace/INGEST-LEDGER.md` | ✓ | ✓ | Corpus progress: which sources done |
+| Pending sources | `Brain/05-Meta/Watching/PENDING-SOURCES.md` | ✓ | ✓ | Step 6b: dated expectations of sources this one says are still coming |
 | Checkpoint | `resources/ingest-workspace/<slug>/.checkpoint` | ✓ | ✓ | Resume marker for the 45-min rule |
 
 ## Prerequisites
@@ -144,10 +150,13 @@ The FAISS index does not auto-update, and connection discovery looks notes up **
 ```bash
 resources/local-brain-search/run_index.sh
 resources/brain-graph/run_brain_graph.sh bootstrap --force
+resources/brain-graph/run_brain_graph.sh lifecycle                # MANDATORY - see below
 resources/local-brain-search/run_connections.sh --stats --json   # verify count grew
 ```
 
 (This is exactly `/refresh-index`; one full rebuild per source also sweeps in the prior source's auto-links.)
+
+**The `lifecycle` call is not optional.** `bootstrap --force` resets every node's lifecycle score to the rough structural proxy, overwriting the full engine's values — the double-writer defect diagnosed in `knowledge-base-analysis.md` and fixed for the daily job by `refresh-index` **Step 5** (`0c584f14b`). This skill calls `bootstrap --force` too, so without chaining the engine here every ingestion silently degrades the KB's lifecycle metric to the proxy until the next 03:30 run. Added 2026-09-02.
 Checkpoint: `phase=indexed`.
 
 ### Step 4: Discover connections (bounded, new → existing)
@@ -166,6 +175,37 @@ BRAIN_READ_SCOPE=core,document-insights resources/local-brain-search/run_connect
 resources/brain-graph/run_brain_graph.sh inspect "<New Note Title>" --json   # edge type + lifecycle
 ```
 
+**Two traps, both verified the hard way (2026-08-12 run):**
+
+1. `run_connections.sh` returns only **precomputed** graph edges. A note created minutes ago has
+   essentially no semantic edges above the index-build threshold, so this returns `"semantic": []`
+   and the step silently yields nothing. **Also run a similarity query per note** to get the scored
+   neighbors this step actually needs — query with the **note title alone** (titles here are dense
+   claim statements); appending body text dilutes the embedding and measurably lowers recall.
+2. **`BRAIN_READ_SCOPE=all` is not a valid token** and fails *closed* to zero results with no error.
+   Valid tokens come from `SCOPE_REGISTRY` in `resources/local-brain-search/memory_config.py`
+   (`core`, `document-insights`, `books`, `meta`, `permanent`, …). Always use explicit
+   comma-separated tokens, and sanity-check with a query you know should hit.
+
+3. **The `similarity` field returned by search is NOT raw cosine** (found 2026-09-02).
+   `static_search()` applies a Q-value learning adjustment that *overwrites* `similarity`
+   in place and re-sorts, so the ranking is **unstable in the candidate-pool size**: the same
+   query at `--limit 5` returned its true best neighbour at rank 1 (0.540) while `--limit 60`
+   demoted it out of the top 8 entirely. Using a large limit to "get more candidates" therefore
+   silently *loses* the best ones. For link decisions, read **raw cosine straight from the FAISS
+   index** — encode the title, apply the scope selector via `build_scope_selector`, and take the
+   max score per note across chunks. `AUTO_LINK_THRESHOLD` is defined against raw cosine.
+   Reference implementation: `resources/local-brain-search/calibrate_similarity.py`.
+   Since the 2026-09-02 validation pass every static result also carries `raw_similarity` (and the
+   CLI prints a `Raw cosine:` line) - reading that field is an acceptable substitute for the FAISS
+   path, but it is still the *post-`--limit`-cut* pool, so keep the limit generous.
+   **`build_scope_selector` takes RESOLVED folders, not tokens** — pass
+   `resolve_read_scope('core')`, never the string `'core'`, which matches nothing and returns
+   an empty result set that reads exactly like "no neighbours exist."
+
+Exclude same-session notes and the session changelog from the neighbor list — they are guaranteed
+near-hits that crowd out the new→existing connections this step exists to find.
+
 Collect top-`LINKS_PER_NOTE` connections per note with similarity scores and BDG edge type. **Do not** run all-pairs or hub/bridge sweeps here — that is the combinatorial explosion this step is designed to avoid. New→existing is linear in the source's note count.
 Checkpoint: `phase=connections-discovered` (persist the connection report).
 
@@ -173,9 +213,11 @@ Checkpoint: `phase=connections-discovered` (persist the connection report).
 
 For each new note, write wiki-links to its qualifying connections:
 
-- **Threshold:** only connections with similarity ≥ `AUTO_LINK_THRESHOLD`.
+- **Threshold:** only connections with **raw cosine** similarity ≥ `AUTO_LINK_THRESHOLD`.
+- **Conceptual-validity filter (mandatory, not optional):** the threshold is necessary, not sufficient. Read each candidate and drop the false friends — at 0.45 they are common and they can outscore the true hits. Real examples from the 2026-09-02 run: *Inoculation Prompting Breaks Misalignment Generalization* was the **highest-scoring** candidate (0.557) for a note about over-prescriptive prompting and is a different sense of the word "prompting"; *Rust Dominates High-Performance Crypto* (0.459) matched a Python→Rust port note on the token "Rust" alone. Also drop session-index artifacts (`CHANGELOG - Document Analysis …`, folder `README.md`) — they score well and mean nothing.
 - **Cap:** at most `LINKS_PER_NOTE` per note.
 - **Idempotent:** skip if the `[[link]]` already exists in the note.
+- **Link by FILENAME, not by frontmatter `title:`.** Obsidian resolves `[[…]]` against the file name. Many notes have a hyphenated filename and a prose `title:`; linking the title produces a silently dangling link. Use `[[Actual-File-Name|Readable Title]]` to keep prose readable. **Verify every link resolves before finishing** — the 2026-09-02 run found 5 dangling links written by the extractor itself, so check the extractor's links too, not only the auto-written ones.
 - **Labeled + reversible:** append under a clearly marked section in the NEW note only:
   ```markdown
   ## Related (auto-linked by /ingest-source)
@@ -210,9 +252,36 @@ Write `Brain/05-Meta/Changelogs/CHANGELOG - Source Ingestion <session> YYYY-MM-D
 
 ### Isolated notes (0 connections ≥ threshold) — priority for human attention
 - [[New Note]]
+
+### Pending sources registered (Step 6b)
+- <expected source> — due YYYY-MM-DD (<basis>) — gates [[New Note]], [[Other Note]]
 ```
 
 Checkpoint: `phase=changelogged`.
+
+### Step 6b: Register pending sources (the source that isn't here yet)
+
+**Ask this of every source, always:** *does it declare its own incompleteness, or name a document that is still to come?*
+
+Trigger phrases, non-exhaustive: "our investigation is ongoing" · "a full postmortem is pending" · "results forthcoming" · "phase 2 / part 2 will follow" · "preliminary findings" · "interim report" · "forthcoming in <journal>" · "we will publish X when Y" · "data as of <date>, updated quarterly".
+
+If yes, append a row to `Brain/05-Meta/Watching/PENDING-SOURCES.md` (create it from the header in that file's own contract if missing). **One row per expected arrival.**
+
+**The `due` date is mandatory and it is this step's job:**
+- Source names a date or window → use it.
+- Source says pending/ongoing with no date → **source date + 45 days**.
+- Source names a cadence (quarterly, annual) → the next period boundary.
+- **Never leave `due` empty.** A registered expectation with no due date is exactly the failure this register exists to prevent.
+
+The row must also name **what stays provisional without it** - the specific notes from this session whose caveats are gated on the missing document. If you cannot name them, the expectation is not load-bearing and should not be registered; note it in the changelog and move on.
+
+Compose the **probe query** here too, while the source is in front of you. `/domain-watch` Step 5.5 will issue it verbatim months from now, with none of this context.
+
+Record the same rows in the changelog under a `### Pending sources registered` heading, so the session's own record and the register agree.
+
+**Why this is a pipeline step and not a note caveat:** a caveat inside a note is read by whoever opens that note. A dated row in the register is read by a scheduled loop. The 2026-08-08 Hugging Face session wrote an excellent caveat into eleven notes and its changelog; when the postmortem published on 2026-08-26 nothing was watching, because a caveat is not a due date.
+
+Checkpoint: `phase=pending-registered`.
 
 ### Final Step: Write ledger + state, notify
 

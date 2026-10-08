@@ -5,9 +5,11 @@ allowed-tools: [Bash, Read]
 user-invocable: true
 automation: gated
 metadata:
-  version: "1.1"
-  updated: 2026-06-29
+  version: "1.3"
+  updated: 2026-09-02
   changelog:
+    - "1.3: The 1.2 caveat was wrong in the reassuring direction - the index rebuild never reached this detector, which picks its own representative chunk straight from the FAISS metadata (first chunk = frontmatter for 83% of notes) and was therefore mostly blind for those notes (measured on 293 of them: 121 usable pair hits and 3 in 4 notes with none, vs 765 hits with the representative mapping; different-text frontmatter never lands in [0.75, 0.93)). tension.py now uses the first MEANINGFUL chunk (_representative_chunks / _is_boilerplate_chunk, mirroring index_brain.is_meaningless_chunk). Candidates tracked before 2026-09-02 are suspect (64% had frontmatter first chunks on both sides locally)"
+    - "1.2: Label the measurement space. The detector's 0.75/0.70 floors are graph-space (chunk-to-chunk) numbers, NOT comparable to the Q-adjusted scores /recall prints; and until the index is rebuilt with the frontmatter fix a large share of top-scoring pairs are same-date boilerplate twins. See resources/local-brain-search/SIMILARITY-CALIBRATION.md"
     - "1.1: Document detector blind spots - filter the false-positive flood (boilerplate/near-duplicate pairs) and probe manually for cross-vocabulary tensions the similarity+keyword detector cannot see (output is candidates, not proof of absence)."
     - "1.0: Initial version"
 ---
@@ -30,7 +32,7 @@ Scans the knowledge base for productive contradictions: note pairs with high sem
 
 ### Step 1: Run tension detection
 
-Default thresholds (similarity > 0.75, divergence > 0.3):
+Default thresholds (similarity > 0.75, divergence > 0.3). **These are graph-space (chunk-to-chunk) numbers and are NOT comparable to the scores `/recall` or `/search-vault` print** - see `resources/local-brain-search/SIMILARITY-CALIBRATION.md`. **Fixed 2026-09-02 (v1.3):** the detector now queries with each note's first *meaningful* chunk instead of its first chunk (bare frontmatter for 83% of notes) - before that it returned nothing usable for 3 in 4 of those notes, and the graph rebuild did not help because `tension.py` picks its chunk itself. Expect the candidate set to change shape on the first post-fix scan, and treat pairs tracked before 2026-09-02 as suspect (see `SIMILARITY-CALIBRATION.md` -> Trap 3):
 ```bash
 cd $PROJECT_ROOT/resources/brain-graph
 ../local-brain-search/venv/bin/python cli.py tensions
@@ -61,7 +63,7 @@ Check `tension_count` for total tracked tensions.
 
 ### Step 4: Probe for cross-vocabulary tensions the detector cannot see
 
-The detector pairs notes by cosine similarity (floor ~0.70) and scores opposition with a keyword heuristic (negation vs. assertion words). It is therefore **structurally blind to the most valuable tensions**: genuine contradictions are usually *cross-vocabulary* - two frameworks reaching opposite conclusions in different language - which fall BELOW the similarity floor and read too assertively for the keyword check. **A thin or empty result does NOT mean no tensions exist; this tool surfaces candidates, it does not certify absence.**
+The detector pairs notes by cosine similarity (floor ~0.70, measured **note-to-note in graph space** - not the query space that `/recall` reports, see `resources/local-brain-search/SIMILARITY-CALIBRATION.md`) and scores opposition with a keyword heuristic (negation vs. assertion words). It is therefore **structurally blind to the most valuable tensions**: genuine contradictions are usually *cross-vocabulary* - two frameworks reaching opposite conclusions in different language - which fall BELOW the similarity floor and read too assertively for the keyword check. **A thin or empty result does NOT mean no tensions exist; this tool surfaces candidates, it does not certify absence.**
 
 Compensate by manually checking known opposing-framework pairs even when they score below threshold, e.g.:
 - loss aversion (prospect theory) ↔ ergodicity / Kelly  (bias vs. correct policy)

@@ -81,6 +81,10 @@ def format_result(result: dict, show_full: bool = False, mode: str = "static") -
 
     lines.append(f"\n{'='*60}")
     lines.append(f"[{score:.1%} {score_label}] {title}")
+    if mode != "spreading" and 'raw_similarity' in result:
+        # The headline number is Q-adjusted when learning is on; the raw cosine is
+        # what every threshold in SIMILARITY-CALIBRATION.md is defined against.
+        lines.append(f"  Raw cosine: {result['raw_similarity']:.3f}")
     if heading != title:
         lines.append(f"  Section: {heading}")
     if filepath:
@@ -162,6 +166,10 @@ def static_search(
 
         formatted_results.append({
             'similarity': similarity,
+            # Kept unadjusted: `similarity` is overwritten by the Q-value ranking
+            # adjustment below when learning is on. Every threshold in
+            # SIMILARITY-CALIBRATION.md is defined against THIS number.
+            'raw_similarity': similarity,
             'title': meta['title'],
             'heading': meta['heading'],
             'filepath': meta['filepath'],
@@ -475,7 +483,15 @@ def main():
         print("Legend: activation = combined spreading score")
     else:
         print("Mode: STATIC (vector similarity)")
-        print("Legend: similarity = cosine similarity to query")
+        # Not cosine when learning is on: static_search() overwrites `similarity`
+        # with a Q-value ranking adjustment and re-sorts, so the printed number is
+        # a ranking score and shifts with --limit. See SIMILARITY-CALIBRATION.md Trap 1.
+        if MEMORY_CONFIG["learning"]["enabled"]:
+            print("Legend: similarity = ranking score (raw cosine adjusted by learned Q-values)")
+        else:
+            print("Legend: similarity = cosine similarity to query")
+        print("        Raw cosine = unadjusted cosine to the query (`raw_similarity` in --json);"
+              " compare thresholds against THIS number")
 
 
 if __name__ == '__main__':

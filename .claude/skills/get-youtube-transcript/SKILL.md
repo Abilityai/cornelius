@@ -1,6 +1,7 @@
 ---
 name: get-youtube-transcript
 description: Extract the transcript from a YouTube video by URL or video ID. Use when the user shares a YouTube link and wants the transcript, captions, or text content of the video. Falls back automatically if the requested language isn't available.
+automation: autonomous
 allowed-tools: [Bash]
 user-invocable: true
 argument-hint: "<youtube-url-or-video-id>"

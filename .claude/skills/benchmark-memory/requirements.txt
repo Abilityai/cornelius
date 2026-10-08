@@ -1,0 +1,7 @@
+# Dependencies for benchmark-memory skill
+# Install in local-brain-search venv: pip install -r requirements.txt
+#
+# Note: anthropic package NOT required - uses Claude Code headless mode for scoring
+
+pandas>=2.0.0
+tqdm>=4.66.0

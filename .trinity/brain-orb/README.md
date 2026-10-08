@@ -1,6 +1,6 @@
 # Brain Orb convention hooks
 
-**Canonical source.** These hooks live in `cornelius-internal` and are published
+**Canonical source.** These hooks live in a private upstream instance and are published
 to the public [`abilityai/cornelius`](https://github.com/Abilityai/cornelius)
 template via `/sync-to-public`. Do not edit the public copies directly.
 

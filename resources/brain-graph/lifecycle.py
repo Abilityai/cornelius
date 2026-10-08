@@ -209,8 +209,9 @@ def compute_all_lifecycles(
         new_score, signals = compute_lifecycle_score(note_id, G, enrichments)
         new_phase = LifecycleTransition.phase_name(new_score)
 
-        # Update enrichment
+        # Update enrichment; mark as engine-computed so bootstrap preserves it.
         nodes[note_id]["lifecycle"] = new_score
+        nodes[note_id]["lifecycle_source"] = "engine"
 
         # Detect transition
         if old_phase != new_phase:

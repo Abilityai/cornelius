@@ -1,9 +1,18 @@
 ---
 name: advise
 description: Solve problems using knowledge base insights - extracts search terms, runs parallel KB queries, synthesizes advice grounded in your own frameworks
+automation: autonomous
 argument-hint: <describe your problem or question in natural language>
 allowed-tools: [Bash, Read]
 user-invocable: true
+metadata:
+  version: "1.2"
+  updated: 2026-07-31
+  author: Ability.ai
+  changelog:
+    - "1.2: Route structured decisions to the new /decide sibling (rule-matched choice vs framework map)"
+    - "1.1: Wire in the reasoning-checks contract (Step 5) - epistemic inversion, attractor check (hubs fetched inside the Step 2 parallel batch, so still 2 tool rounds), provenance base, conditional reference-class; blocks appended to the output"
+    - "1.0: Initial version - fast-path KB-grounded advice (no subagents, parallel search + read)"
 ---
 
 # Advise
@@ -13,6 +22,8 @@ Help solve problems by grounding advice in your accumulated knowledge and framew
 ## Purpose
 
 Turn natural language problems into KB-grounded advice. Fast path: no subagents, no changelogs, no multi-layer expansion.
+
+**Routing:** if the problem is a structured decision between courses of action ("X or Y?", go/no-go, "is it worth") → use `/decide` instead: it applies an explicit decision rule (ergodic filter, EV, robustness, value-of-information) and delivers tripwires, not just frameworks. `/advise` is for framing, understanding, and open problems.
 
 ## Problem
 
@@ -33,17 +44,23 @@ From the problem description, identify 3-4 keyword clusters that would match rel
 
 ### Step 2: Parallel Knowledge Retrieval
 
-Run 3-4 searches **in parallel** (single message, multiple Bash calls):
+**Read role: reasoning** (contract: `scope-mount` - never copy its tables, never run a bare search). Two passes per term in the same batch: `core` is the spine (the user's thinking), the reasoning mount is the evidence layer (what he has read). Before the batch, run the `scope-mount` trigger check on the problem text; a hit appends `,company` / `,thinkers` / `,Books/<slug>` to the wide pass for this run only. Direction questions about the org are not yours - route to `/canon-advise`.
+
+Run the searches **in parallel** (single message, multiple Bash calls):
 
 ```bash
-resources/local-brain-search/run_search.sh "search term 1" --limit 3 --json
-resources/local-brain-search/run_search.sh "search term 2" --limit 3 --json
-resources/local-brain-search/run_search.sh "search term 3" --limit 3 --json
+BRAIN_READ_SCOPE=core                          resources/local-brain-search/run_search.sh "search term 1" --limit 3 --json
+BRAIN_READ_SCOPE=core,Books,document-insights  resources/local-brain-search/run_search.sh "search term 1" --limit 5 --json
+BRAIN_READ_SCOPE=core                          resources/local-brain-search/run_search.sh "search term 2" --limit 3 --json
+BRAIN_READ_SCOPE=core,Books,document-insights  resources/local-brain-search/run_search.sh "search term 2" --limit 5 --json
+BRAIN_READ_SCOPE=core                          resources/local-brain-search/run_search.sh "search term 3" --limit 3 --json
+BRAIN_READ_SCOPE=core,Books,document-insights  resources/local-brain-search/run_search.sh "search term 3" --limit 5 --json
+resources/local-brain-search/run_connections.sh --hubs --json   # fingerprint - always core; for Step 5's attractor check, same batch
 ```
 
 ### Step 3: Read Top Insights
 
-From the search results, read 2-3 of the most relevant note files **in parallel**:
+From the search results, read 2-3 of the most relevant note files **in parallel** - when both passes returned, read at least one from each. A `Books/` or `Document Insights/` note is *encountered* material: cite it as what the user has read, never as his view (Check 3 in Step 5 enforces this):
 
 ```bash
 # Use Read tool on the top-scoring, most relevant files
@@ -67,6 +84,16 @@ Combine the retrieved insights to address the original problem:
 - Give concrete recommendations grounded in your own thinking
 - Prioritize generative notes (lifecycle > 0.6) - these are the user's strongest frameworks
 
+### Step 5: Reasoning Checks (required)
+
+Apply the shared contract in `.claude/skills/reasoning-checks/SKILL.md` before finalizing:
+- **Epistemic Inversion** (always) - specific falsifier required; a generic hedge means redo it
+- **Attractor Check** (always) - against the hubs fetched in Step 2; ≥2 top-10 hubs load-bearing → generate one non-attractor framing
+- **Provenance Base** (always) - tally from the frontmatter of the notes read in Step 3; unendorsed synthesis must be labelled as such
+- **Reference Class** (only if the advice hinges on a forecast, magnitude, or probability)
+
+Append the resulting blocks after the Bottom line.
+
 ## Output Format
 
 ```markdown
@@ -86,6 +113,8 @@ Combine the retrieved insights to address the original problem:
 - [Tradeoff 2]
 
 **Bottom line:** [One clear recommendation or framing]
+
+[reasoning-checks blocks: Epistemic Inversion · Attractor Check · Provenance Base · Reference Class (when quantitative)]
 ```
 
 ## Rules
@@ -94,7 +123,7 @@ Combine the retrieved insights to address the original problem:
 - **NO changelog creation** - this is conversational, not archival
 - **NO spreading activation** - use static search for speed
 - **Parallel execution** - run all searches in one message, all reads in the next
-- **Maximum 2 rounds of tool calls** - searches (parallel) + reads (parallel)
+- **Maximum 2 rounds of tool calls** - searches + hubs (parallel) + reads (parallel); the reasoning checks reuse those results, no extra round
 - **Cite your sources** - always reference the specific notes used
 - **Be actionable** - don't just dump knowledge, apply it to the problem
 - If KB lacks relevant content, say so honestly and offer general reasoning instead

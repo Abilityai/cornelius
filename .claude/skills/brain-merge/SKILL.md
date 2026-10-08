@@ -40,7 +40,7 @@ Ask the user for:
 If paths are ambiguous (user says "moltbook" or "the other one"), scan parent directories for Brain/ folders and present a pick list:
 
 ```bash
-find . -maxdepth 3 -name "Brain" -type d 2>/dev/null | sort
+find /Users/yourname/Dropbox/Agents -maxdepth 2 -name "Brain" -type d 2>/dev/null | sort
 ```
 
 ---

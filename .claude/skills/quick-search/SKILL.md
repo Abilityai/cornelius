@@ -1,6 +1,7 @@
 ---
 name: quick-search
 description: Fast knowledge base retrieval - single FAISS search + graph connections, no subagents or LLM orchestration
+automation: autonomous
 argument-hint: <search query>
 allowed-tools: [Bash, Read]
 user-invocable: true
@@ -24,10 +25,11 @@ $ARGUMENTS
 
 ```bash
 # 1. Semantic search (6-14s - the unavoidable cost)
-resources/local-brain-search/run_search.sh "$ARGUMENTS" --limit 5 --json
+BRAIN_READ_SCOPE=core,Books,document-insights resources/local-brain-search/run_search.sh "$ARGUMENTS" --limit 5 --json
 
 # 2. Graph connections for likely top hit (0.3s - nearly free)
-resources/local-brain-search/run_connections.sh "$ARGUMENTS" --json
+BRAIN_READ_SCOPE=core,Books,document-insights resources/local-brain-search/run_connections.sh "$ARGUMENTS" --json
+# read role: lookup (contract: scope-mount) - group the output: your thinking (core) · what you have read (Books / Document Insights); --scope core pins to your own notes
 ```
 
 **Then read the top result file using Read tool.**

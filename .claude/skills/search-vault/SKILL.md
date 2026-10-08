@@ -1,6 +1,7 @@
 ---
 name: search-vault
 description: Quick search across Obsidian vault using keywords or semantic similarity
+automation: autonomous
 argument-hint: <search query>
 allowed-tools: Read, Grep, Bash
 ---
@@ -25,10 +26,13 @@ $ARGUMENTS
 1. **Semantic Search** - Use Local Brain Search:
    ```bash
    # For quick lookups, use static mode
-   resources/local-brain-search/run_search.sh "$ARGUMENTS" --limit 5 --json
+   BRAIN_READ_SCOPE=core,Books,document-insights resources/local-brain-search/run_search.sh "$ARGUMENTS" --limit 5 --json
 
    # For finding connections, use spreading mode
-   resources/local-brain-search/run_search.sh "$ARGUMENTS" --mode spreading --limit 5 --json
+   BRAIN_READ_SCOPE=core,Books,document-insights resources/local-brain-search/run_search.sh "$ARGUMENTS" --mode spreading --limit 5 --json
+   ```
+   **Read role: lookup** (contract: `scope-mount`): the reasoning mount, output grouped as *your thinking* (core) · *what you have read* (Books / Document Insights) · *records* (a reference scope, only if a trigger mounted it); `--scope core` pins to your own notes.
+   ```bash
    ```
 
 2. **Keyword Search** - Use `Grep`:

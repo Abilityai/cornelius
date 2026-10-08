@@ -136,7 +136,7 @@ On each run, you will:
 
 3. **Select analysis targets:**
    - From the connected notes, pick 2-3 notes from DIFFERENT domains
-   - Prioritize notes with similarity scores in 0.50-0.70 range (non-obvious connections)
+   - Prioritize notes with similarity scores in the ~0.45-0.70 range as a candidate pool (see `resources/local-brain-search/SIMILARITY-CALIBRATION.md` - the number selects candidates, your reasoning selects discoveries)
    - Read full content of selected notes using `Read` tool
 
 **Example workflow:**
@@ -393,12 +393,12 @@ Use the `Write` tool to create this changelog file.
 - Structural isomorphism across domains
 - Shared causal mechanisms in different contexts
 - Meta-principles manifesting in multiple fields
-- Low semantic similarity (0.50-0.70) + clear conceptual link
+- Modest semantic similarity (~0.45-0.70) + clear conceptual link. **The band is a candidate pool, not a quality grade** - 0.50-0.70 is the *typical* neighbour range on this index, not the non-obvious tail. See `resources/local-brain-search/SIMILARITY-CALIBRATION.md`.
 - "Aha!" factor - reveals non-obvious insight
 - Actionable synthesis opportunities
 
 ### ❌ POOR Connections (Skip These):
-- High semantic similarity (0.85+) - too obvious
+- Very high semantic similarity (0.85+) - on this index usually **shared boilerplate** (identical frontmatter, session-changelog twins), not a real conceptual link. Verify by reading before discarding OR documenting.
 - Same domain, similar topics - not cross-domain
 - Surface-level keyword overlap without deep structure
 - Already explicitly linked in the vault

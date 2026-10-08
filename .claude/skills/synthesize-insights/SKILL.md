@@ -1,6 +1,7 @@
 ---
 name: synthesize-insights
 description: Combine multiple insights into coherent narrative
+automation: autonomous
 ---
 
 # Synthesize Insights
@@ -41,7 +42,10 @@ Combine multiple insights or permanent notes into a coherent narrative, framewor
 
 1. **Gather Notes**
    - If specific notes listed: Retrieve those notes
-   - If topic/theme: Use /recall or Local Brain Search to find cluster
+   - If topic/theme: Use /recall or Local Brain Search to find cluster - **read role by mode** (contract: `scope-mount`):
+     - pattern-finding / "what patterns emerge" → **reasoning**: `BRAIN_READ_SCOPE=core,Books,document-insights resources/local-brain-search/run_search.sh "<topic>" --mode spreading --limit 10 --json`
+     - "summarize MY thoughts on X" → **voice**: `BRAIN_READ_SCOPE=core resources/local-brain-search/run_search.sh "<topic>" --mode spreading --limit 10 --json`
+     - in either mode a `Books/` or `Document Insights/` note is encountered material and is labelled as such in the synthesis
    - Aim for 5-10 notes minimum
 
 2. **Find Patterns**

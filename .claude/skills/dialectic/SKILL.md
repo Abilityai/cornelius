@@ -41,7 +41,7 @@ Three frameworks drive every phase of this skill. Internalize them before procee
 <overview>
 ## How It Works: Overview
 
-You are the **orchestrator**. You conduct the elenctic interview, identify the user's belief burden, generate the monk prompts, spawn the Electric Monks, perform the structural analysis, and produce the synthesis. You use subagent sessions (via `claude -p` or your environment's equivalent) for the monks so each gets a fresh, fully committed belief context.
+You are the **orchestrator**. You conduct the elenctic interview, identify the user's belief burden, generate the monk prompts, spawn the Electric Monks, perform the structural analysis, and produce the synthesis. You use subagent sessions (the `Task` tool; see Phase 3 for why not `claude -p`) for the monks so each gets a fresh, fully committed belief context.
 
 ```
 You (Orchestrator)
@@ -165,6 +165,12 @@ You don't need to type the user explicitly — just notice the pattern and calib
 This calibration shapes the framing corrections in Phase 2 and the specific argument structures you assign to each monk.
 
 ### 1d. Ground the Monks (Domain-Adaptive)
+
+**Knowledge-base grounding runs in the reasoning role** (contract: `scope-mount`): when a monk's briefing is built from the KB, search at the reasoning mount so a position can draw on what the user has *read*, and mark core vs encountered material in the briefing - a monk may argue from an encountered note, but the synthesis never presents it as the user's view.
+
+```bash
+BRAIN_READ_SCOPE=core,Books,document-insights resources/local-brain-search/run_search.sh "<the position's core claim>" --limit 5 --no-track --json
+```
 
 The monks need deep grounding before they can believe effectively. But *what* constitutes grounding depends on the domain type and how novel it is. The skill must adapt.
 
@@ -331,15 +337,27 @@ Calibrate the monks based on what you learned in Phase 1c′:
 <phase3>
 ## Phase 3: Spawn the Electric Monks
 
-Spawn Monk A and Monk B as separate subagent sessions. Use `claude -p` (or your environment's equivalent for spawning an independent agent) so each gets a clean context with full belief commitment.
+Spawn Monk A and Monk B as separate subagent sessions so each gets a clean context with full belief commitment.
 
-```bash
-# Example for Claude Code:
-echo "[MONK A PROMPT]" | claude -p --allowedTools web_search,web_fetch,read_file > monk_a_output.md
-echo "[MONK B PROMPT]" | claude -p --allowedTools web_search,web_fetch,read_file > monk_b_output.md
+**Default path (works everywhere, including Trinity containers): the in-process `Task` tool.**
+
+```
+Task(prompt="[MONK A PROMPT]", subagent_type="general-purpose", run_in_background=true)
+Task(prompt="[MONK B PROMPT]", subagent_type="general-purpose", run_in_background=true)
 ```
 
-These can run in parallel if your environment supports it.
+Launch both in a single message so they run concurrently; each returns its argument as text and the
+orchestrator writes `monk_a_output.md` / `monk_b_output.md`.
+
+> **Do not shell out to `claude -p` to spawn the monks.** It works on the user's workstation only. On a
+> Trinity container the agent's credential is turn-scoped and never written to disk in refreshable
+> form, so a child `claude -p` dies with `Not logged in` - and per ent#643 a CLI subprocess escapes
+> the execution ledger, cost attribution, autonomy gates and permission enforcement regardless.
+> `Task` (in-process) and `chat_with_agent` (delegated) are the sanctioned paths.
+
+If the monks should run as a *separate billed agent* rather than inside this turn, use
+`chat_with_agent` instead of `Task` - note that identical messages are deduplicated into one
+execution, so give each monk prompt a unique nonce.
 
 **Efficiency note:** With the context briefing in place, monks need only 2-3 targeted searches each (vs. 15-25 without it). For personal/values domains, monks may need zero additional searches — the briefing contains the user's own material which is the primary evidence base.
 
@@ -870,7 +888,10 @@ Based on three test runs across different domains (normative/institutional, busi
 <environment>
 ## Environment Mapping: Claude Code / Task Tool
 
-This skill is written around `claude -p` (pipe mode) for spawning subagents. If you're running in Claude Code using the Task tool, here are the key differences:
+This skill spawns subagents with the **`Task` tool**, which is the only path valid in every
+environment. The `claude -p` (pipe mode) column below is retained for reference when running on a
+workstation with an authenticated CLI - **it is not available on Trinity containers** (turn-scoped
+credentials, plus the ent#643 no-CLI-subprocess rule). When in doubt, use `Task`.
 
 | Skill instruction | `claude -p` | Claude Code Task tool |
 |-------------------|-------------|----------------------|
@@ -881,7 +902,7 @@ This skill is written around `claude -p` (pipe mode) for spawning subagents. If 
 | Model selection | `--model` flag | `model` parameter (defaults to inheriting from parent) |
 | Tool access | `--allowedTools web_search,web_fetch` | Inherits from parent or configure per-task |
 
-**Key difference:** With `claude -p`, agents write output directly to files via shell redirect. With the Task tool, agents return text to the orchestrator, who writes files. This adds a step but gives the orchestrator control over file naming and structure. Either approach works — just be aware that the file I/O pattern differs.
+**Key difference:** With `claude -p`, agents write output directly to files via shell redirect. With the Task tool, agents return text to the orchestrator, who writes files. This adds a step but gives the orchestrator control over file naming and structure. On a workstation either approach works and only the file I/O pattern differs; on Trinity, `Task` is the only one that works at all.
 
 **Session resumption for validation:** The skill prefers resuming original agent sessions so validators retain their full conviction context. In Claude Code, this works via `resume` + `agentId`, but test runs found the persona sometimes needs reinforcement. The fallback — a fresh validation prompt that includes a summary of the agent's original argument — works well in practice.
 </environment>

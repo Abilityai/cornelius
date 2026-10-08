@@ -43,6 +43,36 @@ from config import (
 )
 
 
+_FRONTMATTER_ONLY = re.compile(r'^---\s*\n.*?\n---\s*$', re.DOTALL)
+
+
+def is_frontmatter_only(content: str) -> bool:
+    """True when a chunk is a bare YAML frontmatter block and nothing else.
+
+    Such chunks carry no meaning but DO carry byte-identical text across every
+    note written by the same model on the same day, which makes them cosine-1.000
+    twins of each other. See SIMILARITY-CALIBRATION.md -> Trap 3.
+    """
+    return bool(_FRONTMATTER_ONLY.match(content.strip()))
+
+
+def is_meaningless_chunk(content: str) -> bool:
+    """True when a chunk carries no meaning for edge building: a bare frontmatter
+    block, OR an empty / sub-minimum body.
+
+    The second class was found by the 2026-09-02 validation pass: 31 zero-byte stub
+    notes (29 of them in 02-Permanent - Sleep, Autonomy, Polarization, ...) each had
+    the empty string as their only chunk. Every empty string embeds to the same
+    vector, so they formed a cosine-1.000 clique inside the core fingerprint and each
+    stub spent its full SEMANTIC_EDGE_TOP_K quota on the other stubs. A further 25
+    notes had only a bare title line ('# Vasopressin'). Neither is a meaning.
+    """
+    stripped = content.strip()
+    if len(stripped) < MIN_CHUNK_LENGTH:
+        return True
+    return bool(_FRONTMATTER_ONLY.match(stripped))
+
+
 def extract_wikilinks(content: str) -> list[str]:
     """Extract wiki-links from markdown content."""
     # Match [[link]] or [[link|alias]]
@@ -187,12 +217,35 @@ def add_semantic_edges(
     """Add weak edges based on semantic similarity."""
     print("Adding semantic edges...")
 
-    # Create note_id to embedding index mapping
+    # Frontmatter-only chunks must never represent a note or terminate an edge.
+    # CLAUDE.md mandates an identical metadata block on every note, so two notes
+    # created the same day by the same model have BYTE-IDENTICAL frontmatter and
+    # therefore identical embeddings. Using the first chunk as the representative
+    # (the pre-2026-09-02 behaviour) made that a cosine-1.000 semantic edge between
+    # unrelated notes: 9,208 of 26,065 edges (35%), with 28% of notes having a
+    # semantic neighbourhood made ENTIRELY of same-date twins. Because 74% of notes
+    # sit at the SEMANTIC_EDGE_TOP_K cap, those perfect scores are found first and
+    # DISPLACE real neighbours - the failure is crowding-out, not added noise.
+    # See SIMILARITY-CALIBRATION.md -> "Trap 3: the frontmatter collision".
+    # Extended 2026-09-02 (validation pass): empty and sub-minimum chunks are excluded
+    # for the same reason - see is_meaningless_chunk().
+    boilerplate_rows = {
+        i for i, meta in enumerate(metadata)
+        if is_meaningless_chunk(meta.get('content', ''))
+    }
+    if boilerplate_rows:
+        print(f"  excluding {len(boilerplate_rows)} frontmatter-only / empty chunks from edge building")
+
+    # Create note_id to embedding index mapping. Prefer the first chunk with real
+    # content; fall back to the first chunk only if a note has nothing else.
     note_embeddings = {}
     for i, meta in enumerate(metadata):
         note_id = meta['note_id']
-        if note_id not in note_embeddings:
-            note_embeddings[note_id] = i  # Use first chunk as representative
+        if i in boilerplate_rows:
+            note_embeddings.setdefault(note_id, i)  # fallback only
+            continue
+        if note_id not in note_embeddings or note_embeddings[note_id] in boilerplate_rows:
+            note_embeddings[note_id] = i
 
     total_notes = len(notes)
     for n_done, note in enumerate(notes, 1):
@@ -203,14 +256,23 @@ def add_semantic_edges(
             continue
 
         idx = note_embeddings[note_id]
+        if idx in boilerplate_rows:
+            # The note has no meaningful chunk at all (empty stub / bare title):
+            # nothing to search with, so it gets no semantic out-edges.
+            continue
         query_embedding = embeddings[idx:idx+1]
 
-        # Search for similar notes
-        k = SEMANTIC_EDGE_TOP_K + 10  # Get extra to filter
+        # Search for similar notes. The extra headroom absorbs both the
+        # threshold filter and the frontmatter-only rows dropped below.
+        k = SEMANTIC_EDGE_TOP_K * 4 + 10
         distances, indices = index.search(query_embedding, k)
 
         for dist, result_idx in zip(distances[0], indices[0]):
             if result_idx < 0 or result_idx >= len(metadata):
+                continue
+
+            # A frontmatter block is not a meaning - never let one END an edge either.
+            if result_idx in boilerplate_rows:
                 continue
 
             # The index is faiss.IndexFlatIP, so `dist` is the inner product,

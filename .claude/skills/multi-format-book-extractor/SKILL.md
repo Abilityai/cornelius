@@ -14,7 +14,7 @@ Mirrors the epub-chapter-extractor pattern for non-EPUB formats.
 
 - **PDF**: `pymupdf` — auto-installed via `--with pymupdf`
 - **Scanned PDF OCR fallback**: `requests` (`--with requests`) + a Gemini key in
-  `$GEMINI_API_KEY` / `$GOOGLE_API_KEY` (read from `cornelius-internal/.env` if unset)
+  `$GEMINI_API_KEY` / `$GOOGLE_API_KEY` (read from `cornelius/.env` if unset)
 - **MOBI / AZW3**: [calibre](https://calibre-ebook.com/download) must be installed
   ```bash
   brew install --cask calibre

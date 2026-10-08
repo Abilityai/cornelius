@@ -2,10 +2,18 @@
 name: create-article
 description: Create long-form articles from knowledge base insights. Use when writing articles, blog posts, Substack content, or synthesizing knowledge into publishable content. Includes tone of voice, structure templates, and knowledge base integration.
 automation: gated
-allowed-tools: Read, Grep, Glob, Write, Bash, Task
+allowed-tools: Read, Grep, Glob, Write, Bash, Task, WebSearch, WebFetch
+metadata:
+  version: "1.1"
+  updated: 2026-07-27
+  changelog:
+    - "1.1: Add Thought-Leader & Market Scan step (recent external voices via WebSearch under SOURCE-AUTHORITY, with integration proposals recorded in _metadata.md) and an explicit Fact-Check step before finalization"
+    - "1.0: Initial version (KB research, index check, tone-of-voice drafting, index update, Drive upload)"
 ---
 
 # Create Article Skill
+
+> ℹ️ **First, set expectations:** before anything else, print one short line with this skill's version and its most recent change — the top entry of `metadata.changelog` above — e.g. `create-article vX.Y — recent: <summary>`. Then proceed.
 
 Create publication-ready long-form articles by synthesizing insights from the user's knowledge base, following established tone of voice and structural patterns.
 
@@ -13,10 +21,12 @@ Create publication-ready long-form articles by synthesizing insights from the us
 
 1. **Search knowledge base** for relevant permanent notes on the topic
 2. **Check Article Index** to avoid duplicates and see related work
-3. **Create article folder** with proper structure
-4. **Write article** following tone of voice guidelines
-5. **Update Article Index** with new entry
-6. **Upload to Google Drive** `Articles/cornelius_drafts` for review
+3. **Scan thought leaders** for their most recent takes on the topic; propose integrations
+4. **Create article folder** with proper structure
+5. **Write article** following tone of voice guidelines
+6. **Fact-check the draft** - verify every claim, quote, and statistic
+7. **Update Article Index** with new entry
+8. **Upload to Google Drive** `Articles/cornelius_drafts` for review
 
 ## State Dependencies
 
@@ -27,6 +37,8 @@ Create publication-ready long-form articles by synthesizing insights from the us
 | Document Insights | `Brain/Document Insights/` | ✓ | | Research extracts |
 | MOCs | `Brain/03-MOCs/` | ✓ | | Topic overviews |
 | Article Index | `Brain/04-Output/Articles/ARTICLE-INDEX.md` | ✓ | ✓ | Registry of all articles |
+| Source Authority | `resources/SOURCE-AUTHORITY.md` | ✓ | | Trusted-source diet for the thought-leader scan and fact-checking |
+| Web | WebSearch / WebFetch | ✓ | | Recent thought-leader statements; claim verification |
 | Tone of Voice | `.claude/skills/create-article/tone-of-voice.md` | ✓ | | Voice DNA and writing style |
 | Article Structure | `.claude/skills/create-article/article-structure.md` | ✓ | | Templates and patterns |
 | Metadata Template | `.claude/skills/create-article/metadata-template.md` | ✓ | | Template for _metadata.md |
@@ -43,11 +55,12 @@ Create publication-ready long-form articles by synthesizing insights from the us
 Search the knowledge base for relevant insights:
 
 ```bash
+# read role: voice (contract: scope-mount) - an article is the user's voice, so the source pass is pinned to core explicitly
 # Semantic search for topic
-resources/local-brain-search/run_search.sh "your topic" --limit 15 --json
+BRAIN_READ_SCOPE=core resources/local-brain-search/run_search.sh "your topic" --limit 15 --json
 
 # Find connections to existing notes
-resources/local-brain-search/run_connections.sh "Related Note Name" --json
+BRAIN_READ_SCOPE=core resources/local-brain-search/run_connections.sh "Related Note Name" --json
 ```
 
 **Key locations to search:**
@@ -73,7 +86,25 @@ Brain/04-Output/Articles/ARTICLE-INDEX.md
 - Identify gaps in topic coverage
 - Note related articles for cross-referencing
 
-### Step 3: Create Article Structure
+### Step 3: Thought-Leader & Market Scan
+
+Search the web for what recognized thought leaders in the article's domain have said MOST RECENTLY (prefer the last 3-6 months) on the article's topics:
+
+- Use WebSearch for recent essays, posts, interviews, talks, and papers
+- Apply `resources/SOURCE-AUTHORITY.md` (canonical source diet) to decide which voices and outlets to trust, demote, or reject
+- For each relevant voice capture: who, their claim, where/when (link + date)
+
+Then propose how to integrate each into the article:
+
+- **Agrees** - supports the user's thesis: cite as market reinforcement
+- **Extends** - adds a dimension the KB doesn't cover: integrate with attribution
+- **Contrasts** - opposes the user's view: position the user's take as a deliberate contrarian stance against the named mainstream position
+
+Record the scan and chosen integrations in `_metadata.md` under "External Voices" (see [metadata-template.md](metadata-template.md)). If no relevant recent voices are found, note that too - absence of market conversation is itself a signal.
+
+Purpose: every article demonstrates awareness of the current market conversation - the user's perspective is positioned relative to it, never written in a vacuum.
+
+### Step 4: Create Article Structure
 
 Create folder and files:
 
@@ -86,13 +117,26 @@ Brain/04-Output/Articles/[article-name]/
 
 **Naming:** Use kebab-case (e.g., `cognitive-aware-ai-systems`)
 
-### Step 4: Write Article
+### Step 5: Write Article
 
 Follow the tone of voice and structure guidelines in:
 - [tone-of-voice.md](tone-of-voice.md) - Voice DNA and writing style
 - [article-structure.md](article-structure.md) - Templates and patterns
 
-### Step 5: Update Article Index
+Weave in the integrations chosen in Step 3 - external voices appear with attribution (name, source, date), and the user's position is stated relative to them.
+
+### Step 6: Fact-Check the Draft
+
+Verify every factual claim before finalizing:
+
+- **Internal claims**: statements sourced from KB notes match what the notes actually say (spot-check each [[citation]])
+- **External claims**: statistics, dates, quotes, and attributions verified via WebSearch against `resources/SOURCE-AUTHORITY.md`-tier sources
+- **Thought-leader quotes**: exact wording, correct attribution, working link
+- **Recency**: any "current state" claims checked against the latest available data
+
+Fix or remove anything that fails verification. If a claim is load-bearing but unverifiable, flag it in `_metadata.md` and either hedge it explicitly in the text or cut it.
+
+### Step 7: Update Article Index
 
 Add entry to `ARTICLE-INDEX.md`:
 - Article name and link
@@ -101,7 +145,7 @@ Add entry to `ARTICLE-INDEX.md`:
 - Status (Draft)
 - Notes
 
-### Step 6: Upload to Google Drive
+### Step 8: Upload to Google Drive
 
 Upload the article folder to `Articles/cornelius_drafts` on the shared Google Drive:
 
@@ -193,6 +237,11 @@ cd $PROJECT_ROOT
 claude -p "/create-article <topic> for <platform>" --output-format json
 ```
 
+> **Caller scope:** this is the *workstation* invocation path - a content agent runs on the user's machine with an
+> authenticated Claude Code CLI. A caller running **inside a Trinity container cannot use `claude -p`**
+> (turn-scoped credentials, plus the ent#643 no-CLI-subprocess rule); it must call
+> `chat_with_agent("cornelius", "...")` over Trinity MCP instead.
+
 **Response format for a content agent:**
 ```json
 {
@@ -225,9 +274,11 @@ open "Brain/04-Output/Articles/[article-name]/"
 
 - [ ] Knowledge base searched for relevant permanent notes
 - [ ] Article Index checked for duplicates and related work
+- [ ] Thought-leader scan completed; external voices integrated or their absence noted in _metadata.md
 - [ ] Article folder created with kebab-case naming
 - [ ] Main article written following tone of voice guidelines
-- [ ] _metadata.md created with source insights and thinking process
+- [ ] All factual claims fact-checked; quotes and statistics verified with working links
+- [ ] _metadata.md created with source insights, external voices, and thinking process
 - [ ] Article Index updated with new entry (date, topic, status)
 - [ ] Article folder uploaded to Google Drive `Articles/cornelius_drafts`
 - [ ] Article folder opened in Finder for user review

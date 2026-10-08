@@ -1,0 +1,126 @@
+{
+  "version": "1.0",
+  "description": "Focused test configurations for Local Brain Search benchmark",
+  "configs": [
+    {
+      "name": "static_baseline",
+      "description": "Traditional vector similarity search",
+      "mode": "static",
+      "params": {}
+    },
+    {
+      "name": "spreading_default",
+      "description": "Spreading activation with default settings",
+      "mode": "spreading",
+      "params": {}
+    },
+    {
+      "name": "spreading_iter2",
+      "description": "Spreading with minimal iterations",
+      "mode": "spreading",
+      "params": {
+        "max_iterations": 2
+      }
+    },
+    {
+      "name": "spreading_iter7",
+      "description": "Spreading with extended iterations",
+      "mode": "spreading",
+      "params": {
+        "max_iterations": 7
+      }
+    },
+    {
+      "name": "spreading_inhib_low",
+      "description": "Low inhibition - allows hub dominance",
+      "mode": "spreading",
+      "params": {
+        "inhibition_strength": 0.1
+      }
+    },
+    {
+      "name": "spreading_inhib_high",
+      "description": "High inhibition - suppresses hubs",
+      "mode": "spreading",
+      "params": {
+        "inhibition_strength": 0.5
+      }
+    },
+    {
+      "name": "spreading_decay_low",
+      "description": "Low temporal decay - faster activation loss",
+      "mode": "spreading",
+      "params": {
+        "temporal_decay": 0.8
+      }
+    },
+    {
+      "name": "spreading_decay_high",
+      "description": "High temporal decay - persistent activation",
+      "mode": "spreading",
+      "params": {
+        "temporal_decay": 0.95
+      }
+    },
+    {
+      "name": "spreading_no_learning",
+      "description": "No Q-value influence",
+      "mode": "spreading",
+      "params": {
+        "q_weight": 0.0
+      }
+    },
+    {
+      "name": "spreading_high_learning",
+      "description": "Strong Q-value influence",
+      "mode": "spreading",
+      "params": {
+        "q_weight": 0.5
+      }
+    },
+    {
+      "name": "spreading_strong_explicit",
+      "description": "Strong wiki-link propagation",
+      "mode": "spreading",
+      "params": {
+        "edge_decay_explicit": 0.9
+      }
+    },
+    {
+      "name": "spreading_weak_semantic",
+      "description": "Weak semantic edge propagation",
+      "mode": "spreading",
+      "params": {
+        "edge_decay_semantic": 0.4
+      }
+    },
+    {
+      "name": "synthesis_optimized",
+      "description": "Optimized for synthesis queries: max spread, low inhibition",
+      "mode": "spreading",
+      "params": {
+        "max_iterations": 7,
+        "inhibition_strength": 0.1
+      }
+    },
+    {
+      "name": "factual_optimized",
+      "description": "Optimized for factual queries: quick, focused",
+      "mode": "spreading",
+      "params": {
+        "max_iterations": 2,
+        "inhibition_strength": 0.5
+      }
+    },
+    {
+      "name": "balanced_optimized",
+      "description": "Balanced settings for mixed query types",
+      "mode": "spreading",
+      "params": {
+        "max_iterations": 5,
+        "inhibition_strength": 0.2,
+        "temporal_decay": 0.85
+      }
+    }
+  ]
+}

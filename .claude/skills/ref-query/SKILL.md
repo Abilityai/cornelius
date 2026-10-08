@@ -1,7 +1,7 @@
 ---
 name: ref-query
 description: Structured, temporal lookup against a reference scope — "what do we know about Acme Corp as of today?", "which engagements are active and expiring in 90 days?", "list our competitors". Respects status (active over superseded), validity windows, and as_of freshness, and ALWAYS prints the as_of date so staleness is legible. Distinct from /recall, which searches cognitive insights. Company is the default scope. Read-only.
-automation: manual
+automation: autonomous
 allowed-tools: [Read, Bash, Glob, Grep]
 user-invocable: true
 argument-hint: "[scope=Company] <entity name | filter, e.g. 'engagements active expiring 90d' | 'competitors'>"
@@ -10,6 +10,7 @@ metadata:
   created: 2026-07-08
   author: Cornelius
   changelog:
+    - "1.1: Declared automation: autonomous - read-only, no gates, no interactive prompt, so it is fleet-callable per protocols/playbook-call.md obligation 7 (published 2026-08-22 in docs/cognition-query-interface.md)"
     - "1.0: Initial version — deterministic frontmatter scan + fuzzy fallback with read-time interpretation (active>superseded, valid_until, as_of discount vs per-type SLA, always print as_of)"
 ---
 

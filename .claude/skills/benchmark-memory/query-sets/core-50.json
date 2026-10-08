@@ -1,0 +1,417 @@
+{
+  "version": "1.0",
+  "created": "2026-02-18T17:22:10.942914",
+  "snapshot": "unspecified",
+  "description": "Core benchmark query set for Local Brain Search",
+  "category_counts": {
+    "factual": 10,
+    "conceptual": 10,
+    "synthesis": 15,
+    "temporal": 5,
+    "needle": 5,
+    "broad": 5
+  },
+  "total_queries": 50,
+  "queries": [
+    {
+      "id": "f001",
+      "query": "What is dopamine?",
+      "category": "factual",
+      "expected_intent": "factual",
+      "notes": "Core concept, should find Dopamine.md",
+      "ground_truth_notes": []
+    },
+    {
+      "id": "f002",
+      "query": "What is anatta?",
+      "category": "factual",
+      "expected_intent": "factual",
+      "notes": "Buddhist concept of no-self",
+      "ground_truth_notes": []
+    },
+    {
+      "id": "f003",
+      "query": "What is intermittent reinforcement?",
+      "category": "factual",
+      "expected_intent": "factual",
+      "notes": "Behavioral concept",
+      "ground_truth_notes": []
+    },
+    {
+      "id": "f004",
+      "query": "What is lateral inhibition?",
+      "category": "factual",
+      "expected_intent": "factual",
+      "notes": "Neural mechanism",
+      "ground_truth_notes": []
+    },
+    {
+      "id": "f005",
+      "query": "What is the DMN?",
+      "category": "factual",
+      "expected_intent": "factual",
+      "notes": "Default mode network",
+      "ground_truth_notes": []
+    },
+    {
+      "id": "f006",
+      "query": "What is flow state?",
+      "category": "factual",
+      "expected_intent": "factual",
+      "notes": "Psychology concept",
+      "ground_truth_notes": []
+    },
+    {
+      "id": "f007",
+      "query": "What is reward prediction error?",
+      "category": "factual",
+      "expected_intent": "factual",
+      "notes": "Dopamine mechanism",
+      "ground_truth_notes": []
+    },
+    {
+      "id": "f008",
+      "query": "What is ergodicity?",
+      "category": "factual",
+      "expected_intent": "factual",
+      "notes": "Taleb concept",
+      "ground_truth_notes": []
+    },
+    {
+      "id": "f009",
+      "query": "What is duhkha?",
+      "category": "factual",
+      "expected_intent": "factual",
+      "notes": "Buddhist suffering",
+      "ground_truth_notes": []
+    },
+    {
+      "id": "f010",
+      "query": "What is belief updating?",
+      "category": "factual",
+      "expected_intent": "factual",
+      "notes": "Bayesian concept",
+      "ground_truth_notes": []
+    },
+    {
+      "id": "c001",
+      "query": "How does motivation work?",
+      "category": "conceptual",
+      "expected_intent": "conceptual",
+      "notes": "Should explore dopamine system",
+      "ground_truth_notes": []
+    },
+    {
+      "id": "c002",
+      "query": "Why is changing minds so hard?",
+      "category": "conceptual",
+      "expected_intent": "conceptual",
+      "notes": "Identity + dopamine",
+      "ground_truth_notes": []
+    },
+    {
+      "id": "c003",
+      "query": "How do habits form?",
+      "category": "conceptual",
+      "expected_intent": "conceptual",
+      "notes": "Behavioral patterns",
+      "ground_truth_notes": []
+    },
+    {
+      "id": "c004",
+      "query": "What causes addiction?",
+      "category": "conceptual",
+      "expected_intent": "conceptual",
+      "notes": "Dopamine, pleasure-pain",
+      "ground_truth_notes": []
+    },
+    {
+      "id": "c005",
+      "query": "How does attention work?",
+      "category": "conceptual",
+      "expected_intent": "conceptual",
+      "notes": "Cognitive mechanism",
+      "ground_truth_notes": []
+    },
+    {
+      "id": "c006",
+      "query": "Why do we procrastinate?",
+      "category": "conceptual",
+      "expected_intent": "conceptual",
+      "notes": "Decision-making",
+      "ground_truth_notes": []
+    },
+    {
+      "id": "c007",
+      "query": "How does learning happen?",
+      "category": "conceptual",
+      "expected_intent": "conceptual",
+      "notes": "Memory consolidation",
+      "ground_truth_notes": []
+    },
+    {
+      "id": "c008",
+      "query": "What makes decisions difficult?",
+      "category": "conceptual",
+      "expected_intent": "conceptual",
+      "notes": "Uncertainty, biases",
+      "ground_truth_notes": []
+    },
+    {
+      "id": "c009",
+      "query": "How does social media affect the brain?",
+      "category": "conceptual",
+      "expected_intent": "conceptual",
+      "notes": "Dopamine + attention",
+      "ground_truth_notes": []
+    },
+    {
+      "id": "c010",
+      "query": "Why do beliefs persist despite evidence?",
+      "category": "conceptual",
+      "expected_intent": "conceptual",
+      "notes": "Identity protection",
+      "ground_truth_notes": []
+    },
+    {
+      "id": "s001",
+      "query": "Connect Buddhism and neuroscience",
+      "category": "synthesis",
+      "expected_intent": "synthesis",
+      "notes": "Core bridge",
+      "ground_truth_notes": []
+    },
+    {
+      "id": "s002",
+      "query": "How do dopamine and identity relate?",
+      "category": "synthesis",
+      "expected_intent": "synthesis",
+      "notes": "Belief confirmation",
+      "ground_truth_notes": []
+    },
+    {
+      "id": "s003",
+      "query": "What links flow states to Buddhist practice?",
+      "category": "synthesis",
+      "expected_intent": "synthesis",
+      "notes": "Selflessness",
+      "ground_truth_notes": []
+    },
+    {
+      "id": "s004",
+      "query": "Connect decision-making biases to AI adoption",
+      "category": "synthesis",
+      "expected_intent": "synthesis",
+      "notes": "Enterprise AI",
+      "ground_truth_notes": []
+    },
+    {
+      "id": "s005",
+      "query": "How does uncertainty relate to dopamine and belief?",
+      "category": "synthesis",
+      "expected_intent": "synthesis",
+      "notes": "Three-way",
+      "ground_truth_notes": []
+    },
+    {
+      "id": "s006",
+      "query": "What connects content marketing to psychology?",
+      "category": "synthesis",
+      "expected_intent": "synthesis",
+      "notes": "Attention trust",
+      "ground_truth_notes": []
+    },
+    {
+      "id": "s007",
+      "query": "Link scaling to identity transformation",
+      "category": "synthesis",
+      "expected_intent": "synthesis",
+      "notes": "10x thinking",
+      "ground_truth_notes": []
+    },
+    {
+      "id": "s008",
+      "query": "How do attention and evolution relate?",
+      "category": "synthesis",
+      "expected_intent": "synthesis",
+      "notes": "Selection pressure",
+      "ground_truth_notes": []
+    },
+    {
+      "id": "s009",
+      "query": "Connect AI agents to cognitive science",
+      "category": "synthesis",
+      "expected_intent": "synthesis",
+      "notes": "Agent architecture",
+      "ground_truth_notes": []
+    },
+    {
+      "id": "s010",
+      "query": "What links meditation to decision quality?",
+      "category": "synthesis",
+      "expected_intent": "synthesis",
+      "notes": "Bias reduction",
+      "ground_truth_notes": []
+    },
+    {
+      "id": "s011",
+      "query": "How does social media relate to Buddhism?",
+      "category": "synthesis",
+      "expected_intent": "synthesis",
+      "notes": "Attachment",
+      "ground_truth_notes": []
+    },
+    {
+      "id": "s012",
+      "query": "Connect Kahneman's biases to behavior change",
+      "category": "synthesis",
+      "expected_intent": "synthesis",
+      "notes": "Decision-making",
+      "ground_truth_notes": []
+    },
+    {
+      "id": "s013",
+      "query": "What links dopamine to content strategy?",
+      "category": "synthesis",
+      "expected_intent": "synthesis",
+      "notes": "Engagement loops",
+      "ground_truth_notes": []
+    },
+    {
+      "id": "s014",
+      "query": "How do memory systems relate to AI?",
+      "category": "synthesis",
+      "expected_intent": "synthesis",
+      "notes": "RAG, retrieval",
+      "ground_truth_notes": []
+    },
+    {
+      "id": "s015",
+      "query": "Connect identity to enterprise transformation",
+      "category": "synthesis",
+      "expected_intent": "synthesis",
+      "notes": "Change barriers",
+      "ground_truth_notes": []
+    },
+    {
+      "id": "t001",
+      "query": "Recent notes about AI agents",
+      "category": "temporal",
+      "expected_intent": "temporal",
+      "notes": "Time-based filter",
+      "ground_truth_notes": []
+    },
+    {
+      "id": "t002",
+      "query": "What have I learned recently about memory?",
+      "category": "temporal",
+      "expected_intent": "temporal",
+      "notes": "Recent insights",
+      "ground_truth_notes": []
+    },
+    {
+      "id": "t003",
+      "query": "New insights about enterprise AI",
+      "category": "temporal",
+      "expected_intent": "temporal",
+      "notes": "Document Insights",
+      "ground_truth_notes": []
+    },
+    {
+      "id": "t004",
+      "query": "Recent thoughts on content creation",
+      "category": "temporal",
+      "expected_intent": "temporal",
+      "notes": "Output notes",
+      "ground_truth_notes": []
+    },
+    {
+      "id": "t005",
+      "query": "Latest notes on spreading activation",
+      "category": "temporal",
+      "expected_intent": "temporal",
+      "notes": "Memory system",
+      "ground_truth_notes": []
+    },
+    {
+      "id": "n001",
+      "query": "Note about intermittent reinforcement schedules",
+      "category": "needle",
+      "expected_intent": "conceptual",
+      "notes": "Specific retrieval",
+      "ground_truth_notes": []
+    },
+    {
+      "id": "n002",
+      "query": "The note on pilot purgatory",
+      "category": "needle",
+      "expected_intent": "conceptual",
+      "notes": "Enterprise AI term",
+      "ground_truth_notes": []
+    },
+    {
+      "id": "n003",
+      "query": "My note about MCP tool accuracy",
+      "category": "needle",
+      "expected_intent": "conceptual",
+      "notes": "Specific metric",
+      "ground_truth_notes": []
+    },
+    {
+      "id": "n004",
+      "query": "The Taleb note about skin in the game",
+      "category": "needle",
+      "expected_intent": "conceptual",
+      "notes": "Source note",
+      "ground_truth_notes": []
+    },
+    {
+      "id": "n005",
+      "query": "Note connecting duhkha to craving cycles",
+      "category": "needle",
+      "expected_intent": "conceptual",
+      "notes": "Specific bridge",
+      "ground_truth_notes": []
+    },
+    {
+      "id": "b001",
+      "query": "Identity",
+      "category": "broad",
+      "expected_intent": "conceptual",
+      "notes": "Single word, broad topic",
+      "ground_truth_notes": []
+    },
+    {
+      "id": "b002",
+      "query": "Consciousness",
+      "category": "broad",
+      "expected_intent": "conceptual",
+      "notes": "Philosophical domain",
+      "ground_truth_notes": []
+    },
+    {
+      "id": "b003",
+      "query": "Decision making",
+      "category": "broad",
+      "expected_intent": "conceptual",
+      "notes": "Cognitive domain",
+      "ground_truth_notes": []
+    },
+    {
+      "id": "b004",
+      "query": "AI agents",
+      "category": "broad",
+      "expected_intent": "conceptual",
+      "notes": "Technical domain",
+      "ground_truth_notes": []
+    },
+    {
+      "id": "b005",
+      "query": "Buddhism",
+      "category": "broad",
+      "expected_intent": "conceptual",
+      "notes": "Philosophical domain",
+      "ground_truth_notes": []
+    }
+  ]
+}

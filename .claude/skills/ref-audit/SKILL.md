@@ -2,6 +2,7 @@
 name: ref-audit
 description: Integrity report for a reference scope — the reference-scope analog of /coherence-sweep. Scans every entity note for provenance violations (any note not provenance:reference), type/relationship enum violations, missing/invalid as_of, status/superseded_by integrity, dangling wiki-links, orphan entities, and duplicate-entity candidates. READ-ONLY — it reports, it never fixes (fixes are ref-reconcile). Company is the default scope. Safe to run unattended.
 automation: autonomous
+schedule: "15 11 * * 1"
 allowed-tools: [Read, Write, Bash, Glob, Grep]
 user-invocable: true
 argument-hint: "[scope=Company] [--json]"

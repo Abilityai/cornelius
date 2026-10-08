@@ -300,9 +300,21 @@ def bootstrap(force: bool = False) -> dict:
     path_layer_map = _build_path_layer_map(artifact_types)
     edge_lookup = _build_edge_type_lookup(default_edges)
 
-    # Reset enrichments - but tensions and dismissals are curated records
-    # (detected + judged + synthesis-linked), not derivable from the index,
-    # so they survive re-bootstrap.
+    # Snapshot lifecycle scores computed by the full engine before resetting.
+    # These are behaviorally derived (citation frequency, generative ratio,
+    # cross-domain reach) and far more accurate than the structural proxy.
+    # They must survive re-bootstrap the same way tensions/dismissals do.
+    engine_lifecycles = {
+        nid: ndata["lifecycle"]
+        for nid, ndata in enrichments.get("nodes", {}).items()
+        if ndata.get("lifecycle_source") == "engine"
+    }
+    if engine_lifecycles:
+        print(f"  Preserving {len(engine_lifecycles)} engine-computed lifecycle scores across re-bootstrap.")
+
+    # Reset enrichments - tensions/dismissals are curated records (detected +
+    # judged + synthesis-linked), not derivable from the index, so they survive.
+    # Engine lifecycle scores also survive (captured above).
     enrichments = {
         "version": "1.0",
         "last_bootstrap": datetime.now().isoformat(),
@@ -330,9 +342,17 @@ def bootstrap(force: bool = False) -> dict:
         node_enrichment = classify_node(
             note_id, G, path_layer_map, framework_detection,
         )
-        # Compute initial lifecycle for insights and frameworks
+        # Set lifecycle for insights and frameworks. Prefer engine-computed scores
+        # (from lifecycle.py) over the structural proxy — the proxy's out/in-ratio
+        # formula suppresses high-in-degree notes and almost never reaches the 0.6
+        # generative threshold, causing the overnight reset from ~443 to ~13.
         if node_enrichment.layer in ("insight", "framework"):
-            node_enrichment.lifecycle = compute_initial_lifecycle(note_id, G)
+            if note_id in engine_lifecycles:
+                node_enrichment.lifecycle = engine_lifecycles[note_id]
+                node_enrichment.lifecycle_source = "engine"
+            else:
+                node_enrichment.lifecycle = compute_initial_lifecycle(note_id, G)
+                # lifecycle_source stays "proxy" (the default)
 
         set_node_enrichment(enrichments, note_id, node_enrichment)
         layer_counts[node_enrichment.layer] = layer_counts.get(node_enrichment.layer, 0) + 1
@@ -346,9 +366,20 @@ def bootstrap(force: bool = False) -> dict:
     if reference_skipped:
         print(f"  reference-kind (no lifecycle, excluded): {reference_skipped}")
 
+    # Curated tension promotions: a tension record flagged promoted=True gets
+    # its pair's edges typed `tension` at every bootstrap. Edges are re-derived
+    # from layer defaults on each run, so without this re-application step a
+    # hand-typed tension edge would silently revert at the next bootstrap.
+    promoted_pairs = {
+        frozenset((t["note_a"], t["note_b"]))
+        for t in enrichments.get("tensions", [])
+        if t.get("promoted")
+    }
+
     # Classify edges
     print(f"Typing {G.number_of_edges()} edges...")
     edge_type_counts = {}
+    promoted_edge_count = 0
 
     for src, dst, edge_data in G.edges(data=True):
         src_node = enrichments["nodes"].get(src)
@@ -363,6 +394,11 @@ def bootstrap(force: bool = False) -> dict:
             original_type,
             edge_lookup, same_layer_defaults,
         )
+        if promoted_pairs and frozenset((src, dst)) in promoted_pairs:
+            edge_enrichment.edge_type = EdgeType.TENSION.value
+            edge_enrichment.authority = Authority.NONE.value
+            edge_enrichment.confidence = 0.95
+            promoted_edge_count += 1
         set_edge_enrichment(enrichments, src, dst, edge_enrichment)
         et = edge_enrichment.edge_type
         edge_type_counts[et] = edge_type_counts.get(et, 0) + 1
@@ -371,6 +407,8 @@ def bootstrap(force: bool = False) -> dict:
     for et in ("derives-from", "instantiates", "references", "associates", "tension", "supersedes"):
         count = edge_type_counts.get(et, 0)
         print(f"    {et:15s}: {count:6d}")
+    if promoted_pairs:
+        print(f"  Curated tension promotions applied: {promoted_edge_count} edges from {len(promoted_pairs)} pairs")
 
     # Save
     save_enrichments(enrichments)

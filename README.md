@@ -1,8 +1,25 @@
 # Project Cornelius
 
-**AI-powered second brain template for Claude Code + Obsidian**
+**An open template for a second brain that thinks between conversations - built on Claude Code + Obsidian, run on [Trinity](https://github.com/Abilityai/trinity).**
 
-Capture insights, discover connections, and synthesize knowledge - with AI assistance.
+Cornelius reads, incubates ideas, and grows its own knowledge between conversations. It captures *your* thinking in your own voice, finds the connections you missed, argues open questions on a schedule, and stops every conclusion at one human gate before it becomes part of what you believe.
+
+> **Governed self-improvement, with receipts.** Every note carries who authored the thinking (you, an external source, or the AI). Nothing the AI concludes becomes endorsed knowledge without your explicit act, and every change leaves a git trail. Growth is a dial - with your hand on it.
+
+**Where this comes from.** Cornelius runs in production at [Ability AI](https://ability.ai) as a Self-Improving Cognitive System - the running instance our lab studies (*are these systems measurably learning from their own experience? We are measuring it, and will publish the receipts*). This repository is its open template: the memory engine, the governance contracts, and the everyday thinking tools ship here as they stabilize. Components of the autonomous loop are released once they have soaked in production.
+
+**Why it is yours.** It runs on your machine or your own Trinity server, on plain Markdown files, against any model. The more a system improves itself, the more it matters who owns it - compounding intelligence on rented ground compounds for the landlord.
+
+### Built for Trinity: the compounding intelligence engine
+
+Cornelius is designed to be the **compounding intelligence engine** inside **[Trinity](https://github.com/Abilityai/trinity)** - the open-source, self-hosted platform for building and running Self-Improving Cognitive Systems that you own. On Trinity, Cornelius becomes a persistent brain rather than a chat session:
+
+- 🏢 **A company brain** - the place your organization's experience accumulates and stays: decisions, research, records of people, clients, and competitors, and the reasoning behind them. Other agents in your Trinity fleet consult it, so what one agent learns, the others can use - and it does not walk out the door when a person does.
+- 🧠 **A personal brain** - your own thinking, captured in your own voice, connected across everything you read, and kept working on your open questions while you are away.
+
+Trinity supplies what a compounding brain needs and a laptop does not: always-on scheduled loops (incubation, domain watch, research), agent-to-agent delegation, an isolated container with your data on your infrastructure, the live Brain Orb visualization, and receipts - git history, audit logs, and human gates on every change.
+
+Cornelius works standalone in Claude Code for exploration and development. **It is meant to be run on Trinity** - see [Deploy to Trinity](#recommended-deploy-to-trinity-for-autonomous-operation) below.
 
 ![How Cornelius works - animated architecture explainer](docs/cornelius-explainer.gif)
 
@@ -10,7 +27,19 @@ Capture insights, discover connections, and synthesize knowledge - with AI assis
 
 > 🌱 **Ships pre-seeded.** This isn't an empty template - it comes with a working knowledge graph of **~1,000 interlinked notes** on decision-making, judgment, and cognitive science (distilled from published research and books, ~5,000 edges). Clone it and `/advise`, `/recall`, or `/find-connections` work immediately. Start at [`Brain/03-MOCs/MOC - Knowledge Base.md`](Brain/03-MOCs/MOC%20-%20Knowledge%20Base.md), then layer your own thinking on top. See [knowledge-base-analysis.md](knowledge-base-analysis.md) for what's inside.
 
-## What's New in v07.26
+## What's New in v10.26
+
+- **`/decide` - decisions, not just advice** - when the question is "X or Y?", "go/no-go", or "is it worth it", `/decide` expands the real option set (status quo, defer, pilot, hybrids), classifies the decision (reversible or one-way door, one-shot or repeated, ruin exposure, risk vs radical uncertainty), applies the *matching* rule (ergodic filter first, then expected value, robustness / minimax regret, or value of information), and closes with tripwires. A recommendation with no named rule is advice wearing a costume.
+- **Reasoning checks** - a shared discipline contract (`reasoning-checks`) that `/advise`, `/decide`, and crystallization run before concluding: an epistemic inversion (pre-mortem with a concrete falsifier), an attractor check (is this conclusion just the gravity of your most-linked notes?), provenance weighting, and a reference-class anchor for any estimate.
+- **Read roles (`scope-mount`)** - every knowledge-base read now declares *why* it reads: **voice** reads (your perspective, your articles) see only your own thinking; **reasoning** and **lookup** reads also see what you have read, grouped as *your thinking · what you have read · records*. Reference scopes (records, per-book shelves) mount only when the question names them. No more silent reads of the wrong slice of the vault.
+- **Similarity scores you can trust** - [`SIMILARITY-CALIBRATION.md`](resources/local-brain-search/SIMILARITY-CALIBRATION.md): a score means nothing without its population, so every threshold in the system is now stated against the space it actually runs in. Search results carry `raw_similarity` next to the learning-adjusted ranking score, and `calibrate_similarity.py` re-measures the bands on *your* vault.
+- **Graph fix - rebuild your index** - identical YAML frontmatter blocks made unrelated notes look like perfect twins (cosine 1.000), crowding real neighbours out of the semantic graph. `index_brain.py` now skips frontmatter-only and empty chunks when choosing a note's representative; `tension.py` uses the same rule. **Run `./run_index.sh` and `/detect-tensions` after upgrading.**
+- **Source authority** - [`resources/SOURCE-AUTHORITY.md`](resources/SOURCE-AUTHORITY.md) is one template for what to trust at ingestion: a tier model (`primary` · `credible-interpreter` · `discovery-tier` · `rejected`), a web allowlist, and reject patterns. `discovery-tier` lets an off-list source *raise* a question but never *settle* one.
+- **Skills ship with their scripts** - the book extractors (`multi-format-book-extractor`, `epub-chapter-extractor`) and `benchmark-memory` now include the Python they call.
+- **60 skills** - plus refreshed `advise`, `recall`, `find-connections`, `dialectic`, `ingest-source`, `create-article`, `refresh-index`, and the extraction agents.
+
+<details>
+<summary>v07.26 changes</summary>
 
 - **Animated architecture explainer** - the film at the top of this README: the full pipeline from capture to autonomous operation in ~3 minutes (`docs/cornelius-explainer.gif`)
 - **Reference scopes - a CRM layer inside the brain** - `manage-reference-data` plus seven `ref-*` skills (`ingest`, `query`, `audit`, `reconcile`, `refresh`, `supersede`, `bridge`) maintain mutable, freshness-stamped entity records - people, organizations, products, engagements, watched competitors - in separately mountable sub-scopes under `Brain/Company/`. Records carry `provenance: reference`, temporal validity, and per-type freshness SLAs; `ref-bridge` surfaces which of your insights an entity is a live instance of. A guarded boundary keeps records from ever auto-promoting into endorsed insights. Conventions: `resources/layered-brains/REFERENCE-SCOPE-SCHEMA.md` + `COMPANY-BRAIN-SCHEMA.md`
@@ -19,6 +48,7 @@ Capture insights, discover connections, and synthesize knowledge - with AI assis
 - **Hardened autonomous thinking** - `incubation-loop` v1.22 and `domain-watch` v1.18 codify evidence discipline learned from months of autonomous operation: stale-wire dating, primary-source pinning, pre-registered triggers, injection-not-spawn, framework-exhaustion guards
 - **Live orb freshness** - the Brain Orb exporter overlays notes captured since the last reindex, so capture → refresh → appears holds without waiting for the nightly rebuild
 - **57 skills** for insight capture, autonomous thinking, connection discovery, reference data, research, and content creation
+</details>
 
 <details>
 <summary>v06.26 changes</summary>
@@ -70,14 +100,15 @@ Capture insights, discover connections, and synthesize knowledge - with AI assis
 
 ## TL;DR
 
-**Project Cornelius** = Claude Code + Custom Agents + Obsidian + FAISS Vector Search
+**Project Cornelius** = Claude Code + Custom Agents + Obsidian + FAISS Vector Search + a governed autonomous thinking loop
 
 It's like having a highly specialized AI research assistant that:
 - **Finds hidden connections** in your notes you didn't know existed
 - **Writes articles** from your accumulated insights
 - **Captures unique thoughts** while preserving your voice
 - **Discovers patterns** across different domains of knowledge
-- **Learns from you** - search rankings improve based on your actual usage
+- **Decides, not just advises** - `/decide` structures real choices with a named decision rule and tripwires
+- **Keeps you the author** - provenance on every note; AI conclusions never become your beliefs without your explicit act
 - **Researches autonomously** - can run research cycles and expand your knowledge base
 - **Thinks while you sleep** - runs scheduled reasoning loops on open questions via [Trinity](https://github.com/Abilityai/trinity)
 - **Evolves with you** through Git-tracked configurations
@@ -134,7 +165,7 @@ Project Cornelius is a **multi-layered knowledge management system** that create
 - Incremental indexing - only changed notes re-embed; daily refresh in seconds
 - Intent-aware query classification (factual/conceptual/synthesis/temporal)
 - Spreading activation with lateral inhibition
-- Usage-based Q-value learning - rankings improve with use
+- Usage-based Q-value learning (experimental - rankings can adapt to use; `raw_similarity` always shows the unadjusted score)
 - Graph analytics: hubs, bridges, centrality
 - Explicit (wiki-links) and semantic edge distinction
 
@@ -181,9 +212,9 @@ claude
 
 ## Recommended: Deploy to Trinity for Autonomous Operation
 
-Running locally is fine for development. For persistent autonomous operation - scheduled research, incubation loops, domain watching, and agent collaboration - deploy Cornelius to **[Trinity](https://github.com/Abilityai/trinity)**.
+Running locally is fine for development. Cornelius becomes a compounding intelligence engine - your company brain or your personal brain - when it runs persistently on **[Trinity](https://github.com/Abilityai/trinity)**: scheduled research, incubation loops, domain watching, and the rest of your agent fleet consulting it.
 
-Trinity is an open-source platform for self-hosting autonomous agent fleets. Each agent runs in an isolated Docker container with cron scheduling, real-time monitoring, and agent-to-agent delegation.
+Trinity is the open-source, self-hosted platform for building and running Self-Improving Cognitive Systems that you own. Each agent runs in an isolated Docker container with cron scheduling, real-time monitoring, and agent-to-agent delegation.
 
 On Trinity, Cornelius also gets the **Brain Orb** - a live 3D visualization of this knowledge base on the agent's Brain tab, with scope mounting (per-book sub-scopes included), voice-drivable KB search, and capture/link/refresh actions that write back into the vault. The seeded KB renders out of the box (`data.seed.json`); the hook contract ships in `.trinity/brain-orb/` (requires a Trinity base image from 2026-07 or later, with the platform's Brain Orb flags enabled).
 
@@ -198,7 +229,7 @@ claude plugin add abilityai/abilities
 /trinity:onboard    # deploy
 ```
 
-**Documentation:** [docs.example.com](https://docs.example.com)
+**Documentation:** [docs.ability.ai](https://docs.ability.ai)
 
 ### Abilities Plugin Marketplace
 
@@ -213,7 +244,7 @@ The [Abilities marketplace](https://github.com/Abilityai/abilities) provides Cla
 | `utilities` | Ops tools - incident investigation, deployment rollback |
 
 Install all at once: `/plugin marketplace add abilityai/abilities`
-Docs: [docs.example.com/cloud-code-plugins](https://docs.example.com/cloud-code-plugins)
+Docs: [docs.ability.ai/cloud-code-plugins](https://docs.ability.ai/cloud-code-plugins)
 
 ---
 
@@ -242,6 +273,7 @@ Docs: [docs.example.com/cloud-code-plugins](https://docs.example.com/cloud-code-
 |-------|---------|---------|
 | `recall` | `/recall <topic>` | 3-layer semantic search with spreading activation |
 | `search-vault` | `/search-vault <query>` | Quick semantic + keyword search |
+| `quick-search` | `/quick-search <query>` | Fastest lookup - top hits with excerpts |
 | `find-connections` | `/find-connections <note>` | Map conceptual network |
 | `auto-discovery` | `/auto-discovery` | Run cross-domain connection discovery |
 | `detect-tensions` | `/detect-tensions` | Find productive contradictions between notes |
@@ -252,6 +284,7 @@ Docs: [docs.example.com/cloud-code-plugins](https://docs.example.com/cloud-code-
 |-------|---------|---------|
 | `extract-insights` | `/extract-insights <file>` | Extract insights from YOUR content |
 | `extract-document-insights` | `/extract-document-insights <file>` | Extract insights from external documents |
+| `ingest-source` | `/ingest-source <file or url>` | One entry point for books, papers, documents, and videos - routes and links them |
 | `graduate-insights` | `/graduate-insights` | Promote notes to permanent status |
 | `integrate-recent-notes` | `/integrate-recent-notes` | Connect recent notes to knowledge base |
 | `insight-interview` | `/insight-interview <topic>` | KB-grounded Socratic dialogue to surface and sharpen your thinking |
@@ -260,6 +293,9 @@ Docs: [docs.example.com/cloud-code-plugins](https://docs.example.com/cloud-code-
 
 | Skill | Command | Purpose |
 |-------|---------|---------|
+| `advise` | `/advise <problem>` | Advice grounded in your own frameworks - parallel KB queries, synthesized |
+| `decide` | `/decide <choice>` | Structure a decision - option set, decision type, matching rule, tripwires |
+| `think-about-it` | `/think-about-it <topic>` | Consider a topic through successive distinct KB lenses |
 | `create-article` | `/create-article <topic>` | Write article from notes |
 | `get-perspective-on` | `/get-perspective-on <topic>` | Extract unique perspective |
 | `synthesize-insights` | `/synthesize-insights` | Combine insights into narrative |
@@ -297,6 +333,14 @@ Docs: [docs.example.com/cloud-code-plugins](https://docs.example.com/cloud-code-
 | `manage-thinking-topics` | `/manage-thinking-topics` | Seed, review, crystallize, and retire thinking loop topics |
 | `domain-watch` | `/domain-watch` | Autonomous KB scanning - detects new signals and activates thinking topics |
 | `manage-watching-domains` | `/manage-watching-domains` | Configure domain-watch surveillance and review proposals |
+
+**Reasoning Contracts** (shared rules other skills follow - not invoked directly)
+
+| Skill | Purpose |
+|-------|---------|
+| `scope-mount` | Which slice of the vault a read sees, decided by the read's role (voice / reasoning / lookup) |
+| `reasoning-checks` | Pre-conclusion checks - epistemic inversion, attractor check, provenance weighting, reference class |
+| `epistemic-classification` | Truth-status and source-tier tagging at ingestion |
 
 **Brain Dependency Graph**
 
@@ -525,6 +569,7 @@ graph TB
 
 | Version | Changes |
 |---------|---------|
+| v10.26 | `/decide`, reasoning-checks, read roles (scope-mount), similarity calibration + `raw_similarity`, frontmatter-twin graph fix, source-authority template, skills ship with scripts, 60 skills |
 | v07.26 | Reference scopes (CRM layer, 8 skills), incremental indexing, tension detection v2, animated architecture explainer, 57 skills |
 | v06.26 | Seeded public knowledge base (1,031 decision-science notes + 11 MOCs), portable rebuilt index |
 | v05.26 | Incubation loop, domain watch, insight interview, YouTube transcript, deep-research Phase 4, 45 skills |

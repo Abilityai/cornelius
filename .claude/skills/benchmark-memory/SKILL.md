@@ -44,21 +44,58 @@ Systematic benchmarking framework to measure retrieval quality, compare configur
 
 - Local Brain Search system indexed (`resources/local-brain-search/data/brain.faiss`)
 - Python venv at `resources/local-brain-search/venv/` with search dependencies
-- Claude Code CLI installed and authenticated (for LLM-as-judge scoring via headless mode)
+- A container-valid LLM-judge channel (see **LLM-as-Judge Scoring** below - the channel differs between workstation and Trinity)
 
 ### LLM-as-Judge Scoring
 
-This skill uses **Claude Code headless mode** (`claude -p`) for LLM relevance scoring, not a separate API key. This means:
+**The judge channel is environment-dependent. Pick it before you run anything.**
 
-- No `ANTHROPIC_API_KEY` environment variable needed
-- Uses your existing Claude Code authentication
-- Default model: `sonnet` (good quality) - can also use `haiku` (faster/cheaper) or `opus`
+| Environment | Judge channel | Status |
+|---|---|---|
+| the user's workstation | Claude Code headless (`claude -p`) | Works - the CLI holds a real, refreshable credential on disk |
+| **Any Trinity container** | **`chat_with_agent` (Trinity MCP), or an in-process `Task` subagent** | **`claude -p` DOES NOT WORK - see below** |
+
+#### Why `claude -p` fails on Trinity (measured 2026-09-16, retrieval-signal-hierarchy AM-10)
+
+A Trinity agent's **turn** is subscription-authenticated by the platform at process spawn, but that
+credential is **turn-scoped by design and never written to disk in refreshable form**. The container
+does ship `~/.claude/.credentials.json`, which is why this looks like it should work - but its
+`accessToken` and `refreshToken` are **empty strings**. A child `claude -p` has nothing to read and
+dies with `Not logged in` in about a second. `claude --version` still succeeds, so **it is not a valid
+readiness check** - a binary on `$PATH` proves nothing about auth.
+
+**Do not work around this by shelling out anyway.** Per Trinity ent#643, agents must not spawn the
+`claude` CLI: a subprocess escapes the execution ledger, cost attribution, autonomy gates and
+permission enforcement. `Task` and `chat_with_agent` are the sanctioned paths.
+
+#### Container-valid option A - in-process `Task` subagent
+
+For a judging pass driven from inside this turn, spawn a subagent with the `Task` tool. It inherits
+the turn's authentication, stays inside the execution ledger, and needs no key. Best when the
+scoring set is small enough to fan out over a handful of agents and return scores as text.
+
+#### Container-valid option B - `chat_with_agent` for delegated/batch work
+
+For a long batch (the 50-query x 15-config sweep), drive `chat_with_agent` over Trinity MCP.
+`TRINITY_MCP_URL` and `TRINITY_MCP_API_KEY` are in every agent's environment, so a stdlib-only Python
+script can call `tools/call -> chat_with_agent` over plain HTTP and get a real, subscription-backed
+execution. No SDK, no installs, no key. Reference client:
+`a Trinity MCP client of your own` (protocol: Trinity MCP `tools/call`).
+
+> **Benchmark-critical hazard: identical messages are DEDUPLICATED into one execution.** Same
+> `message` -> same `execution_id` -> the same cached response text; the second call never runs.
+> A benchmark that scores the same (query, result) pair twice - score-rescore, rubric perturbation,
+> self-consistency, or simply two configs that retrieve the same note - will record **perfect
+> agreement as a pure artifact**, and a failed judge call will "retry" forever against its own cached
+> failure. **Always put a unique nonce in the message**, derived from (query id, config id, model,
+> attempt) so it stays deterministic and resumable.
+
+Two further measured behaviours that matter here: `allowed_tools` is **not** enforced (never treat a
+judge as sandboxed or blind), but tool use **is** auditable - `get_execution_result(include_log=True)`
+returns the tools the turn actually held, so verify the judge used none rather than assuming it.
+
+- Default model: `sonnet` (good quality) - `haiku` is faster/cheaper, `opus` stronger
 - JSON output via prompt engineering for reliable scoring
-
-To verify Claude Code is available:
-```bash
-claude --version
-```
 
 ### Installing Dependencies
 
@@ -67,7 +104,7 @@ Dependencies are installed in the local-brain-search venv:
 ```bash
 cd resources/local-brain-search
 source venv/bin/activate
-pip install pandas tqdm  # anthropic not required - uses Claude Code headless
+pip install pandas tqdm  # no anthropic SDK and no API key needed on either channel
 ```
 
 ## Sub-Commands
@@ -304,5 +341,5 @@ After running benchmarks, answer these questions:
 | Static search | ✅ Works | Traditional vector similarity |
 | Spreading search | ✅ Works | Multi-iteration activation |
 | 15 configs | ✅ Works | Focused parameter sweep |
-| LLM-as-judge | ✅ Works | Uses Claude Code headless mode (`claude -p`) |
+| LLM-as-judge | ⚠️ Channel-dependent | `claude -p` works on the workstation ONLY; on Trinity use `chat_with_agent` or a `Task` subagent (see LLM-as-Judge Scoring) |
 | Results CSV | Ready | Incremental writes, resume support |

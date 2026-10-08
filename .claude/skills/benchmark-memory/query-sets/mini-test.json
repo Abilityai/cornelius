@@ -1,0 +1,19 @@
+{
+  "name": "Mini Test Set",
+  "version": "1.0",
+  "description": "Minimal query set for testing benchmark pipeline",
+  "queries": [
+    {
+      "id": "test-1",
+      "query": "What is dopamine?",
+      "category": "factual",
+      "expected_notes": ["Dopamine"]
+    },
+    {
+      "id": "test-2",
+      "query": "How does Buddhism view the self?",
+      "category": "conceptual",
+      "expected_notes": ["In Buddhism - Self is an Illusion"]
+    }
+  ]
+}

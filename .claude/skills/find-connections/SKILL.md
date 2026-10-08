@@ -1,6 +1,7 @@
 ---
 name: find-connections
 description: Discover hidden connections and relationships between notes in the knowledge base
+automation: autonomous
 argument-hint: <note name or topic to start from>
 allowed-tools: Read, Grep, Glob, Bash
 ---
@@ -12,16 +13,16 @@ Use Local Brain Search for all semantic search and connection discovery. **Sprea
 **Scripts:**
 ```bash
 # Spreading activation search (recommended for connection discovery)
-resources/local-brain-search/run_search.sh "query" --mode spreading --limit 10 --json
+BRAIN_READ_SCOPE=core,Books,document-insights resources/local-brain-search/run_search.sh "query" --mode spreading --limit 10 --json
 
 # Static search (for exact lookups)
-resources/local-brain-search/run_search.sh "query" --limit 10 --json
+BRAIN_READ_SCOPE=core,Books,document-insights resources/local-brain-search/run_search.sh "query" --limit 10 --json
 
 # Force synthesis intent (maximum graph exploration)
-resources/local-brain-search/run_search.sh "query" --mode spreading --intent synthesis --json
+BRAIN_READ_SCOPE=core,Books,document-insights resources/local-brain-search/run_search.sh "query" --mode spreading --intent synthesis --json
 
 # Find connections
-resources/local-brain-search/run_connections.sh "Note Name" --json
+BRAIN_READ_SCOPE=core,Books,document-insights resources/local-brain-search/run_connections.sh "Note Name" --json
 
 # Find hubs
 resources/local-brain-search/run_connections.sh --hubs --json
@@ -53,6 +54,8 @@ Map the conceptual network around the specified note or topic, revealing:
 
 ## Analysis Protocol
 
+**Read role: lookup** (contract: `scope-mount`): the anchor search and every neighbourhood call run at the reasoning mount `core,Books,document-insights` (a `Books/` or `Document Insights/` neighbour is encountered material - say so); `--stats` / `--hubs` / `--bridges` are the fingerprint and stay `core`. When the anchor is a freshly ingested non-core note, mount its write target instead (the `connection-finder` agent's READ SCOPE rule).
+
 ### Phase 1: Anchor Point Identification
 1. If given a note name, use `Grep` to find files matching the name:
    ```
@@ -60,7 +63,7 @@ Map the conceptual network around the specified note or topic, revealing:
    ```
 2. If given a topic, search using Local Brain Search:
    ```bash
-   resources/local-brain-search/run_search.sh "$ARGUMENTS" --limit 5 --json
+   BRAIN_READ_SCOPE=core,Books,document-insights resources/local-brain-search/run_search.sh "$ARGUMENTS" --limit 5 --json
    ```
 3. Read the anchor note's full content using `Read` tool
 4. Get the exact file path for subsequent operations
@@ -68,7 +71,7 @@ Map the conceptual network around the specified note or topic, revealing:
 ### Phase 2: Immediate Network Mapping
 1. Use Local Brain Search to get connections:
    ```bash
-   resources/local-brain-search/run_connections.sh "Note Name" --json
+   BRAIN_READ_SCOPE=core,Books,document-insights resources/local-brain-search/run_connections.sh "Note Name" --json
    ```
 2. Identify the top 3-5 most connected notes (both explicit and semantic)
 3. Use `Read` to examine their content and understand connection nature
@@ -143,6 +146,17 @@ Structure your findings as follows:
 ---
 
 ## 🕸️ Network Structure (3 Layers Deep)
+
+> **Calibration (2026-09-02).** The layer bands below are **percentiles of an established-note
+> population, not universal strength grades** — in that population (a note title queried against
+> the whole vault) the median best neighbour is 0.724 and 43% of notes have a >=0.75 neighbour, so
+> 0.75/0.65/0.60 sit at roughly the 60th/73rd/80th percentile. **Against a fresh ingestion session
+> the same bands return nothing**: new external material queried against `core` maxes out at 0.560
+> (median 0.474). When the anchor is a recently ingested note, shift the whole ladder down to
+> **0.50 / 0.42 / 0.35** and rely on reading the notes, not on the number.
+> Contract + live figures: `resources/local-brain-search/SIMILARITY-CALIBRATION.md`.
+> Note also that the printed `similarity` from `run_search.sh` is a Q-adjusted ranking score,
+> not raw cosine (Trap 1 there).
 
 ```
 [Anchor Note]

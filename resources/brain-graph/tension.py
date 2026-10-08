@@ -30,6 +30,39 @@ _INDEX_PAT = re.compile(
 # Above this, "high divergence" is boilerplate variation on one text, not opposition.
 _NEAR_DUP_SIMILARITY = 0.93
 
+# A note's REPRESENTATIVE chunk must carry meaning. 83% of notes have a bare YAML
+# frontmatter block as their first chunk (CLAUDE.md mandates an identical metadata
+# block on every note), and some stubs have an empty body. Querying with such a
+# vector finds mostly other boilerplate (>= 0.93, dropped as near-dup) and little in
+# [0.75, 0.93) - measured 2026-09-02 on 293 such notes: 121 usable hits, 3 in 4 notes
+# with none, vs 765 hits with the representative mapping. Before the fix this
+# detector was mostly blind for those notes, and what it did see was matched on
+# metadata-like text, not claims. Mirrors index_brain.is_meaningless_chunk() in local-brain-search
+# (kept local to avoid a cross-package import; keep the two in step).
+_FRONTMATTER_ONLY = re.compile(r"^---\s*\n.*?\n---\s*$", re.DOTALL)
+_MIN_MEANINGFUL_CHARS = 50  # = local-brain-search memory_config indexing.min_chunk_length
+
+
+def _is_boilerplate_chunk(content: str) -> bool:
+    stripped = (content or "").strip()
+    if len(stripped) < _MIN_MEANINGFUL_CHARS:
+        return True
+    return bool(_FRONTMATTER_ONLY.match(stripped))
+
+
+def _representative_chunks(metadata: list[dict], wanted: set[str] | None = None) -> dict[str, int]:
+    """note_id -> index of its first MEANINGFUL chunk. Notes with no meaningful chunk
+    are omitted (they cannot be in a tension; they have no claim)."""
+    rep: dict[str, int] = {}
+    for i, m in enumerate(metadata):
+        nid = m.get("note_id")
+        if not nid or nid in rep or (wanted is not None and nid not in wanted):
+            continue
+        if _is_boilerplate_chunk(m.get("content", "")):
+            continue
+        rep[nid] = i
+    return rep
+
 
 def _pair_key(note_a: str, note_b: str) -> tuple[str, str]:
     """Path-independent pair identity: sorted basenames, so a note moving folders
@@ -174,11 +207,11 @@ def _get_note_content(note_id: str, metadata: list[dict]) -> str:
 
 
 def _get_note_embedding(note_id: str, metadata: list[dict], index) -> np.ndarray | None:
-    """Get the first chunk's embedding for a note."""
-    for i, m in enumerate(metadata):
-        if m.get("note_id") == note_id:
-            return index.reconstruct(i)
-    return None
+    """Get the embedding of a note's first MEANINGFUL chunk (never bare frontmatter)."""
+    rep = _representative_chunks(metadata, {note_id})
+    if note_id not in rep:
+        return None
+    return index.reconstruct(int(rep[note_id]))
 
 
 def detect_tensions(
@@ -226,12 +259,11 @@ def detect_tensions(
 
     index, metadata = _load_faiss_and_metadata()
 
-    # Build note_id -> first chunk index mapping
-    note_chunk_idx = {}
-    for i, m in enumerate(metadata):
-        nid = m.get("note_id")
-        if nid and nid not in note_chunk_idx and nid in nodes:
-            note_chunk_idx[nid] = i
+    # Build note_id -> REPRESENTATIVE chunk index (first meaningful chunk, never the
+    # frontmatter block). Fixed 2026-09-02: the index rebuild that removed the
+    # frontmatter collision from the graph did NOT reach this detector, which picks
+    # its own chunk straight from the FAISS metadata.
+    note_chunk_idx = _representative_chunks(metadata, set(nodes))
 
     new_tensions = []
     checked = set()
@@ -260,6 +292,9 @@ def detect_tensions(
 
             # Skip self, non-candidates, already checked pairs
             if other_id == note_id:
+                continue
+            # A boilerplate chunk is not a claim - it can never be the other end of a tension.
+            if _is_boilerplate_chunk(metadata[idx].get("content", "")):
                 continue
             if other_id not in nodes or nodes[other_id].get("layer") not in target_layers:
                 continue

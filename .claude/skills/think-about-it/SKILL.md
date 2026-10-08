@@ -76,11 +76,12 @@ Selection rules:
 
 ```bash
 # --no-track: autonomous reads must not train q-values (learning hygiene, same as incubation-loop)
-python3 resources/local-brain-search/search.py "[topic] [lens core terms]" --limit 6 --mode spreading --no-track 2>/dev/null
-python3 resources/local-brain-search/search.py "[lens core concept]" --limit 4 --mode spreading --no-track 2>/dev/null
+# read role: reasoning (contract: scope-mount) - the reasoning mount, so a lens can land on what the user has READ, not only what he wrote
+BRAIN_READ_SCOPE=core,Books,document-insights python3 resources/local-brain-search/search.py "[topic] [lens core terms]" --limit 6 --mode spreading --no-track 2>/dev/null
+BRAIN_READ_SCOPE=core,Books,document-insights python3 resources/local-brain-search/search.py "[lens core concept]" --limit 4 --mode spreading --no-track 2>/dev/null
 ```
 
-Read the 3-4 most promising notes in full. These ground the pass - every pass must cite real notes.
+Read the 3-4 most promising notes in full. These ground the pass - every pass must cite real notes, and a `Books/` or `Document Insights/` note is cited as encountered material, never as the user's view.
 
 ### Step 4: Think
 

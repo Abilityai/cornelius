@@ -41,6 +41,17 @@ This article synthesizes the following permanent notes and documents:
 ### Document Insights Referenced
 - [Document insight session/note if applicable]
 
+## External Voices
+
+Thought-leader scan results (from the Thought-Leader & Market Scan step):
+
+| Voice | Claim (one line) | Source (link, date) | Integration |
+|-------|------------------|---------------------|-------------|
+| [Name] | [What they said] | [URL, YYYY-MM] | Agrees / Extends / Contrasts |
+
+[If no relevant recent voices were found, state that here - it's a signal, not a gap.]
+[Flag here any load-bearing claim that could not be verified during fact-checking.]
+
 ## Thinking Process
 
 [2-3 sentences max describing the synthesis approach or key insight that drove the article]
@@ -123,6 +134,7 @@ Article emerged from recognizing the conflict between AI parallelism optimizatio
 | Platform | No | Target publication platform |
 | Primary Sources | Yes | Main permanent notes used (3-5) |
 | Supporting Notes | No | Additional notes referenced |
+| External Voices | Yes | Thought-leader scan results and integration decisions (or explicit "none found"); unverifiable-claim flags from fact-checking |
 | Thinking Process | Yes | Brief synthesis description (2-3 sentences max) |
 | Key Contributions | No | Original frameworks or insights |
 | Publication Record | No | Fill in when published |

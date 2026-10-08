@@ -24,7 +24,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Literal, Optional
 
-from memory_config import MEMORY_CONFIG, is_pure_core, scope_enforced
+from memory_config import CORE_FOLDERS, MEMORY_CONFIG, scope_enforced, scope_of
 
 
 # =============================================================================
@@ -66,6 +66,29 @@ class LearningStats:
     min_q_value: float
     events_by_type: dict[str, int]
     top_notes: list[tuple[str, float]]  # (note_id, q_value)
+
+
+# =============================================================================
+# LEARN-GATE (per note, Phase 10a - 2026-09-04)
+# =============================================================================
+
+def trains(note_id: str) -> bool:
+    """THE learn-gate: may this note's usage train / be re-ranked by q-values?
+
+    Per-NOTE, not per-read. Under scope enforcement only notes whose folder is
+    in CORE_FOLDERS train q-values or receive the q-value boost, regardless of
+    what else is mounted for the read. This replaces the Phase-4 whole-read
+    gate (`is_pure_core(read_scope)`), which silently switched learning OFF for
+    any mixed read - the "learn-gate landmine" that blocked widening the
+    everyday read scope (TARGET-ARCHITECTURE.md -> Direction B -> "Scope mount
+    policy"). Invariant kept, now per note: a non-core note never changes
+    q_values.json and never has its score re-ranked by core-learned signal.
+
+    While enforcement is OFF this is a pass-through (pre-scope behavior).
+    """
+    if not scope_enforced():
+        return True
+    return scope_of(note_id) in CORE_FOLDERS
 
 
 # =============================================================================
@@ -172,15 +195,22 @@ def log_retrieval(
 
     Call this after every search to track what was shown to the user/agent.
 
-    Scope learn-gate (Phase 4): when scope enforcement is ON, only a pure-core
-    read trains q-values; a mounted (non-core) read is recorded nowhere, so the
-    core fingerprint's learned signal is never blended with another scope's. While
+    Scope learn-gate (Phase 10a, per note): when scope enforcement is ON, each
+    retrieved note trains iff `trains(note_id)` - its folder is in CORE_FOLDERS.
+    Non-core hits of a mixed read (e.g. the reasoning mount
+    `core,Books,document-insights`) are recorded nowhere, so the core
+    fingerprint's learned signal is never blended with another scope's, while
+    the core hits of that same read DO train. (Phase 4 gated the whole read on
+    `is_pure_core`, which switched learning off for every mixed read.) While
     enforcement is OFF this is a pass-through - byte-identical to the pre-scope
-    system. read_scope=None is the CLI fail-closed default and counts as pure core.
+    system. `position` is the note's position in the results as shown, not its
+    position among the trainable subset.
     """
     if not MEMORY_CONFIG["learning"]["enabled"]:
         return
-    if scope_enforced() and read_scope is not None and not is_pure_core(read_scope):
+
+    trainable = [(pos, nid) for pos, nid in enumerate(note_ids) if trains(nid)]
+    if not trainable:
         return
 
     session = session_id or _get_session_id()
@@ -189,7 +219,7 @@ def log_retrieval(
 
     q_values = load_q_values()
 
-    for position, note_id in enumerate(note_ids):
+    for position, note_id in trainable:
         event = UsageEvent(
             timestamp=timestamp,
             note_id=note_id,
@@ -218,6 +248,8 @@ def log_read(
 ) -> None:
     """Log that a note's content was read."""
     if not MEMORY_CONFIG["learning"]["enabled"]:
+        return
+    if not trains(note_id):  # per-note learn-gate (Phase 10a): non-core never enters the store
         return
 
     session = session_id or _get_session_id()
@@ -249,6 +281,8 @@ def log_reference(
     """Log that a note was referenced/cited in output."""
     if not MEMORY_CONFIG["learning"]["enabled"]:
         return
+    if not trains(note_id):  # per-note learn-gate (Phase 10a): non-core never enters the store
+        return
 
     session = session_id or _get_session_id()
 
@@ -278,6 +312,8 @@ def log_linked(
 ) -> None:
     """Log that a note was linked in new content."""
     if not MEMORY_CONFIG["learning"]["enabled"]:
+        return
+    if not trains(note_id):  # per-note learn-gate (Phase 10a): non-core never enters the store
         return
 
     session = session_id or _get_session_id()
@@ -319,16 +355,16 @@ def adjust_scores_with_q_values(
     Args:
         scores: {note_id: score} from search/spreading
         q_weight: How much to weight Q-values (default from config)
-        read_scope: active read-scope; under enforcement, a mounted (non-core)
-            read returns scores unchanged so core-learned q-values never re-rank
-            another scope. None / pure-core = apply the boost (pre-scope default).
+        read_scope: active read-scope (kept for signature stability; the gate is
+            per note since Phase 10a). Under enforcement only core notes receive
+            the boost - a non-core hit of a mixed read keeps its score unchanged,
+            so core-learned q-values never re-rank another scope, while the core
+            hits of the same read are still re-ranked by what was learned.
 
     Returns:
         Adjusted scores
     """
     if not MEMORY_CONFIG["learning"]["enabled"]:
-        return scores
-    if scope_enforced() and read_scope is not None and not is_pure_core(read_scope):
         return scores
 
     config = MEMORY_CONFIG["learning"]
@@ -338,6 +374,9 @@ def adjust_scores_with_q_values(
 
     result = {}
     for note_id, score in scores.items():
+        if not trains(note_id):
+            result[note_id] = score
+            continue
         q = q_values.get(note_id, 0.0)
         # Blend: (1 - weight) * score + weight * q
         # But Q-values are in different range, so we use them as a multiplier boost

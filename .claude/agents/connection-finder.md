@@ -30,10 +30,10 @@ Use Local Brain Search for all semantic search and connection discovery.
 **Wrapper Scripts:**
 ```bash
 # Semantic search
-resources/local-brain-search/run_search.sh "query" --limit 10 --json
+BRAIN_READ_SCOPE=core,Books,document-insights resources/local-brain-search/run_search.sh "query" --limit 10 --json
 
 # Find connections for a note
-resources/local-brain-search/run_connections.sh "Note Name" --json
+BRAIN_READ_SCOPE=core,Books,document-insights resources/local-brain-search/run_connections.sh "Note Name" --json
 
 # Get hub notes
 resources/local-brain-search/run_connections.sh --hubs --json
@@ -45,11 +45,14 @@ resources/local-brain-search/run_connections.sh --stats --json
 resources/local-brain-search/run_connections.sh --bridges --json
 ```
 
-**READ SCOPE:** with scope enforcement on, a bare command reads only the **core**
-fingerprint (`02-Permanent`, `03-MOCs`, `AI Extracted Notes`, `01-Sources`). That
-is the right default when you are mapping the curated graph (e.g. the
-`/find-connections` command). But when your task is to connect **newly-created
-non-core notes** into the graph - e.g. spawned by `deep-research` / `economist-analyze`
+**READ SCOPE** (contract: `.claude/skills/scope-mount/SKILL.md`): never run a bare
+command - with scope enforcement on it silently reads only the **core** fingerprint
+(`02-Permanent`, `03-MOCs`, `AI Extracted Notes`, `01-Sources`). When you are called
+in the **lookup** role (`/find-connections`, `/recall`) the mount is the reasoning
+mount `core,Books,document-insights` (the prefix shown in the listing above); label a
+`Books/` or `Document Insights/` neighbour as encountered material. `--hubs` /
+`--bridges` / `--stats` are the fingerprint and stay `core`. When your task is to
+connect **newly-created non-core notes** into the graph - e.g. spawned by `deep-research`
 to map connections for fresh `Document Insights/` notes, or by `ingest-source` for
 fresh `Books/<slug>/` notes - those targets live outside core, so a bare command can
 neither resolve nor reach them. In that case prefix every search/connection command
@@ -90,15 +93,24 @@ Discover and document:
 - Use local brain search to find connections:
   ```bash
   # Search for notes by topic
-  resources/local-brain-search/run_search.sh "dopamine" --limit 10 --json
+  BRAIN_READ_SCOPE=core,Books,document-insights resources/local-brain-search/run_search.sh "dopamine" --limit 10 --json
 
   # Get connections for a specific note
-  resources/local-brain-search/run_connections.sh "02-Permanent/Dopamine.md" --json
+  BRAIN_READ_SCOPE=core,Books,document-insights resources/local-brain-search/run_connections.sh "02-Permanent/Dopamine.md" --json
 
   # Find hub notes (most connected)
   resources/local-brain-search/run_connections.sh --hubs --json
   ```
-- Identify notes with high similarity scores (0.75+) to starting point
+- Identify notes with high similarity scores to the starting point — **but read the calibration
+  contract first: `resources/local-brain-search/SIMILARITY-CALIBRATION.md`.** "0.75+" is only a
+  meaningful bar for an *established* anchor searched vault-wide (median best neighbour 0.724).
+  **When the anchor is a newly ingested note it is unreachable** — new external material tops out
+  at 0.560 against `core` (median 0.474), so a 0.75 bar makes this agent report "no strong
+  connections" for exactly the material it was invoked to integrate. Set the bar from the
+  population: ~0.50 strong / 0.42-0.50 worth reading / <0.40 noise for fresh sessions.
+- The `similarity` printed by `run_search.sh` is **not raw cosine** — `static_search()` overwrites
+  it with a Q-value ranking adjustment and re-sorts, so it is unstable in `--limit` and must never
+  be reported as a measured similarity. Prefer `run_connections.sh` edge weights for edges.
 
 **Network Expansion**:
 - For each connected note, use `run_connections.sh "Note Name"` to find its connections

@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Generate images using Google's Nano Banana (Gemini 2.5 Flash Image)
-# Model: gemini-3.1-flash-image-preview (Nano Banana 2)
-# Cost: $0.067/image | Free: 500/day | Time: ~22 sec
+# Model: gemini-2.5-flash-image
+# Cost: $0.039/image | Free: 500/day | Time: ~22 sec
 
 set -e
 
@@ -19,7 +19,7 @@ find_api_key() {
     fi
 
     # Check .env files in common locations
-    for env_file in ".env" "$HOME/.env"; do
+    for env_file in ".env" "$HOME/.env" "$HOME/Agents/a content agent/.env"; do
         if [ -f "$env_file" ]; then
             key=$(grep -E "^(GOOGLE_API_KEY|GEMINI_API_KEY)=" "$env_file" 2>/dev/null | head -1 | cut -d'=' -f2)
             if [ -n "$key" ]; then
@@ -34,7 +34,7 @@ find_api_key() {
 
 # Configuration
 API_KEY=$(find_api_key)
-API_URL="https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent"
+API_URL="https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent"
 OUTPUT_DIR="${OUTPUT_DIR:-.}"
 
 if [ -z "$API_KEY" ]; then
@@ -74,7 +74,7 @@ fi
 # Ensure output directory exists
 mkdir -p "$OUTPUT_DIR_PATH"
 
-echo "Generating image with Nano Banana 2 (gemini-3.1-flash-image-preview)..."
+echo "Generating image with Nano Banana (gemini-2.5-flash-image)..."
 echo "Prompt: $PROMPT"
 echo "Output: $FULL_OUTPUT_PATH"
 

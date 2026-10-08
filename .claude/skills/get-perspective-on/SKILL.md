@@ -1,6 +1,7 @@
 ---
 name: get-perspective-on
 description: Extract the user's perspective on a topic (called by a content agent or user)
+automation: autonomous
 ---
 
 # Get Perspective On
@@ -32,8 +33,11 @@ Extract the user's unique perspective on a topic from the knowledge base. Return
 
 ## Workflow
 
-1. **Search Knowledge Base**
-   - Use /recall or Local Brain Search
+1. **Search Knowledge Base** - **read role: voice** (contract: `scope-mount`): this is the user's perspective, so the read is pinned to `core` explicitly, never widened and never inherited. `Books/` and `Document Insights/` are what he has *read*, not his view - they do not belong in a perspective answer.
+   ```bash
+   BRAIN_READ_SCOPE=core resources/local-brain-search/run_search.sh "<topic>" --mode spreading --limit 8 --json
+   BRAIN_READ_SCOPE=core resources/local-brain-search/run_connections.sh "<top note>" --json
+   ```
    - Find 3-5 most relevant permanent notes
    - Look for contrarian or non-obvious angles
 
@@ -75,6 +79,11 @@ When a content agent calls via headless mode:
 cd $PROJECT_ROOT
 claude -p "/get-perspective-on 'AI adoption barriers'" --output-format json
 ```
+
+> **Caller scope:** this is the *workstation* invocation path - a content agent runs on the user's machine with an
+> authenticated Claude Code CLI. A caller running **inside a Trinity container cannot use `claude -p`**
+> (turn-scoped credentials, plus the ent#643 no-CLI-subprocess rule); it must call
+> `chat_with_agent("cornelius", "...")` over Trinity MCP instead.
 
 a content agent receives:
 ```json

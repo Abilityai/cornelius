@@ -23,11 +23,6 @@
 
 [Bridge to main topic - connect the hook to what readers will learn]
 
-**You will learn:**
-- [Learning objective 1]
-- [Learning objective 2]
-- [Learning objective 3]
-
 ---
 
 ## Section 1: [The Problem/Phenomenon]

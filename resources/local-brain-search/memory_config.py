@@ -113,6 +113,44 @@ SCOPE_REGISTRY = [
     # insight/connection targets the personal brain discovers bridges to.
     # See resources/layered-brains/COMPANY-BRAIN-SCHEMA.md + manage-reference-data.
     ScopeDef("Company",            SCOPE_KIND_REFERENCE, False, ("company",), family=True),
+    # --- reference scope: CANON (the org's DECIDED direction, git-mirrored) -----
+    # Second reference scope, and a different shape from Company: not entity-shaped
+    # and not a family - a FLAT mirror of a fixed document surface (the canon-proper
+    # files in your-org/source-of-truth). Notes are overwritten in place by the
+    # `canon-sync` playbook from a gitignored sidecar clone; each carries canon_commit/
+    # canon_path/canon_surface (decision|bet|spec) on top of the reference contract.
+    # Reference KIND gives the epistemic opt-out for free (never crystallized/lifecycle/
+    # q-trained/fingerprinted/default-mounted); the one thing the kind does NOT give -
+    # authority ranking on direction questions - is a skill-level rule, not an engine
+    # change (CLAUDE.md canon section §5.3). Mount with BRAIN_READ_SCOPE=core,Canon.
+    # See resources/layered-brains/CANON-SCOPE-SCHEMA.md + the canon-sync playbook.
+    ScopeDef("Canon",              SCOPE_KIND_REFERENCE, False, ("canon",)),
+    # --- reference scope FAMILY: DemoCRM (fake CRM demo data) -------------------
+    # A self-contained, obviously-fake CRM used to demonstrate the reference-scope
+    # primitive on entity+relationship data WITHOUT touching the real Company scope.
+    # A FAMILY like Company: each child (DemoCRM/people, /orgs, /leads,
+    # /opportunities) is its own mountable sub-scope; relations are wiki-links that
+    # join them (person→org, opportunity→org×person×owner, lead→converts_to→opp).
+    # Non-core reference kind → provenance:reference, fingerprint-excluded, no
+    # q-learning, never crystallized/lifecycle-classified, mounted on demand only
+    # (BRAIN_READ_SCOPE=core,DemoCRM for all, core,DemoCRM/opportunities for one).
+    # See resources/layered-brains/DEMO-CRM-SCHEMA.md.
+    ScopeDef("DemoCRM",            SCOPE_KIND_REFERENCE, False, ("demo-crm", "democrm"), family=True),
+    # --- reference scope: THINKERS (external minds worth modeling) --------------
+    # FLAT (like Canon, unlike Company): one note per thinker, no sub-scopes. Holds
+    # *character notes* - who a thinker is, their signature analytical move, scored
+    # track record, epistemic style and characteristic error mode. These are FACTS
+    # ABOUT A PERSON (mutable, as_of-stamped, overwrite-in-place), NOT their ideas:
+    # a thinker's actual claims live as `encountered` notes in Document Insights/
+    # (or a Books/<slug> scope), and only cross into endorsed knowledge through
+    # the user's own /graduate-insights act. Keeping the two apart is what stops
+    # "Cornelius knows how Aschenbrenner thinks" from decaying into "Cornelius
+    # thinks what Aschenbrenner thinks".
+    # Reference KIND gives the epistemic opt-out for free (never crystallized /
+    # lifecycle-classified / q-trained / fingerprint-shaping / default-mounted).
+    # Mount with BRAIN_READ_SCOPE=core,Thinkers.
+    # See resources/layered-brains/THINKERS-SCOPE-SCHEMA.md.
+    ScopeDef("Thinkers",           SCOPE_KIND_REFERENCE, False, ("thinkers", "minds")),
 ]
 
 
@@ -382,7 +420,7 @@ MEMORY_CONFIG = {
     "indexing": {
         "chunk_by_heading": True,
         "min_chunk_length": 50,  # Characters
-        "excluded_folders": ["templates", ".obsidian", ".trash", "Reports", "AI Crystallizations"],
+        "excluded_folders": ["templates", ".obsidian", ".trash", "Reports", "AI Crystallizations", "Projects", "Lenses"],  # Projects: project specs (2026-09-08); Lenses: segregated ai-inferred interpretive store (2026-09-13), same policy as Reports
         "include_patterns": ["*.md"],
     },
 

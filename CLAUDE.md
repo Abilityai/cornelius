@@ -680,12 +680,12 @@ resources/                       # Work in progress, tools, scripts
 
 [**Trinity**](https://github.com/Abilityai/trinity) is an open-source platform for deploying and orchestrating fleets of autonomous AI agents on your own infrastructure. Each agent runs in an isolated Docker container with real-time observability, cron scheduling, and agent-to-agent communication.
 
-**Documentation:** [docs.example.com](https://docs.example.com)
+**Documentation:** [docs.ability.ai](https://docs.ability.ai)
 
 ### Deploy Cornelius to Trinity
 
 **Option 1: Ability.ai cloud** (fastest)
-- Sign up at [example.com](https://example.com) and deploy from the web UI
+- Sign up at [ability.ai](https://ability.ai) and deploy from the web UI
 
 **Option 2: Self-host Trinity**
 ```bash
@@ -742,7 +742,7 @@ The [Abilities plugin marketplace](https://github.com/Abilityai/abilities) provi
 claude plugin add abilityai/abilities
 ```
 
-**Documentation:** [docs.example.com/cloud-code-plugins](https://docs.example.com/cloud-code-plugins)
+**Documentation:** [docs.ability.ai/cloud-code-plugins](https://docs.ability.ai/cloud-code-plugins)
 
 #### The 5 Plugins
 

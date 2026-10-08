@@ -1,0 +1,32 @@
+You are evaluating the relevance of a retrieved note for a knowledge base search query.
+
+## Query
+{query}
+
+## Query Intent
+{intent} (factual/conceptual/synthesis/temporal)
+
+## Retrieved Note
+Title: {note_title}
+Content (excerpt):
+{note_content_excerpt}
+
+## Scoring Instructions
+
+Rate the relevance of this note to the query on a 0-3 scale:
+
+0 = IRRELEVANT: No connection to query; wrong topic entirely
+1 = TANGENTIAL: Loosely related; mentions similar concepts but doesn't address query
+2 = RELEVANT: Addresses the query; contains useful information
+3 = HIGHLY RELEVANT: Directly answers or is essential for answering the query
+
+Consider:
+- Does the note contain information that helps answer/explore the query?
+- For synthesis queries: Does it bridge the concepts mentioned?
+- For factual queries: Does it provide the specific information requested?
+- For conceptual queries: Does it explain or explore the topic?
+
+## Response Format
+
+Return JSON only:
+{{"reasoning": "Brief explanation of your scoring (1-2 sentences)", "score": <0-3>}}

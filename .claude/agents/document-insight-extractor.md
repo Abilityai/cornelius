@@ -244,12 +244,23 @@ For each potential insight, evaluate:
 1. **Search by semantic similarity**:
    ```bash
    # Search for existing notes on the concept
-   resources/local-brain-search/run_search.sh "main idea in 5-10 words" --limit 10 --threshold 0.65 --json
+   resources/local-brain-search/run_search.sh "main idea in 5-10 words" --limit 10 --threshold 0.35 --json
    ```
+
+   > **Read-gate corrected twice on 2026-09-02.** The first correction (`>0.70` -> `>0.45`) argued
+   > that "a real duplicate scores ~0.5" by reading Space 3 - but Space 3 measures *new, non-duplicate*
+   > material by construction. Measured directly (SIMILARITY-CALIBRATION.md -> Space 4): a near-duplicate
+   > of an existing note scores a median **0.68-0.76**, the old 0.70 gate caught **42-70%** of them, and
+   > the 0.45 gate would have caught ~all of them only by sitting *below* the best unrelated neighbour
+   > (median 0.66-0.74) - i.e. by forcing a read on nearly every result. No score-only gate separates the
+   > two populations; **rank does better** (the duplicate is in the top 3 for ~70-78% of probes; top 3 plus the
+   > 0.60 raw-cosine tail covers 81-90%). Hence the
+   > rule below. Use the `Raw cosine:` line / `raw_similarity` field, never the Q-adjusted headline number.
 
 2. **Read and evaluate content** (DO NOT rely solely on similarity scores):
 
-   **For ANY result with similarity >0.70, you MUST:**
+   **You MUST read (a) the top 3 results by rank, whatever their score, AND (b) any further result
+   with `raw_similarity` >= 0.60.** For each of those:
    - **Read the full existing note** using the `Read` tool with the file path
    - Compare the CORE INSIGHT, not just keywords
    - Evaluate if the framing, context, or angle is truly different

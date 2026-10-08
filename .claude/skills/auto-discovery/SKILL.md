@@ -2,7 +2,6 @@
 name: auto-discovery
 description: Discover non-obvious cross-domain connections through random sampling and pattern analysis
 automation: autonomous
-schedule: "0 20 * * 0"
 allowed-tools: Read, Write, Grep, Glob, Bash
 ---
 
@@ -12,7 +11,14 @@ Autonomous cross-domain connection hunter. Samples notes from different thematic
 
 ## Purpose
 
-Find **non-obvious, cross-domain connections** - notes with low semantic similarity (0.50-0.70) but high conceptual strength. These are the hidden patterns in the knowledge base.
+Find **non-obvious, cross-domain connections** - notes with modest semantic similarity but high conceptual strength. These are the hidden patterns in the knowledge base.
+
+> **Calibration correction (2026-09-02).** This skill's historic sweet spot of "0.50-0.70 = the
+> non-obvious tail" was **inverted**: measured on the live index, 0.50-0.70 is the *typical* band
+> (median best-neighbour 0.724 vault-wide), and the 0.85+ band it told you to skip as "too obvious"
+> is dominated by boilerplate twins rather than real conceptual overlap. The discriminator was never
+> the number - it is **cross-domain reasoning after reading the notes**. Use similarity only to
+> assemble a candidate pool, never to grade a discovery. Contract + live figures: `resources/local-brain-search/SIMILARITY-CALIBRATION.md`.
 
 ## State Dependencies
 
@@ -64,7 +70,7 @@ For each seed note (same wide read-scope - the seeds and their neighbors live ac
 BRAIN_READ_SCOPE=core,Books,document-insights,meta,inbox,output resources/local-brain-search/run_connections.sh "Note Name" --json
 ```
 
-Identify notes with similarity 0.50-0.70 from DIFFERENT domains.
+Identify notes with similarity ~0.45-0.70 from DIFFERENT domains (candidate pool - see the calibration correction above).
 
 ### Step 4: Cross-Domain Analysis
 
@@ -118,7 +124,7 @@ Write to `Brain/05-Meta/Changelogs/CHANGELOG - Auto-Discovery Session YYYY-MM-DD
 
 ### Session Statistics
 - Total notes analyzed: [N]
-- Non-obvious connections (similarity < 0.70): [N]
+- Non-obvious connections (similarity < 0.70): [N]   ← report the count, but note this is near the median on this index, not the tail
 ```
 
 ### Step 7: Update Master Changelog
@@ -136,13 +142,13 @@ See: [[CHANGELOG - Auto-Discovery Session YYYY-MM-DD]]
 ## Quality Standards
 
 **GOOD discoveries:**
-- Semantic similarity 0.50-0.70
+- Semantic similarity roughly 0.45-0.70 (a *pool*, not a grade - see the calibration note above)
 - Clear conceptual link across domains
 - "Aha!" factor - non-obvious insight
 - Actionable synthesis opportunity
 
 **SKIP:**
-- High similarity (0.85+) - too obvious
+- High similarity (0.85+) - usually shared boilerplate (frontmatter/changelog twins), not insight
 - Same domain - not cross-domain
 - Already linked in vault
 
@@ -159,6 +165,6 @@ See: [[CHANGELOG - Auto-Discovery Session YYYY-MM-DD]]
 - [ ] Notes sampled from 3+ different clusters
 - [ ] ACTUAL similarity scores recorded (not estimated)
 - [ ] Cross-domain connections with conceptual analysis
-- [ ] Non-obvious discoveries documented (similarity < 0.70)
+- [ ] Non-obvious discoveries documented (similarity < 0.70) **and justified by cross-domain reasoning, not by the score alone**
 - [ ] Dated changelog created in `Brain/05-Meta/Changelogs/`
 - [ ] Master changelog updated with summary
