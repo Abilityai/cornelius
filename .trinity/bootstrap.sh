@@ -1,6 +1,8 @@
 #!/bin/bash
 # First-boot bootstrap for a fresh Cornelius on Trinity - the detached half of
-# the /first-run playbook. Launched by .trinity/setup.sh in the background the
+# the /first-run playbook. BEST-EFFORT: on v0.9.5 the agent-server's orphan
+# sweeper may kill this process ~90 s after container start (observed: it
+# survives pip, dies at the reindex). /first-run finishes whatever is left. Launched by .trinity/setup.sh in the background the
 # first time a container starts without a working search venv; never blocks
 # startup. Idempotent: every step checks before it acts.
 #

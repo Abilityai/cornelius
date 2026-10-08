@@ -5,17 +5,18 @@ allowed-tools: Bash, Read
 user-invocable: true
 argument-hint: "[--verify-only]"
 metadata:
-  version: "1.1"
+  version: "1.2"
   created: 2026-10-08
   author: Ability.ai
   changelog:
+    - "1.2: Install in the foreground of one streaming Bash call, never detached - on Trinity v0.9.5 the agent-server orphan sweeper kills unowned background processes ~90 s after container start (the boot-time bootstrap dies at the first long step after pip). Lock-file guidance updated"
     - "1.1: Reindex before the daemon, daemon start bounded by timeout, fastapi/uvicorn added to requirements (the daemon imported them but nothing installed them). From the first fresh-fork test on a 4 GB droplet"
     - "1.0: Initial - from the Agent-Native Agency workshop session 3 (2026-10-08). A fresh fork of the template ships the prebuilt index but not the Python that reads it, and the index remembers the build machine's paths, so 8 of 9 search-backed playbooks fail cold. This playbook is the one-command fix: venv (CPU-only torch, no pip cache - the install must fit a 4 GB box), daemon, reindex, smoke search, report. Pairs with .trinity/bootstrap.sh, which runs the same steps detached at container start."
 ---
 
 # First Run
 
-> ℹ️ Print one line first: `first-run v1.1 - recent: reindex before daemon, bounded daemon start, daemon deps installed`. Then proceed.
+> ℹ️ Print one line first: `first-run v1.2 - recent: foreground install, never detached (orphan sweeper)`. Then proceed.
 
 ## Purpose
 
@@ -43,7 +44,7 @@ ls -la ~/.trinity-bootstrap.done ~/.trinity-bootstrap.lock 2>/dev/null; tail -5 
 ```
 
 - `.done` present → the boot-time bootstrap finished; skip to Step 5 (verify).
-- `.lock` present and the log is still growing → it is running; poll `tail -3 ~/.trinity-bootstrap.log` every 30 s (one short call each) until `.done` appears or the log stops for 3 minutes, then continue.
+- `.lock` present and the log still growing → it is running; poll `tail -3 ~/.trinity-bootstrap.log` every 30 s until `.done` appears or the log stops for 2 minutes. A log that stops after "venv built" or "reindex start" with no process behind it means the boot-time bootstrap was swept (see Step 2) - continue with Step 2; every step checks before it acts, so nothing is redone.
 - Neither → continue with Step 2.
 
 ### Step 2 - The Python environment
@@ -52,13 +53,13 @@ ls -la ~/.trinity-bootstrap.done ~/.trinity-bootstrap.lock 2>/dev/null; tail -5 
 cd resources/local-brain-search && ./venv/bin/python -c "import faiss, sentence_transformers, networkx; print('ok')" 2>&1 | tail -1
 ```
 
-If that prints `ok`, skip to Step 3. Otherwise build it **detached** (several minutes, ~1.5 GB; the CPU-only torch wheel and no pip cache keep it inside a 4 GB machine):
+If that prints `ok`, skip to Step 3. Otherwise build it in the **foreground of one Bash call**, with output streaming (pip prints as it goes, so the platform's stall watchdog does not fire; on a 2-vCPU box with the CPU-only torch wheel this takes 1-2 minutes, ~1.5 GB):
 
 ```bash
-cd resources/local-brain-search && python3 -m venv venv && nohup bash -c './venv/bin/pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu -r requirements.txt' > /tmp/first-run-pip.log 2>&1 &
+cd resources/local-brain-search && python3 -m venv venv && ./venv/bin/pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu -r requirements.txt 2>&1 | grep -v -E "Downloading|Using cached|^\s+━" ; ./venv/bin/python -c "import faiss, sentence_transformers; print('ok')"
 ```
 
-Then poll with short calls every 30 s: `tail -2 /tmp/first-run-pip.log` until it ends with `Successfully installed …` or an error. Tell the user it is installing and roughly how long it takes; do not sit silent. On an error, paste the last 20 lines of the log and stop - do not retry blindly.
+Tell the user it is installing before you run it. On an error, paste the last 20 lines and stop - do not retry blindly. **Do not run the install detached (`nohup … &`) on Trinity**: the agent-server's orphan sweeper kills background processes it does not own ~90 s after container start, which is exactly how the boot-time bootstrap gets cut off mid-way - this playbook exists to finish the job inside an execution the platform owns.
 
 ### Step 3 - Rebuild the index once (before the daemon)
 
