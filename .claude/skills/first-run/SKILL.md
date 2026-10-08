@@ -5,16 +5,17 @@ allowed-tools: Bash, Read
 user-invocable: true
 argument-hint: "[--verify-only]"
 metadata:
-  version: "1.0"
+  version: "1.1"
   created: 2026-10-08
   author: Ability.ai
   changelog:
+    - "1.1: Reindex before the daemon, daemon start bounded by timeout, fastapi/uvicorn added to requirements (the daemon imported them but nothing installed them). From the first fresh-fork test on a 4 GB droplet"
     - "1.0: Initial - from the Agent-Native Agency workshop session 3 (2026-10-08). A fresh fork of the template ships the prebuilt index but not the Python that reads it, and the index remembers the build machine's paths, so 8 of 9 search-backed playbooks fail cold. This playbook is the one-command fix: venv (CPU-only torch, no pip cache - the install must fit a 4 GB box), daemon, reindex, smoke search, report. Pairs with .trinity/bootstrap.sh, which runs the same steps detached at container start."
 ---
 
 # First Run
 
-> ℹ️ Print one line first: `first-run v1.0 - recent: initial, one command from fresh fork to first answer`. Then proceed.
+> ℹ️ Print one line first: `first-run v1.1 - recent: reindex before daemon, bounded daemon start, daemon deps installed`. Then proceed.
 
 ## Purpose
 
@@ -59,23 +60,21 @@ cd resources/local-brain-search && python3 -m venv venv && nohup bash -c './venv
 
 Then poll with short calls every 30 s: `tail -2 /tmp/first-run-pip.log` until it ends with `Successfully installed …` or an error. Tell the user it is installing and roughly how long it takes; do not sit silent. On an error, paste the last 20 lines of the log and stop - do not retry blindly.
 
-### Step 3 - The search daemon
+### Step 3 - Rebuild the index once (before the daemon)
 
-```bash
-cd resources/local-brain-search && ./run_daemon.sh start
-```
-
-"Daemon already running" is success. "started but not yet responding" → wait 20 s and run `./run_daemon.sh status`. The first start loads the embedding model (~90 MB download from Hugging Face on the first run; needs outbound network).
-
-### Step 4 - Rebuild the index once
-
-The shipped index remembers the paths of the machine that built it. One rebuild reuses the shipped embeddings and rewrites the paths; it takes seconds to a couple of minutes.
+The shipped index remembers the paths of the machine that built it. One rebuild reuses the shipped embeddings and rewrites the paths; it takes seconds to a couple of minutes and downloads the embedding model (~90 MB) on first use.
 
 ```bash
 cd resources/local-brain-search && ./run_index.sh 2>&1 | tail -8
 ```
 
-Then reload the daemon so it serves the new index: `./run_daemon.sh reload` (or `restart`).
+### Step 4 - The search daemon
+
+```bash
+cd resources/local-brain-search && timeout 120 ./run_daemon.sh start
+```
+
+"Daemon already running" is success. "started but not yet responding" → wait 20 s and run `./run_daemon.sh status`. If the daemon will not come up, searches still work through the CLI fallback, only slower - do not block on it.
 
 ### Step 5 - Verify with one smoke search
 

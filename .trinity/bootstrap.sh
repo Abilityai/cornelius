@@ -35,13 +35,14 @@ else
   log "venv built"
 fi
 
-# 2. Daemon
-./run_daemon.sh start >> "$LOG" 2>&1 || log "warn: daemon start returned non-zero"
-
-# 3. Reindex once so stored paths match this machine, then reload the daemon
+# 2. Reindex once so stored paths match this machine (also downloads the
+#    embedding model on first use; no daemon needed for this)
 log "reindex start"
 ./run_index.sh >> "$LOG" 2>&1 && log "reindex ok" || log "warn: reindex returned non-zero"
-./run_daemon.sh reload >> "$LOG" 2>&1 || ./run_daemon.sh restart >> "$LOG" 2>&1 || true
+
+# 3. Daemon - bounded: a fresh model load can keep /health silent for a while
+log "daemon start"
+timeout 120 ./run_daemon.sh start >> "$LOG" 2>&1 || log "warn: daemon start timed out or failed (search falls back to the CLI path)"
 
 # 4. Smoke search
 N=$(BRAIN_READ_SCOPE=core,books,document-insights ./run_search.sh "decision under uncertainty" --limit 3 --json 2>/dev/null | python3 -c "import sys,json

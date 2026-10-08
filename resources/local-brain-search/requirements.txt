@@ -3,3 +3,5 @@ faiss-cpu>=1.7.0
 networkx>=3.0
 numpy>=1.21.0
 scipy>=1.9.0
+fastapi>=0.100
+uvicorn>=0.23
