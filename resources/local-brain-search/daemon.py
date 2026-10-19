@@ -244,10 +244,16 @@ def _static_search(query, query_embedding, limit, threshold, track_usage, read_s
 
     # Q-value adjustment
     if MEMORY_CONFIG["learning"]["enabled"] and results:
-        scores = {r["note_id"]: r["similarity"] for r in results}
-        adjusted = adjust_scores_with_q_values(scores, read_scope=read_scope)
+        # One learned factor per note, applied to each section's own score. A
+        # dict keyed by note alone kept the last - lowest-ranked - section's score,
+        # and every section of that note was then re-scored from it.
+        best = {}
         for r in results:
-            r["similarity"] = adjusted.get(r["note_id"], r["similarity"])
+            best[r["note_id"]] = max(best.get(r["note_id"], 0.0), r["similarity"])
+        adjusted = adjust_scores_with_q_values(best, read_scope=read_scope)
+        for r in results:
+            base = best[r["note_id"]]
+            r["similarity"] *= adjusted.get(r["note_id"], base) / base if base else 1.0
         results.sort(key=lambda x: x["similarity"], reverse=True)
 
     # Log retrieval
