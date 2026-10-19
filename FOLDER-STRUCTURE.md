@@ -59,6 +59,30 @@ your-vault/
     └── [AI-generated notes]         # Clear AI vs human distinction
 ```
 
+## Codex Project Files
+
+The opt-in [Codex path](docs/CODEX.md) uses the same note folders. Its additional
+files live at the Cornelius project root, which may be separate from an external
+Obsidian vault:
+
+```text
+cornelius/
+├── AGENTS.md                 # Codex entry point; reads shared instructions
+├── CLAUDE.md                 # Shared identity and memory rules
+├── docs/CODEX.md             # Codex workflow limits and execution rules
+├── .agents/skills/<name>     # Relative symlink to ../../.claude/skills/<name>
+└── .claude/
+    ├── skills/<name>/        # Canonical skills and companion files
+    ├── agents/              # Canonical specialist prompts
+    └── settings.md          # Local vault settings, shared by both runtimes
+```
+
+Only the workflows listed in `docs/CODEX.md` have discovery links. Preserve the
+links in a Git checkout; do not copy skill bodies into a second catalog. Merge
+existing owner instructions manually, and keep Codex runtime state and
+credentials outside the checkout. `VAULT_BASE_PATH` is the note root; an external
+vault also requires the engine's `BRAIN_PATH` to point to the same root.
+
 ## Folder Purposes
 
 ### .claude/

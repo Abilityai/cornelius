@@ -2,6 +2,12 @@
 
 Detailed guide to get Project Cornelius running with your Obsidian vault.
 
+Claude Code is the default below. The opt-in **Codex** alternative
+shares the Python search environment and `.claude/settings.md`; see
+[Codex Support](docs/CODEX.md) for its workflow boundary and verification
+limits. It requires a Git checkout with working relative symlinks. Windows ZIP
+or checkouts that turn symlinks into text are not covered.
+
 ## Prerequisites Checklist
 
 - [ ] [Claude Code](https://claude.ai/claude-code) installed
@@ -49,6 +55,11 @@ This creates a standalone directory that will connect to your existing Obsidian 
    ```
    VAULT_BASE_PATH=/Users/yourname/Documents/YourVault
    ```
+
+`VAULT_BASE_PATH` names the note root. For an external vault, also set the
+engine's existing `BRAIN_PATH` to that same absolute path (Step 4), and retain it
+in the environment that starts the agent. The engine does not read
+`VAULT_BASE_PATH` from settings. Do not append another `Brain` to either root.
 
 ### Step 3: Set Up Local Brain Search (REQUIRED)
 
@@ -148,6 +159,26 @@ If these work, you're done! 🎉
 - [ ] Claude Code starts
 - [ ] `/search-vault` command works
 - [ ] `/find-connections` command works
+
+## Codex Alternative
+
+Complete the shared setup above, then install and authenticate Codex through its
+official setup process. Start `codex` from the project root and use `$skill-name`
+in place of Claude's slash syntax for the workflows listed in
+[Codex Support](docs/CODEX.md). Keep credentials and CODEX_HOME outside the
+checkout; merge any existing owner `AGENTS.md` or `.agents/` content manually.
+
+Codex reads `AGENTS.md`, the complete current `CLAUDE.md`, and
+`.claude/settings.md`. The shared skills stay in `.claude/skills/`, exposed by
+relative directory symlinks under `.agents/skills/`. Native Codex child-agent
+support is required for insight extraction; an unavailable child is a blocking
+capability limitation. Claude permissions, hooks and model aliases do not
+automatically configure Codex. Use its normal runtime permission controls.
+
+The verification checklist above covers the Claude path. See the separate
+Codex evidence and deployment verification procedure in
+[Codex Support](docs/CODEX.md); native delegation and full workflow parity
+must not be inferred from successful retrieval.
 
 ## Optional: MCP Servers
 

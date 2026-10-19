@@ -22,6 +22,20 @@ This guide covers setting up optional MCP (Model Context Protocol) servers for e
 
 ---
 
+## Codex Alternative
+
+The `.mcp.json`, Claude CLI and `/mcp` examples below describe Claude Code.
+They do not configure Codex automatically. For the limited Codex workflow path,
+see [Codex Support](docs/CODEX.md); use Codex's own MCP configuration and
+authentication controls, or Trinity's existing runtime-managed MCP setup. Keep
+credentials outside this repository.
+
+Local Brain Search remains a Python utility. Enabling an optional MCP server
+does not add unsupported workflows, native child-agent support or Claude tool
+restrictions. Verify actual MCP availability and reporting in the selected
+Trinity deployment. Optional Gemini-backed services retain their own provider and
+credentials when the main runtime changes.
+
 ## Configuration File
 
 MCP servers are configured in `.mcp.json` in your project root:

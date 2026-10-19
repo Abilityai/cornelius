@@ -21,6 +21,11 @@ Trinity supplies what a compounding brain needs and a laptop does not: always-on
 
 Cornelius works standalone in Claude Code for exploration and development. **It is meant to be run on Trinity** - see [Deploy to Trinity](#recommended-deploy-to-trinity-for-autonomous-operation) below.
 
+**Using Codex?** An opt-in core-workflow integration is described in
+[Codex Support](docs/CODEX.md), including verification and runtime-dependent
+limits. Claude Code remains the default; the wider feature catalog below is
+not a claim of full Codex parity.
+
 ![How Cornelius works - animated architecture explainer](docs/cornelius-explainer.gif)
 
 *The whole system in one ~3-minute loop: notes become a graph → connection discovery proposes cross-domain bridges → extractors source-tier and provenance-stamp everything at the door → the domain watch fires signals → the incubation loop argues hypotheses with rotating analytical moves → conclusions stop at the one human endorsement gate → pluggable scopes mount and unmount → the BDG answers queries by spreading activation → Trinity runs it all autonomously.*
@@ -202,6 +207,10 @@ pip install -r requirements.txt
 cd ../..
 claude
 ```
+
+For the Codex alternative, complete the shared Python/settings setup, then follow
+[Codex Support](docs/CODEX.md) for authentication, skill invocation and limits.
+Use a Git checkout with working symlinks.
 
 **Detailed guides:**
 - [QUICKSTART.md](QUICKSTART.md) - 5-minute setup
@@ -463,6 +472,7 @@ A directed, mode-aware dependency graph layered on top of Local Brain Search. Ev
 |------|---------|
 | [QUICKSTART.md](QUICKSTART.md) | 5-minute setup |
 | [INSTALL.md](INSTALL.md) | Detailed installation & troubleshooting |
+| [docs/CODEX.md](docs/CODEX.md) | Codex setup, core workflows & verification limits |
 | [EXAMPLES.md](EXAMPLES.md) | Sample notes, MOCs, workflows |
 | [FOLDER-STRUCTURE.md](FOLDER-STRUCTURE.md) | Vault organization guide |
 | [MCP-SETUP.md](MCP-SETUP.md) | MCP server configuration |

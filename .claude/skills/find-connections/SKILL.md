@@ -6,6 +6,28 @@ argument-hint: <note name or topic to start from>
 allowed-tools: Read, Grep, Glob, Bash
 ---
 
+`VAULT_BASE_PATH` is the note root from `.claude/settings.md` (default `./Brain`),
+not its parent. Paths shown as `Brain/...` below use that default; substitute
+the configured root for an external vault. Set the engine's `BRAIN_PATH` to
+the same root when it differs from the default.
+
+## Read Scope
+
+Select `BRAIN_READ_SCOPE` through the existing `scope-mount` lookup contract
+(default reasoning mount, or the user's explicit narrower scope). Keep that
+selection for the whole workflow; substitute it for the examples below.
+Before matching note names, reading files or following links, enumerate eligible
+paths using the existing scope API recipe in
+[`search-vault`](../search-vault/SKILL.md), under "Keyword Search". Use the same
+`BRAIN_PATH` as semantic search. Search and read only those exact paths; never
+fall back to a whole-vault lookup when no eligible match exists.
+
+Apply this check to every anchor, neighbor and multi-hop followup. A wikilink or
+graph edge does not expand the selected scope. Resolve note IDs relative to the
+current vault root; do not follow stale absolute paths from an imported index.
+If a result cannot be resolved unambiguously to an eligible file, report that
+limitation and omit it. Apply only the mounts selected by `scope-mount` or explicitly requested by the user.
+
 ## Local Brain Search
 
 Use Local Brain Search for all semantic search and connection discovery. **Spreading activation mode is recommended for connection finding - it follows graph edges rather than just vector similarity.**
@@ -23,15 +45,6 @@ BRAIN_READ_SCOPE=core,Books,document-insights resources/local-brain-search/run_s
 
 # Find connections
 BRAIN_READ_SCOPE=core,Books,document-insights resources/local-brain-search/run_connections.sh "Note Name" --json
-
-# Find hubs
-resources/local-brain-search/run_connections.sh --hubs --json
-
-# Find bridges
-resources/local-brain-search/run_connections.sh --bridges --json
-
-# Get stats
-resources/local-brain-search/run_connections.sh --stats --json
 ```
 
 ---
@@ -54,13 +67,13 @@ Map the conceptual network around the specified note or topic, revealing:
 
 ## Analysis Protocol
 
-**Read role: lookup** (contract: `scope-mount`): the anchor search and every neighbourhood call run at the reasoning mount `core,Books,document-insights` (a `Books/` or `Document Insights/` neighbour is encountered material - say so); `--stats` / `--hubs` / `--bridges` are the fingerprint and stay `core`. When the anchor is a freshly ingested non-core note, mount its write target instead (the `connection-finder` agent's READ SCOPE rule).
+**Read role: lookup** (contract: `scope-mount`): use the selected mount for the anchor search and every neighbourhood call. A `Books/` or `Document Insights/` neighbour is encountered material - say so. When the anchor is a freshly ingested non-core note, mount its write target instead (the `connection-finder` agent's READ SCOPE rule). This workflow describes the selected neighbourhood, not whole-vault fingerprint statistics.
 
 ### Phase 1: Anchor Point Identification
-1. If given a note name, use `Grep` to find files matching the name:
-   ```
-   grep -r "# $ARGUMENTS" $VAULT_BASE_PATH/Brain --include="*.md"
-   ```
+1. If given a note name, match filenames or use `Grep` for the heading only
+   within the eligible paths from Read Scope above. Pass the name as data,
+   not shell code. No eligible match means the anchor is unavailable in this
+   scope; do not search other folders to find it.
 2. If given a topic, search using Local Brain Search:
    ```bash
    BRAIN_READ_SCOPE=core,Books,document-insights resources/local-brain-search/run_search.sh "$ARGUMENTS" --limit 5 --json
@@ -77,14 +90,12 @@ Map the conceptual network around the specified note or topic, revealing:
 3. Use `Read` to examine their content and understand connection nature
 
 ### Phase 3: Deep Network Analysis
-1. Get graph statistics and hub notes:
-   ```bash
-   resources/local-brain-search/run_connections.sh --stats --json
-   resources/local-brain-search/run_connections.sh --hubs --json
-   resources/local-brain-search/run_connections.sh --bridges --json
-   ```
-2. Map the multi-hop network structure
-3. Identify clusters and bridges
+1. Follow connections from eligible notes, checking each followup against the
+   same read scope before reading it.
+2. Map the observed multi-hop network structure.
+3. Identify clusters and bridges within those observed results. Do not call
+   `--stats`, `--hubs` or `--bridges`: these interfaces do not honor the selected
+   scope. State that global topology is unavailable in this scoped workflow.
 
 ### Phase 4: Cross-Cluster Bridge Discovery
 1. For notes in different semantic clusters, analyze WHY they connect
@@ -233,6 +244,9 @@ Structure your findings as follows:
 
 ## 📊 Network Statistics
 
+Report only the observed scoped neighborhood; omit unavailable measurements.
+Do not present these counts or hubs as whole-vault statistics.
+
 - **Direct connections:** [Number]
 - **Total network size (3 layers):** [Number] notes
 - **Strongest connection:** [[Note]] (similarity: 0.XX)
@@ -262,7 +276,7 @@ Structure your findings as follows:
 - Similarity algorithm: Cosine similarity between note embeddings
 - Connection graph: Multi-hop traversal with threshold filtering
 - **Spreading activation**: SYNAPSE-inspired graph traversal (when using `--mode spreading`)
-- **Brain Dependency Graph**: Typed edges (derives-from, instantiates, references, associates, tension) via `resources/brain-graph/run_brain_graph.sh inspect "Note" --json`
+- **Brain Dependency Graph**: Optional typed-edge enrichment, only when the interface filters results to the selected read scope before returning them
 - Pattern detection: AI interpretation of semantic clusters
 - All findings are computational approximations requiring human validation
 - Configuration: `resources/local-brain-search/memory_config.py`
@@ -271,12 +285,12 @@ Structure your findings as follows:
 
 ## BDG Integration (Optional Enrichment)
 
-When available, enrich connection analysis with Brain Dependency Graph data:
-
-```bash
-# Get typed edges and lifecycle phase for the anchor note
-resources/brain-graph/run_brain_graph.sh inspect "$ARGUMENTS" --json
-```
+Use BDG enrichment only when its interface honors the selected read scope
+before returning node and edge data. The current `run_brain_graph.sh inspect`
+interface does not provide that filtering: skip it in this scoped workflow.
+Do not inspect the full graph and filter afterward, or broaden the scope just
+to obtain enrichment. Continue with scoped Local Brain Search connections and
+eligible note content; state that typed-edge/lifecycle enrichment was omitted.
 
 This reveals:
 - **Edge types**: derives-from vs references vs tension (not just "related")
@@ -326,13 +340,13 @@ High-quality notes with few connections need integration:
 |--------|----------|------|-------|-------------|
 | Brain notes | `Brain/**/*.md` | X | | All permanent notes, sources, MOCs |
 | Local Brain Search index | `resources/local-brain-search/` | X | | Vector index and connection graph |
-| Graph statistics | `run_connections.sh --stats` | X | | Network topology data |
+| Scoped connections | `run_connections.sh "Note Name"` with the selected mount | X | | Observed neighbourhood only |
 
 ## Completion Checklist
 
 - [ ] Anchor point identified and read
 - [ ] Immediate network mapped (top 3-5 connections)
-- [ ] Deep network analysis completed (hubs, bridges, stats)
+- [ ] Observed scoped network analyzed; unavailable topology measurements omitted
 - [ ] Cross-cluster bridges discovered and explained
 - [ ] Emergent patterns identified
 - [ ] Non-obvious connections highlighted with validation notes

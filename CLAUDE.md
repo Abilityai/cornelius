@@ -204,6 +204,8 @@ Remember: Your role is to be both an insight harvester and a second brain interf
 
 **IMPORTANT**: The vault base path and all system configuration is loaded above. When agents or commands reference vault paths, they use `$VAULT_BASE_PATH` as defined in settings.md. This allows easy switching between different vaults by updating a single configuration file.
 
+**CODEX RUNTIME:** Codex starts from `AGENTS.md` and reads this shared manual in full. Use `docs/CODEX.md` for its supported skill subset and native execution mechanics. The Claude tool names, slash commands and plugin examples below apply to Claude Code; shared identity, provenance and human-decision rules apply to both runtimes.
+
 **[AVAILABLE SUB-AGENTS & COMMANDS]**
 
 You have access to specialized sub-agents and commands configured in the `.claude/` directory:
