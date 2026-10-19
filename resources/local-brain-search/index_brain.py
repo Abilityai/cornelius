@@ -183,10 +183,14 @@ def build_explicit_graph(notes: list[dict]) -> nx.DiGraph:
     # Create mapping from title/filename to note_id
     title_to_id = {}
     stem_to_id = {}
+    # Obsidian path links ([[Folder/Note]]), which notes sharing a name in
+    # different folders need: a title or a bare filename can't tell them apart.
+    path_to_id = {}
     for note in notes:
         title_to_id[note['title'].lower()] = note['note_id']
         stem = Path(note['note_id']).stem.lower()
         stem_to_id[stem] = note['note_id']
+        path_to_id[str(Path(note['note_id']).with_suffix('')).lower()] = note['note_id']
 
     # Add nodes
     for note in notes:
@@ -199,8 +203,9 @@ def build_explicit_graph(notes: list[dict]) -> nx.DiGraph:
     # Add edges from wiki-links
     for note in notes:
         for link in note['wikilinks']:
-            link_lower = link.lower()
-            target_id = title_to_id.get(link_lower) or stem_to_id.get(link_lower)
+            # [[Note#Heading]] and [[Note.md]] point at the note itself.
+            link_lower = link.split('#')[0].strip().lower().removesuffix('.md')
+            target_id = path_to_id.get(link_lower) or title_to_id.get(link_lower) or stem_to_id.get(link_lower)
             if target_id and target_id != note['note_id']:
                 G.add_edge(note['note_id'], target_id, type='explicit')
 
