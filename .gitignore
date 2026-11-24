@@ -249,3 +249,9 @@ resources/entropy/pca_basis.npz
 # Were swept in as an orphaned gitlink by a `git add -A` sync commit, which
 # broke `git submodule update --init` repo-wide once .gitmodules existed.
 .claude/plugins/marketplaces/
+
+# Documents a person drops for Cornelius to process (Trinity saves Workspace
+# uploads under inbox/ and chat uploads under uploads/). The notes written from
+# them are the agent's work; the source files stay out of the repo.
+/inbox/
+/uploads/
