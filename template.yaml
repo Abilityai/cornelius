@@ -4,6 +4,9 @@
 # Required Fields
 name: cornelius
 display_name: "Cornelius"
+# The face Trinity shows for this agent. avatar.webp at the repo root is used as-is;
+# this prompt is what a regenerated avatar is drawn from, so it stays in character.
+avatar_prompt: A calm human face formed from a deep blue and violet nebula, seen from the front, stars scattered across the skin like freckles, a bright point of starlight in each eye, wisps of cosmic dust trailing from the edges, on a black star field
 description: |
   AI Insight Harvester and Second Brain Partner managing a personal Obsidian knowledge base.
 
