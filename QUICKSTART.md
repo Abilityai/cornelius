@@ -2,6 +2,11 @@
 
 Get Project Cornelius running with your Obsidian vault in 5 minutes.
 
+These steps use Claude Code. For the opt-in **Codex** path, use the
+same Python environment and `.claude/settings.md`, then follow
+[Codex Support](docs/CODEX.md). That guide defines the limited workflow set; the
+Claude agents and extra workflows below are not all available in Codex.
+
 ## 1. Prerequisites (1 min)
 
 ```bash
@@ -31,6 +36,15 @@ Edit `.claude/settings.md` and set your vault path:
 ```
 VAULT_BASE_PATH=/Users/yourname/Documents/YourVault
 ```
+
+For an external vault, also set the search engine's existing `BRAIN_PATH` to the
+same absolute note-root path in the shell used for indexing and the agent:
+
+```bash
+export BRAIN_PATH="/Users/yourname/Documents/YourVault"
+```
+
+Use the note root once; do not append another `Brain` directory.
 
 ## 3. Set Up Local Brain Search (2 min)
 
@@ -66,6 +80,11 @@ In Claude Code:
 ```
 
 If this works, you're done! 🎉
+
+**Codex alternative:** After installing and authenticating Codex, launch `codex`
+from the project root and enter `$search-vault test`. Use a Git checkout with
+working relative symlinks and read [Codex Support](docs/CODEX.md) first. A search
+smoke test does not establish full workflow or Trinity compatibility.
 
 ## What You Just Installed
 

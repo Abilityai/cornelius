@@ -46,7 +46,11 @@ From the problem description, identify 3-4 keyword clusters that would match rel
 
 **Read role: reasoning** (contract: `scope-mount` - never copy its tables, never run a bare search). Two passes per term in the same batch: `core` is the spine (the user's thinking), the reasoning mount is the evidence layer (what he has read). Before the batch, run the `scope-mount` trigger check on the problem text; a hit appends `,company` / `,thinkers` / `,Books/<slug>` to the wide pass for this run only. Direction questions about the org are not yours - route to `/canon-advise`.
 
-Run the searches **in parallel** (single message, multiple Bash calls):
+Run the searches **in parallel** (single message, multiple Bash calls).
+If the user explicitly narrows the scope, apply that mount to both passes and
+all followup reads. The core fingerprint call is permitted only when core is
+included; otherwise skip it and report the Attractor Check unavailable rather
+than reading outside the selected mount:
 
 ```bash
 BRAIN_READ_SCOPE=core                          resources/local-brain-search/run_search.sh "search term 1" --limit 3 --json
@@ -60,7 +64,17 @@ resources/local-brain-search/run_connections.sh --hubs --json   # fingerprint - 
 
 ### Step 3: Read Top Insights
 
-From the search results, read 2-3 of the most relevant note files **in parallel** - when both passes returned, read at least one from each. A `Books/` or `Document Insights/` note is *encountered* material: cite it as what the user has read, never as his view (Check 3 in Step 5 enforces this):
+Preserve each search pass's selected `BRAIN_READ_SCOPE` for its followup reads.
+Before reading results, enumerate eligible paths using the existing scope API
+recipe in [`search-vault`](../search-vault/SKILL.md), under "Keyword Search",
+with the same `BRAIN_PATH` and scope as that pass. Resolve note IDs against the
+current vault root, not stale absolute paths in an imported index. Read only
+matching eligible files; links and graph neighbors do not widen the mount.
+If a result cannot be resolved unambiguously, omit it and explain the limitation.
+Do not substitute a whole-vault lookup. The `scope-mount` contract above selects
+the read policy; an explicit user scope overrides the examples for this run.
+
+From the eligible search results, read 2-3 of the most relevant note files **in parallel** - when both passes returned, read at least one from each. A `Books/` or `Document Insights/` note is *encountered* material: cite it as what the user has read, never as his view (Check 3 in Step 5 enforces this):
 
 ```bash
 # Use Read tool on the top-scoring, most relevant files
@@ -68,12 +82,12 @@ From the search results, read 2-3 of the most relevant note files **in parallel*
 
 ### Step 3.5: Check BDG Context (optional, if top results are frameworks)
 
-For any top result that looks like a framework or key insight, check its BDG context:
-```bash
-resources/brain-graph/run_brain_graph.sh inspect "Top Result Name" --json
-```
-
-This reveals: lifecycle phase (is it generative?), staleness (is it still fresh?), and typed edges (what does it drive?). Prioritize generative frameworks over reflective notes. Warn if citing a stale note.
+Use BDG context only when its interface filters nodes and edges to the selected
+read scope before returning them. The current `run_brain_graph.sh inspect`
+interface does not do so: skip this optional step. Do not retrieve the full
+graph and filter afterward. Ground advice in eligible notes and scoped search
+results instead; do not infer lifecycle, freshness or authority from unavailable
+graph metadata.
 
 ### Step 4: Synthesize Advice
 
@@ -82,7 +96,10 @@ Combine the retrieved insights to address the original problem:
 - Cite specific notes: [[Note Title]]
 - Highlight tensions or tradeoffs the KB reveals
 - Give concrete recommendations grounded in your own thinking
-- Prioritize generative notes (lifecycle > 0.6) - these are the user's strongest frameworks
+- When reference material is explicitly included, distinguish external claims
+  from the user's own views; inclusion in the search scope is not endorsement
+- Prioritize notes by their relevance and supporting content; use lifecycle
+  metadata only if it is available through an interface honoring the read scope
 
 ### Step 5: Reasoning Checks (required)
 
@@ -123,7 +140,7 @@ Append the resulting blocks after the Bottom line.
 - **NO changelog creation** - this is conversational, not archival
 - **NO spreading activation** - use static search for speed
 - **Parallel execution** - run all searches in one message, all reads in the next
-- **Maximum 2 rounds of tool calls** - searches + hubs (parallel) + reads (parallel); the reasoning checks reuse those results, no extra round
+- **Keep tool calls focused** - batch searches and eligible-path enumeration, then read the results; reasoning checks reuse those results. Do not skip scope validation to meet a tool-round target.
 - **Cite your sources** - always reference the specific notes used
 - **Be actionable** - don't just dump knowledge, apply it to the problem
 - If KB lacks relevant content, say so honestly and offer general reasoning instead

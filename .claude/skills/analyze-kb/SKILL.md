@@ -7,6 +7,11 @@ allowed-tools: Read, Bash, Glob, Grep
 
 Analyze the Obsidian knowledge base structure and regenerate a **condensed, manageable** analysis report.
 
+`VAULT_BASE_PATH` is the note root from `.claude/settings.md` (default `./Brain`),
+not its parent. Paths shown as `Brain/...` below use that default; substitute
+the configured root for an external vault. Set the engine's `BRAIN_PATH` to
+the same root when it differs from the default.
+
 ## Local Brain Search
 
 Use Local Brain Search for all semantic search operations.
@@ -38,7 +43,7 @@ Follow these steps:
 
 2. List all notes with full directory tree using `Bash` find:
    ```bash
-   find $VAULT_BASE_PATH/Brain -name "*.md" -type f | head -50
+   find "$VAULT_BASE_PATH" -name "*.md" -type f | head -50
    ```
 
 3. Use `Glob` to explore directory structure:

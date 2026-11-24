@@ -19,6 +19,11 @@ model: sonnet
 
 ---
 
+`VAULT_BASE_PATH` is the note root from `.claude/settings.md` (default `./Brain`),
+not its parent. Paths shown as `Brain/...` below use that default; substitute
+the configured root for an external vault. Set the engine's `BRAIN_PATH` to
+the same root when it differs from the default.
+
 ## Local Brain Search
 
 Use Local Brain Search for all semantic search operations.
@@ -212,7 +217,7 @@ For each potential insight, evaluate:
 **Only create permanent notes for truly original insights that don't duplicate existing content.**
 
 **IMPORTANT: All AI-extracted permanent notes MUST be saved in:**
-`$VAULT_BASE_PATH/Brain/AI Extracted Notes/`
+`$VAULT_BASE_PATH/AI Extracted Notes/`
 
 This keeps AI-harvested insights organizationally separate from manually created permanent notes while treating them with the same importance and structure.
 
@@ -573,7 +578,7 @@ Use this output for both the filename and the session timestamp.
 
 ### Step 2: Create Dated Changelog File
 
-Create a NEW file at: `$VAULT_BASE_PATH/Brain/Changelogs/CHANGELOG - Insight Extraction Session YYYY-MM-DD.md`
+Create a NEW file at: `$VAULT_BASE_PATH/Changelogs/CHANGELOG - Insight Extraction Session YYYY-MM-DD.md`
 
 **File naming examples:**
 - `CHANGELOG - Insight Extraction Session 2025-10-25.md`
@@ -835,7 +840,7 @@ Create a NEW file at: `$VAULT_BASE_PATH/Brain/Changelogs/CHANGELOG - Insight Ext
 
 ### Step 3: Add Brief Entry to Master Index
 
-After creating the detailed changelog, add a summary entry to `$VAULT_BASE_PATH/Brain/CHANGELOG.md`:
+After creating the detailed changelog, add a summary entry to `$VAULT_BASE_PATH/CHANGELOG.md`:
 
 ```markdown
 ## YYYY-MM-DD - Insight Extraction Session

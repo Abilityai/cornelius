@@ -16,16 +16,7 @@ SCOPE="${BRAIN_READ_SCOPE:-core}"   # fail-closed default; widen by exporting BR
 
 # A daemon is usable only if its loaded index matches the on-disk index; a stale
 # daemon fails over to the fresh-process CLI path below. (See run_search.sh.)
-daemon_fresh() {
-    local health build_id on_disk
-    health=$(curl -s --max-time 0.2 "$DAEMON_URL/health" 2>/dev/null) || return 1
-    [ -n "$health" ] || return 1
-    build_id=$(printf '%s' "$health" | python3 -c "import sys,json; d=json.load(sys.stdin); v=d.get('build_id'); print(v if v is not None else '')" 2>/dev/null) || return 1
-    [ -n "$build_id" ] || return 1
-    [ -f "$FAISS_FILE" ] || return 1
-    on_disk=$(python3 -c "import os;print(int(os.path.getmtime('$FAISS_FILE')))" 2>/dev/null) || return 1
-    [ "$build_id" = "$on_disk" ]
-}
+source "$SCRIPT_DIR/wrapper_common.sh" || exit 1
 
 # Try daemon first (fast path)
 if daemon_fresh; then
@@ -59,7 +50,10 @@ if daemon_fresh; then
     # Route to correct endpoint. scope is forwarded to every /connections*
     # endpoint for URL uniformity; hubs/bridges/stats ignore it (fingerprint /
     # whole-graph), the traversal endpoint honors it under enforcement.
-    ENCODED_SCOPE=$(python3 -c "import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1]))" "$SCOPE")
+    ENCODED_SCOPE=$(url_encode "$SCOPE") || {
+        echo "Failed to encode connection scope" >&2
+        exit 1
+    }
     if [ "$STATS" = "true" ]; then
         RESULT=$(curl -s --max-time 30 "$DAEMON_URL/connections/stats")
     elif [ "$HUBS" = "true" ]; then
@@ -67,7 +61,10 @@ if daemon_fresh; then
     elif [ "$BRIDGES" = "true" ]; then
         RESULT=$(curl -s --max-time 30 "$DAEMON_URL/connections/bridges?scope=$ENCODED_SCOPE")
     else
-        ENCODED_Q=$(python3 -c "import urllib.parse; print(urllib.parse.quote('$QUERY'))")
+        ENCODED_Q=$(url_encode "$QUERY") || {
+            echo "Failed to encode connection query" >&2
+            exit 1
+        }
         RESULT=$(curl -s --max-time 30 "$DAEMON_URL/connections?q=$ENCODED_Q&depth=$DEPTH&semantic_only=$SEMANTIC_ONLY&explicit_only=$EXPLICIT_ONLY&scope=$ENCODED_SCOPE")
     fi
 

@@ -23,6 +23,12 @@ settings.local.json
 .claude/cache/
 .claude/credentials/
 
+# Codex local credentials/config and runtime state (not agent value)
+.codex/auth.json
+.codex/config.toml
+.codex/sessions/
+.codex/log/
+
 # Obsidian app settings (user-specific)
 .obsidian/
 

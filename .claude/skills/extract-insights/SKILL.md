@@ -37,7 +37,7 @@ User-invocable wrapper that spawns the `insight-extractor` subagent to:
 ## Process
 
 1. **Parse arguments** to identify source content
-2. **Spawn insight-extractor subagent** via Task tool with:
+2. **Spawn insight-extractor subagent** in a fresh context. In Codex, follow the native delegation procedure in `docs/CODEX.md`: pass the source as data, require the child to read `.claude/agents/insight-extractor.md` and the shared rules, preserve `core,document-insights` duplicate checks, and wait for completion. If native delegation is unavailable, report `DELEGATION_UNAVAILABLE` without creating notes or switching runtimes. In Claude Code, use the Task tool with:
    ```
    Task(
      subagent_type="insight-extractor",
