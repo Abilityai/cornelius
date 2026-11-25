@@ -63,7 +63,7 @@ from config import (
 )
 from intent import QueryIntent, classify_intent
 from learning import adjust_scores_with_q_values, log_retrieval
-from memory_config import MEMORY_CONFIG
+from memory_config import MEMORY_CONFIG, empty_vault_hint
 from scope import build_scope_selector
 from spreading import SpreadingConfig, get_top_activated, spreading_activation
 
@@ -199,7 +199,8 @@ def search_endpoint(
 
     return JSONResponse(
         content=json.loads(json.dumps(
-            {"query": q, "mode": mode, "results": results, "metadata": meta},
+            {"query": q, "mode": mode, "results": results, "metadata": meta,
+             **({"hint": h} if not results and (h := empty_vault_hint()) else {})},
             cls=NumpyEncoder,
         ))
     )
@@ -233,6 +234,7 @@ def _static_search(query, query_embedding, limit, threshold, track_usage, read_s
             continue
         results.append({
             "similarity": similarity,
+            "raw_similarity": similarity,  # unadjusted cosine; lockstep with search.static_search
             "title": meta["title"],
             "heading": meta["heading"],
             "filepath": meta["filepath"],
@@ -578,6 +580,7 @@ def health():
         "loaded_at": store.loaded_at,
         "build_id": store.build_id,
         "scope_enforced": scope_enforced(),
+        "role_aliases": True,   # resolves @reasoning/@lookup + scope toggles (wrappers fail over without it)
         "chunks": store.index.ntotal if store.index else 0,
         "nodes": store.graph.number_of_nodes() if store.graph else 0,
         "edges": store.graph.number_of_edges() if store.graph else 0,

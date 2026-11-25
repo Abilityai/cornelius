@@ -124,7 +124,7 @@ On any autonomous consumer (currently `ai-crystallize`): check *presence* is req
 
 ## Deferred Wirings (documented so nothing wires early)
 
-- **Incubation moves #7-8** (Reference Class Forecast; Causal Graph Sketch) - add to the rotating move set when the incubation loop is re-enabled.
+- **Incubation moves #7-8** (Reference Class Forecast; Causal Graph Sketch) - still unwired (the loop was re-enabled 2026-08-31; adding moves is the user's call).
 - **`/think-about-it`** - deliberately unwired; divergent exploration stays unconstrained.
 
 (Decision-theoretic framing shipped 2026-07-31 as the standalone `/decide` skill - see the applicability matrix.)

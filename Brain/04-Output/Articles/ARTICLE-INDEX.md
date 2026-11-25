@@ -24,7 +24,6 @@ Central registry of all articles created with Cornelius.
 
 | Article | Date | Status | Platform | URL |
 |---------|------|--------|----------|-----|
-| [[whats-new-v02-25]] | 2025-02-13 | Ready | - | - |
 
 ### Knowledge Management
 

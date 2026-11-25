@@ -62,11 +62,11 @@ Same fast-path discipline as `/advise` - no subagents, static search, one parall
 
 ```bash
 BRAIN_READ_SCOPE=core                          resources/local-brain-search/run_search.sh "[domain term 1]" --limit 3 --json
-BRAIN_READ_SCOPE=core,Books,document-insights  resources/local-brain-search/run_search.sh "[domain term 1]" --limit 5 --json
+BRAIN_READ_SCOPE=@reasoning  resources/local-brain-search/run_search.sh "[domain term 1]" --limit 5 --json
 BRAIN_READ_SCOPE=core                          resources/local-brain-search/run_search.sh "[domain term 2]" --limit 3 --json
-BRAIN_READ_SCOPE=core,Books,document-insights  resources/local-brain-search/run_search.sh "[domain term 2]" --limit 5 --json
+BRAIN_READ_SCOPE=@reasoning  resources/local-brain-search/run_search.sh "[domain term 2]" --limit 5 --json
 BRAIN_READ_SCOPE=core                          resources/local-brain-search/run_search.sh "[decision-structure term: ergodicity / optionality / reversibility / regret / explore exploit - match to the decision's shape]" --limit 3 --json
-BRAIN_READ_SCOPE=core,Books,document-insights  resources/local-brain-search/run_search.sh "[the same decision-structure term]" --limit 5 --json
+BRAIN_READ_SCOPE=@reasoning  resources/local-brain-search/run_search.sh "[the same decision-structure term]" --limit 5 --json
 resources/local-brain-search/run_connections.sh --hubs --json   # fingerprint - always core; for the attractor check
 ```
 

@@ -260,6 +260,7 @@ resources/brain-graph/run_brain_graph.sh propagate "Note Name" --json
 > nodes also carry `degree`, `age_days`, and full `content`; top-level also includes `meta`,
 > `converged` (real conclusion text), `metrics`, `activity`, and `recent`. The exporter is the
 > source of truth for the shape.
+> `meta.notice` is a plain-language line when the vault holds no notes yet (an empty brain, #21), otherwise null - show it in the briefing instead of an empty canvas.
 
 ---
 

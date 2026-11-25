@@ -4,7 +4,7 @@
 
 ## Overview
 
-This vault ships **pre-seeded** with a connected knowledge graph of roughly **1,067 notes** and **~5,000 edges** (explicit wiki-links + semantic-similarity edges). It is a foundation to reason *from* - distilled, neutral, atomic notes drawn from published research and books, not personal opinion.
+A fresh Cornelius starts with an **empty brain**. This snapshot describes the optional **seed library** in `library/` - roughly **1,050 notes** and **~5,000 edges** once it is in the vault (`/first-run --with-library`; it is outside the vault, the index and the Brain Orb until then). It is a foundation to reason *from* - distilled, neutral, atomic notes drawn from published research and books, not personal opinion.
 
 | Layer | Approx. count | What it is |
 |-------|--------------:|------------|
@@ -40,7 +40,7 @@ A judgment-and-uncertainty core (decision science, behavioral economics, forecas
 
 ## How to grow it
 
-Add your own atomic notes in `02-Permanent/`, link them into the existing graph, and run `/refresh-index`. Your original thinking layers on top of the seeded foundation; new MOCs emerge as your clusters form.
+Add your own atomic notes in `02-Permanent/` and run `/refresh-index`. With the library added, your original thinking layers on top of it; without it, your notes are the whole graph. New MOCs emerge as your clusters form.
 
 ---
 

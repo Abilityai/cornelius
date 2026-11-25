@@ -123,7 +123,16 @@ def main():
     if rows is None:
         rows = keyword_scan(query, limit, scope_set)
         backend = "keyword"
-    emit({"results": rows[:limit], "backend": backend})
+    out = {"results": rows[:limit], "backend": backend}
+    if not rows:
+        try:   # empty vault (#21): say so plainly instead of a silent []
+            from memory_config import empty_vault_hint
+            hint = empty_vault_hint()
+            if hint:
+                out["hint"] = hint
+        except Exception:
+            pass
+    emit(out)
 
 
 main()

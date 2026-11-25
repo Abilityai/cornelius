@@ -65,7 +65,7 @@ These are the autonomous substitute for the two approval gates a `gated` version
 
 ### Step 0: Read inputs and checkpoint
 
-Parse `$ARGUMENTS`: first token = source path/URL, optional remainder = session name. Derive a `<slug>` and, if no session name given, derive one from the source title (e.g. `"<Book Title>"`).
+Parse `$ARGUMENTS`: first token = source path/URL, optional remainder = session name. Derive a `<slug>` and, if no session name given, derive one from the source title (e.g. `"<Book Title>"`). If no source is given, take the newest fitting file in the user's client-portal inbox (`~/inbox/<user>/`, by mtime - the portal notice lists the whole cumulative inbox, not what is new) and name it in the result; ask only if several fitting files arrived together.
 
 ```bash
 date '+%Y-%m-%d'
@@ -122,6 +122,8 @@ Task(
           assigned source-tier, and the book scope path."
 )
 ```
+
+**Full-length books (> ~40k words) - fan out instead of one extractor call (pattern proven on the Urban 2026-10-12, Davies 2026-10-21 and Meltdown 2026-11-01 runs):** one extractor cannot hold a book plus the KB lens in context. Write two shared brief files into the workspace and point every subagent at them so the 8+ prompts stay short and consistent: `MINER-BRIEF.md` (Book Mode doctrine, the preemption map from a 10-query KB pre-check on the book's home themes, the mandatory per-candidate dedup procedure with `raw_similarity`, and a fixed output format: title / chapter / type / tier / precis / evidence / staleness / dedup verdict / bridges / illustration + a REJECTED list) and, after the central MECE dedup, `WRITER-BRIEF.md` (frontmatter + body template, the filename-equals-title rule, link-by-real-filename rule, the CANONICAL TITLE LIST with candidate ids, writer assignments by chapter, and a cross-note link map). Then: N read-only `document-insight-extractor` miners by structural division (write nothing) -> central MECE dedup to the canonical list (merge same-study candidates, fold non-peer-reviewed evidence into a caveated paragraph rather than a note) -> N parallel writers -> `_book.md` hub + in-scope changelog written centrally -> dangling-link + em-dash check over the whole scope before Step 3. Persist each miner's output to `miner-<X>.md` in the workspace as it arrives; the writers read the precis from there.
 
 **For non-books** (paper / article / web → `Brain/Document Insights/<session>/`):
 
@@ -202,6 +204,19 @@ resources/brain-graph/run_brain_graph.sh inspect "<New Note Title>" --json   # e
    **`build_scope_selector` takes RESOLVED folders, not tokens** — pass
    `resolve_read_scope('core')`, never the string `'core'`, which matches nothing and returns
    an empty result set that reads exactly like "no neighbours exist."
+
+4. **`run_search.sh` has its own default `--threshold 0.50`** (found 2026-10-12). It silently drops
+   the whole 0.45-0.50 band that `AUTO_LINK_THRESHOLD` is defined on, so 14 of 29 notes looked
+   isolated until the floor was lowered. Always pass `--threshold 0.44` (just under the auto-link
+   threshold) together with a generous `--limit` (~100): a book's own chunks otherwise fill the pool.
+
+**All four traps are encoded in `resources/ingest-workspace/score_neighbours.sh`** (added 2026-10-21 after
+the same ad-hoc helper was rewritten on the Urban and Davies runs): title-only static query at `--limit 100
+--threshold 0.44`, `raw_similarity` read from `--json`, same-scope / changelog / hub hits excluded, top-8 per
+note deduped by `note_id`. `score_neighbours.sh <Brain/Books/<slug>> <Books/<slug>> > <workspace>/connections.txt`,
+then apply the Step 5 conceptual-validity filter by hand on that file.
+**Non-book sessions (added 2026-10-23):** the helper defaulted to the book mount; pass `SCOPE=core,document-insights` and the session
+folder as the exclusion prefix: `SCOPE=core,document-insights score_neighbours.sh "Brain/Document Insights/<session>" "Document Insights/<session>"`.
 
 Exclude same-session notes and the session changelog from the neighbor list — they are guaranteed
 near-hits that crowd out the new→existing connections this step exists to find.

@@ -169,7 +169,7 @@ This calibration shapes the framing corrections in Phase 2 and the specific argu
 **Knowledge-base grounding runs in the reasoning role** (contract: `scope-mount`): when a monk's briefing is built from the KB, search at the reasoning mount so a position can draw on what the user has *read*, and mark core vs encountered material in the briefing - a monk may argue from an encountered note, but the synthesis never presents it as the user's view.
 
 ```bash
-BRAIN_READ_SCOPE=core,Books,document-insights resources/local-brain-search/run_search.sh "<the position's core claim>" --limit 5 --no-track --json
+BRAIN_READ_SCOPE=@reasoning resources/local-brain-search/run_search.sh "<the position's core claim>" --limit 5 --no-track --json
 ```
 
 The monks need deep grounding before they can believe effectively. But *what* constitutes grounding depends on the domain type and how novel it is. The skill must adapt.

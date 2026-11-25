@@ -1,41 +1,24 @@
 # Configuration
 
-# Vault base path - set to your Obsidian vault location
-# Can be relative (./Brain) or absolute (/Users/yourname/vault)
+# Vault base path - relative (./Brain) or absolute. Edit to point at your vault.
 VAULT_BASE_PATH=./Brain
 
-# Document insights path - where external document insights are stored
+# Where external document insights are stored
 DOCUMENT_INSIGHTS_PATH=./Brain/Document Insights
 
 ---
 
-## Setup Instructions
+## About this file
 
-1. Copy this file to `settings.md`:
-   ```bash
-   cp .claude/settings.md.template .claude/settings.md
-   ```
+The repo ships a ready `.claude/settings.md` with exactly the values above, so a
+fresh copy works without any setup step (`CLAUDE.md` imports it with
+`@.claude/settings.md`). This template is the reference copy of those defaults.
 
-2. Edit `settings.md` and set `VAULT_BASE_PATH` to your vault location:
-   - Relative path: `./Brain` (if vault is in project)
-   - Absolute path: `/Users/yourname/Documents/YourVault`
-
-3. Set up Local Brain Search:
-   ```bash
-   cd resources/local-brain-search
-   python -m venv venv
-   source venv/bin/activate
-   pip install -r requirements.txt
-   ./run_index.sh
-   ```
-
-4. Start Claude Code:
-   ```bash
-   claude
-   ```
-
-## Notes
-
-- This file is gitignored to protect your personal paths
-- All agents and skills use `$VAULT_BASE_PATH` from this config
-- Re-index after changing vault path: `./run_index.sh`
+- `settings.md` is tracked, not gitignored: the defaults are relative paths and
+  hold nothing personal. Edit it in place to point at another vault.
+- To return to the defaults: `cp .claude/settings.md.template .claude/settings.md`
+  and delete everything from the `---` line down.
+- All agents and skills read `$VAULT_BASE_PATH` from `settings.md`.
+- After changing the vault path, rebuild the index: `/refresh-index`
+  (or `resources/local-brain-search/run_index.sh`).
+- First install (Python search engine, index, daemon): `/first-run`.

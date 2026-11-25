@@ -4,13 +4,14 @@ description: Shared read-scope contract - which scopes a knowledge-base read mou
 automation: autonomous
 allowed-tools: Read, Grep, Glob, Bash
 user-invocable: true
-argument-hint: "[role=voice|reasoning|lookup] [the question or topic, for the conditional reference mounts]"
+argument-hint: "[role=voice|reasoning|lookup] [question] | on <scope> | off <scope> | status | reset"
 metadata:
-  version: "1.0"
+  version: "1.1"
   created: 2026-09-04
-  updated: 2026-09-04
+  updated: 2026-10-27
   author: Ability.ai
   changelog:
+    - "1.1: Persistent on/off switch (#4) - `/scope-mount on|off <scope>`, `status`, `reset` write resources/local-brain-search/scope_toggles.json; consumers mount the role ALIAS @reasoning / @lookup (engine-expanded in resolve_read_scope, toggles applied) instead of 50 inline copies of the folder list; resolver prints the alias and reports trigger mounts suppressed by an off; voice/perception/ingestion/maintenance stay literal and never see the switch; D3.6 now flags literal role mounts."
     - "1.0: Initial contract - four read roles with standing mounts (voice=core; reasoning and lookup=core,Books,document-insights), question-triggered reference mounts, never-mount list, two-pass retrieval shape, scope-grouped output. Origin: the user 2026-09-04 ('only core is not enough') + the audit that found eleven read skills inheriting the fail-closed engine default as their retrieval policy. Enabled by the per-note learn-gate (learning.py trains(), Phase 10a)."
 ---
 
@@ -35,21 +36,45 @@ This file is the **policy of record for what a read mounts** (`ARCHITECTURE.md` 
 | Thinker roster | `Brain/Thinkers/THINKERS-INDEX.md` | ✓ | |
 | Book shelf | `Brain/Books/<slug>/` | ✓ | |
 | Similarity contract | `resources/local-brain-search/SIMILARITY-CALIBRATION.md` | ✓ | |
+| Scope switch | `resources/local-brain-search/scope_toggles.json` (committed - travels with git to Trinity) | ✓ | ✓ (switch modes only) |
 
-**Never writes.** Never changes the engine default.
+**Writes only the switch file, and only in the switch modes.** Never changes the engine default (unset → `core`).
 
 ## The four read roles
 
 | Role | The read is for | Standing mount | Consumers |
 |---|---|---|---|
 | **voice** | the user's fingerprint IS the product; the answer must be attributable to him | `BRAIN_READ_SCOPE=core` (declared explicitly, never inherited) | `/get-perspective-on`, `/create-article` (source pass), `/synthesize-insights` in "my thoughts on X" mode |
-| **reasoning** | the best-grounded answer, every source attributed | `BRAIN_READ_SCOPE=core,Books,document-insights` - the **reasoning mount** | `/advise`, `/decide`, `/think-about-it`, `/dialectic` (monk grounding), `/abstraction-ladder` (rungs), `/synthesize-insights` (pattern mode), `/talk` → `thinking-partner`, incubation-loop evidence pass |
-| **lookup** | "what do I have on X" | the reasoning mount, output **grouped by scope** | `/recall`, `/search-vault`, `/quick-search`, `/find-connections` (anchor + neighbourhood) |
+| **reasoning** | the best-grounded answer, every source attributed | `BRAIN_READ_SCOPE=@reasoning` - the **reasoning mount** (default `core,Books,document-insights`, adjusted by the switch) | `/advise`, `/decide`, `/think-about-it`, `/dialectic` (monk grounding), `/abstraction-ladder` (rungs), `/synthesize-insights` (pattern mode), `/talk` → `thinking-partner`, incubation-loop evidence pass |
+| **lookup** | "what do I have on X" | `BRAIN_READ_SCOPE=@lookup` - the reasoning mount, output **grouped by scope** | `/recall`, `/search-vault`, `/quick-search`, `/find-connections` (anchor + neighbourhood) |
 | **perception / ingestion / maintenance** | see everything new · dedup against the write target · measure the fingerprint | unchanged and already declared: wide (`core,Books,document-insights,meta,inbox,output`) / the write target / `core` | domain-watch, auto-discovery, worldview-refresh, integrate-recent-notes, the extractors, `/ingest-source`, analyze-kb, coherence, lifecycle |
 
 **Lookup semantics.** "What do I *think* about X" is answered by the core group; "what do I *know* about X" by all groups. The user narrows on demand: `--scope core` (or "only my notes") pins the read to `core`; `--scope <token>` mounts exactly that.
 
 **`/talk` is reasoning, not voice** (the user, 2026-09-04): the thinking partner speaks *from* the whole knowledge base, including what the user has read; it still labels what it cites.
+
+**Role aliases.** `@reasoning` and `@lookup` are expanded by the engine (`memory_config.py` → `ROLE_MOUNTS`, `resolve_read_scope`): the standing list is declared there once, plus the switch. Consumers write the alias, never the folder list - a literal `core,Books,document-insights` in a reasoning/lookup consumer bypasses the switch, and D3.6 flags it. Trigger tokens append to the alias: `@reasoning,company`.
+
+## The switch (persistent toggles)
+
+```bash
+python3 resources/local-brain-search/scope_toggles.py status          # effective mount + toggles
+python3 resources/local-brain-search/scope_toggles.py on  thinkers     # every reasoning/lookup read adds it
+python3 resources/local-brain-search/scope_toggles.py off document-insights
+python3 resources/local-brain-search/scope_toggles.py off Books/black-swan-taleb   # one book out, rest of the shelf stays
+python3 resources/local-brain-search/scope_toggles.py reset           # back to the standing mounts
+```
+
+| Rule | Behaviour |
+|---|---|
+| Reach | role reads only (`@reasoning`, `@lookup`). Voice (`core`), perception (wide), ingestion dedup (the write target) and maintenance/fingerprint mounts are literal and never see the switch - turning a scope off must never create duplicates or move the fingerprint |
+| `on <scope>` | adds a scope to every role read; re-enables a standing scope that was off. Refused for the never-mount list (`meta`, `inbox`, `output`, `DemoCRM`) |
+| `off <scope>` | removes it from the whole role mount, **including trigger mounts** (an off `company` also blocks the Company trigger; the resolver reports `# trigger ... suppressed (scope off)`). A family child (`Books/<slug>`, `Company/<sub>`) splits the family and drops only that child |
+| `core` | never switchable - refused for `on` and `off`, and ignored by the engine if hand-written into the file |
+| Persistence | `scope_toggles.json`, committed; re-read on every resolve, so the search daemon picks up a flip without restart. Missing/unreadable file → standing mounts |
+| Per-read overrides | unchanged: "only my notes" / `--scope <token>` still pin one read, and a literal mount still means exactly what it names |
+
+`on canon` is allowed but goes against the authority rule: Canon is direction, and `/canon-advise` is its route. Say so when someone turns it on.
 
 ## Conditional reference mounts (reasoning + lookup only; never standing)
 
@@ -64,7 +89,7 @@ Detection is a cheap title match, run once before the searches (no LLM call, ~50
 
 ```bash
 .claude/skills/scope-mount/resolve_mount.sh <voice|reasoning|lookup> "<the question>"
-# BRAIN_READ_SCOPE=core,Books,document-insights,company      <- use verbatim on the wide pass
+# BRAIN_READ_SCOPE=@reasoning,company      <- use verbatim on the wide pass
 # # trigger company: Trinity
 # # extra pass: BRAIN_READ_SCOPE=core,Books/black-swan-taleb  <- a book hit adds a THIRD, precision pass
 ```
@@ -92,7 +117,7 @@ Document Insights alone is 2.3x core, so one wide search with a small `--limit` 
 ```bash
 # one query, two populations, one parallel batch
 BRAIN_READ_SCOPE=core                          resources/local-brain-search/run_search.sh "<term>" --limit 3 --json
-BRAIN_READ_SCOPE=core,Books,document-insights  resources/local-brain-search/run_search.sh "<term>" --limit 5 --json
+BRAIN_READ_SCOPE=@reasoning                    resources/local-brain-search/run_search.sh "<term>" --limit 5 --json
 ```
 
 Neighbourhood calls follow the same mount as the search that found the anchor (`run_connections.sh "<note>"` at the reasoning mount reaches Books/DI neighbours). **`--hubs` / `--bridges` / `--stats` stay `core` always** - they are the fingerprint, not a read.
@@ -117,11 +142,14 @@ Load-bearing sources in a *conclusion* additionally pass `reasoning-checks` **Ch
 - **The fingerprint.** Hubs, bridges, lifecycle, redundancy: `core`, by construction.
 - **The engine default.** Unset scope → `core`, never "all". The policy lives here and in the playbooks.
 - **The endorsement boundary.** Reading wider changes what the agent can *see*, never what it may *endorse*. `encountered → endorsed` remains the human act.
-- **Thresholds are population-bound.** The reasoning mount is its own population; its row lives in `SIMILARITY-CALIBRATION.md` (Space 2, scoped). Do not carry a `core` band to the mount or back.
+- **Thresholds are population-bound.** The reasoning mount is its own population; its row lives in `SIMILARITY-CALIBRATION.md` (Space 2, scoped). Do not carry a `core` band to the mount or back. The switch changes that population: the calibrated row describes the **default** mount, so a toggled mount is uncalibrated until re-measured.
+- **An empty read is not "no knowledge" (2026-11-14).** The default `--threshold 0.5` starves natural-language queries: "value of the filter" returns 0 at both mounts while the Filter note sits at raw 0.427. A voice / reasoning / lookup read that returns fewer than 3 hits is re-run once with `--threshold 0.3`; the runner then judges relevance by reading, not by score. Only after that may a skill say the KB is silent.
 
 ## Direct invocation
 
-`/scope-mount role=<voice|reasoning|lookup> <question>` → runs `resolve_mount.sh` with those arguments and prints its output: the mount line to use verbatim, the triggers that fired, and any extra precision pass. Useful when writing or debugging a consumer.
+`/scope-mount role=<voice|reasoning|lookup> <question>` → runs `resolve_mount.sh` with those arguments and prints its output: the mount line to use verbatim, the triggers that fired (or were suppressed by the switch), and any extra precision pass. Useful when writing or debugging a consumer.
+
+`/scope-mount on <scope>` · `off <scope>` · `status` · `reset` → runs `scope_toggles.py` with those arguments and prints the effective mount. Plain words map the same way ("stop reading Document Insights" → `off document-insights`; "always include thinkers" → `on thinkers`). After a flip, say in one line what every reasoning/lookup read now mounts, and that voice reads stay `core`.
 
 ## Consumers (who declares which role)
 

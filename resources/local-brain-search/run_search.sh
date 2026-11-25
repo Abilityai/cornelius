@@ -39,7 +39,10 @@ daemon_fresh() {
     [ -n "$build_id" ] || return 1
     [ -f "$FAISS_FILE" ] || return 1
     on_disk=$(python3 -c "import os;print(int(os.path.getmtime('$FAISS_FILE')))" 2>/dev/null) || return 1
-    [ "$build_id" = "$on_disk" ]
+    [ "$build_id" = "$on_disk" ] || return 1
+    # a role alias (@reasoning/@lookup) needs a daemon whose code resolves it; an older
+    # daemon would read "@reasoning" as a folder and silently return nothing
+    case "$SCOPE" in *@*) printf '%s' "$health" | grep -q '"role_aliases": *true' || return 1 ;; esac
 }
 
 # Try daemon first (fast path)
@@ -96,6 +99,8 @@ meta = data.get('metadata', {})
 
 if not results:
     print(f\"No results found for: {data.get('query', '')}\")
+    if data.get('hint'):
+        print(data['hint'])
     sys.exit(0)
 
 print(f\"\nFound {len(results)} results for: {data.get('query', '')}\")
@@ -128,6 +133,11 @@ print(f\"Mode: {mode.upper()} (via daemon)\")
     fi
     exit 0
 fi
+
+# Daemon miss (down, stale after a reindex, or old code): start/restart it in the
+# background so the NEXT read is warm, then serve THIS read from the cold CLI path.
+# One starter at a time (lock in run_daemon.sh); BRAIN_DAEMON_AUTOSTART=0 disables.
+"$SCRIPT_DIR/run_daemon.sh" ensure > /dev/null 2>&1
 
 # Fallback: direct Python (original behavior)
 "$SCRIPT_DIR/venv/bin/python" "$SCRIPT_DIR/search.py" "$@"

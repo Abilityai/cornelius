@@ -111,6 +111,12 @@ skills:
   - name: first-run
     description: "One command from a fresh copy to the first answer: build the search engine, start the daemon, rebuild the index for this machine, smoke-test, report"
 
+  # Taking documents in
+  - name: intake
+    description: "Hand over a file or a link and get a short summary back: works out what it is, converts it, runs the playbook that fits, asks nothing"
+  - name: ingest-source
+    description: "Turn a book, paper, article or video into linked notes, unattended"
+
   # Problem-Solving & Advice
   - name: advise
     description: "KB-grounded problem-solving with framework application and citations"

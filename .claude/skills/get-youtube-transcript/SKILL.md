@@ -5,6 +5,10 @@ automation: autonomous
 allowed-tools: [Bash]
 user-invocable: true
 argument-hint: "<youtube-url-or-video-id>"
+metadata:
+  version: "1.1"
+  changelog:
+    - "1.1: script moved into the skill's own scripts/ folder so it ships with the skill; project-relative path, no Mac path; uv fallback when no venv (Abilityai/cornelius#20)"
 ---
 
 # Get YouTube Transcript
@@ -15,8 +19,8 @@ Extract a full transcript from any YouTube video using the local youtube-transcr
 
 | Source | Location | Read | Write |
 |--------|----------|------|-------|
-| Script | `scripts/utilities/yt-transcript.sh` | ✓ | - |
-| Venv | `scripts/utilities/yt_transcript_venv/` | ✓ | - |
+| Script | `.claude/skills/get-youtube-transcript/scripts/yt-transcript.sh` | ✓ | - |
+| Python deps | a venv at `scripts/yt_transcript_venv/` if present, otherwise `uv run --with youtube-transcript-api` | ✓ | - |
 | YouTube | External (via youtube-transcript-api) | ✓ | - |
 
 ## Process
@@ -26,7 +30,7 @@ Extract a full transcript from any YouTube video using the local youtube-transcr
 Run the wrapper script with the URL or video ID the user provided:
 
 ```bash
-$PROJECT_ROOT/scripts/utilities/yt-transcript.sh "<url-or-id>"
+"$(git rev-parse --show-toplevel)/.claude/skills/get-youtube-transcript/scripts/yt-transcript.sh" "<url-or-id>"
 ```
 
 Options:
@@ -50,7 +54,7 @@ Return the full transcript text to the user. If it's long (>500 lines), summariz
 User: "get me the transcript of https://youtu.be/abc123"
 
 ```bash
-$PROJECT_ROOT/scripts/utilities/yt-transcript.sh "https://youtu.be/abc123"
+"$(git rev-parse --show-toplevel)/.claude/skills/get-youtube-transcript/scripts/yt-transcript.sh" "https://youtu.be/abc123"
 ```
 
 ## Notes

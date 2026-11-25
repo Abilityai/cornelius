@@ -183,19 +183,21 @@ Report any **ALARM** line (a scope that both grew and got more crowded) in the
 run summary. Compare only the matched-n column — raw NN1 rises with note count
 for free and is not comparable across scopes or dates.
 
-### Step 7: Restart the search daemon (MANDATORY after a rebuild)
+### Step 7: Re-point the search daemon at the new index (MANDATORY)
 
-The daemon serves the index it loaded at start. After a rebuild its `build_id` no
-longer matches the files on disk, `run_search.sh` refuses the stale daemon and falls
-back to the CLI path, which loads the embedding model on **every** search - a
-`/advise` with six searches goes from seconds to ten minutes. Restart it:
+The wrappers' build-id guard routes every read to the cold CLI path (~4.5s per
+query, a torch import each time) as soon as `brain.faiss` is newer than what the
+daemon loaded. `run_index.sh` already triggers a background restart; this step
+makes it checked, not assumed. Found 2026-11-06: the daemon had been dead since
+Oct 30 and nothing noticed, because the fallback is silent.
 
 ```bash
-cd resources/local-brain-search && ./run_daemon.sh restart && sleep 3 && curl -s --max-time 3 http://127.0.0.1:7437/health
+resources/local-brain-search/run_daemon.sh ensure --wait && resources/local-brain-search/run_daemon.sh status
 ```
 
-Expect `{"status":"ok", ... "build_id": <n>, "chunks": <n>}`. If the daemon will not
-come up, say so in the report: searches still work, only slower.
+Expect `Daemon fresh.` and `Fresh: yes`. If the venv is missing the command
+exits 0 without starting anything - report "daemon not available (no venv)"
+rather than "daemon fresh".
 
 ## Outputs
 
@@ -204,6 +206,7 @@ come up, say so in the report: searches still work, only slower.
 - Engine-computed lifecycle scores (`lifecycle_source: engine`), preserved across re-bootstrap
 - Appended redundancy sample at `resources/local-brain-search/data/redundancy_history.jsonl`
 - Stats output confirming note count
+- Search daemon restarted on the new index (`run_daemon.sh fresh` exits 0)
 
 ## Error Handling
 
@@ -216,11 +219,10 @@ come up, say so in the report: searches still work, only slower.
 | Indexer killed ~300s with no output | The stall watchdog fired - you piped/buffered or backgrounded it. Re-run per Step 2's execution rules: a foreground call, output streaming, no `tail`/pipe, no backgrounding |
 | BDG bootstrap fails | Retry once. If it still fails, the LBS index is fresh but the orb/coherence enrichment layer is stale - report it; this is NOT a clean run |
 | Lifecycle engine fails | Retry once. If it still fails, report that lifecycle figures are the bootstrap proxy, NOT health data - do not cite generative counts from this run |
+| `ensure --wait` reports not fresh after 90s | Read `resources/local-brain-search/daemon.log` (last 20 lines). Reads still work via the cold path, so the index run is valid - but report it: every read is ~20x slower until fixed |
 | Redundancy script fails | Non-critical - the index and BDG are still valid. Log and continue; the metric is a trend signal, one missing sample is harmless |
 
 ## Completion Checklist
-
-- [ ] Search daemon restarted and `/health` reports the new `build_id`
 
 - [ ] Indexer script exists
 - [ ] Index rebuilt without errors
@@ -229,3 +231,4 @@ come up, say so in the report: searches still work, only slower.
 - [ ] BDG re-bootstrapped
 - [ ] Lifecycle engine run after bootstrap; `lifecycle_source: engine` count > 0
 - [ ] Redundancy sample appended; any ALARM reported
+- [ ] Search daemon fresh on the new index (Step 7)

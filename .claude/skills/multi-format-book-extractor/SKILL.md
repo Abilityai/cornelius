@@ -3,6 +3,10 @@ name: multi-format-book-extractor
 description: Extract chapters from PDF, MOBI, and AZW3 book files into individual markdown files. Use when extracting non-EPUB books. PDF uses pymupdf with TOC-based chapter splitting and auto-OCR fallback (Gemini) for scanned/image-only PDFs; MOBI/AZW3 routes through calibre then epub-chapter-extractor.
 allowed-tools: [Bash]
 user-invocable: true
+metadata:
+  version: "1.1"
+  changelog:
+    - "1.1: call extract_book.py / ocr_pdf.py by their project skill path instead of cd-ing into the skill folder, so relative book paths resolve from the agent root (same class as Abilityai/cornelius#20)"
 ---
 
 # Multi-Format Book Extractor
@@ -15,16 +19,23 @@ Mirrors the epub-chapter-extractor pattern for non-EPUB formats.
 - **PDF**: `pymupdf` — auto-installed via `--with pymupdf`
 - **Scanned PDF OCR fallback**: `requests` (`--with requests`) + a Gemini key in
   `$GEMINI_API_KEY` / `$GOOGLE_API_KEY` (read from `cornelius/.env` if unset)
-- **MOBI / AZW3**: [calibre](https://calibre-ebook.com/download) must be installed
-  ```bash
-  brew install --cask calibre
-  ```
+- **MOBI / AZW3**: calibre's `ebook-convert` must be on the machine
+  - Trinity server (Debian): `sudo apt-get install -y calibre` - installed by `.trinity/setup.sh`
+  - Mac: `brew install --cask calibre`
+- **uv**: on the Trinity server it is `~/.local/bin/uv` (symlinked to `/usr/local/bin/uv`), installed by `.trinity/setup.sh`
+
+Every command below starts by resolving these two paths, so the same lines work on the
+server and on the user's Mac (run from the agent root - scripts are called by path, never `cd` into the skill folder, so relative book paths keep resolving):
+
+```bash
+UV="$(command -v uv || echo "$HOME/.local/bin/uv")"
+SKILL="$(git rev-parse --show-toplevel)/.claude/skills/multi-format-book-extractor"
+```
 
 ## Single Book
 
 ```bash
-cd $PROJECT_ROOT/.claude/skills/multi-format-book-extractor && \
-uv run --with pymupdf --with requests python extract_book.py "/path/to/book.pdf" [output_dir]
+"$UV" run --with pymupdf --with requests python "$SKILL/extract_book.py" "/path/to/book.pdf" [output_dir]
 ```
 
 If `output_dir` is omitted, creates a folder named after the file in the same directory.
@@ -46,8 +57,7 @@ to **Gemini 2.5 Flash OCR** (`ocr_pdf.py`).
 Run OCR directly (e.g. to tune params or force it):
 
 ```bash
-cd $PROJECT_ROOT/.claude/skills/multi-format-book-extractor && \
-uv run --with pymupdf --with requests python ocr_pdf.py "/path/to/scan.pdf" [output_dir] \
+"$UV" run --with pymupdf --with requests python "$SKILL/ocr_pdf.py" "/path/to/scan.pdf" [output_dir] \
   [--model gemini-2.5-flash] [--dpi 180] [--pages-per-call 5] [--pages-per-file 20] [--concurrency 6]
 ```
 
@@ -56,8 +66,6 @@ uv run --with pymupdf --with requests python ocr_pdf.py "/path/to/scan.pdf" [out
 Extract all PDFs, MOBIs, and AZW3s from a directory in parallel:
 
 ```bash
-SKILL="$PROJECT_ROOT/.claude/skills/multi-format-book-extractor"
-UVX="uv"
 DIR="/path/to/books"
 
 for book in "$DIR"/*.{pdf,mobi,azw3}; do
@@ -65,7 +73,7 @@ for book in "$DIR"/*.{pdf,mobi,azw3}; do
   stem="${book%.*}"
   [ -d "$stem" ] && echo "Skipping: $(basename "$book") (already extracted)" && continue
   echo "Starting: $(basename "$book")"
-  (cd "$SKILL" && $UVX run --with pymupdf --with requests python extract_book.py "$book") &
+  ("$UV" run --with pymupdf --with requests python "$SKILL/extract_book.py" "$book") &
 done
 wait
 echo "All done"
@@ -89,6 +97,4 @@ book-name/
 
 ## After Extraction
 
-```bash
-open /path/to/books/
-```
+On the Mac, `open /path/to/books/`. On the Trinity server there is no Finder - report the output path.
