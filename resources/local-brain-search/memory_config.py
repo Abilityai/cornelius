@@ -18,6 +18,7 @@ Usage:
 """
 from pathlib import Path
 from typing import NamedTuple
+import json
 import os
 
 # =============================================================================
@@ -248,21 +249,83 @@ def resolve_read_scope(raw=None) -> frozenset:
       - slugs map via SCOPE_TOKEN_MAP; unknown tokens pass through verbatim
       - there is NO token meaning "all"; the only way to widen is to name
         folders explicitly. You can never accidentally un-scope the whole brain.
+      - a ROLE alias (@reasoning / @lookup, see ROLE_MOUNTS) expands to the role's
+        standing mount plus the persistent toggles (scope_toggles.json): "on"
+        tokens are added, then "off" tokens are removed from the WHOLE mount -
+        including trigger tokens appended after the alias ("@reasoning,company").
+        Literal mounts (voice, perception, ingestion dedup, maintenance) never
+        see the toggles. Core can never be toggled off.
     """
     if raw is None:
         raw = os.environ.get("BRAIN_READ_SCOPE", "")
     if raw is None or not str(raw).strip():
         return CORE_FOLDERS
+    tokens = [t.strip() for t in str(raw).split(",") if t.strip()]
+    role_read = any(t.lower() in ROLE_MOUNTS for t in tokens)
+    toggles = load_scope_toggles() if role_read else {"on": [], "off": []}
+    expanded = []
+    for t in tokens:
+        if t.lower() in ROLE_MOUNTS:
+            expanded += ROLE_MOUNTS[t.lower()].split(",") + toggles["on"]
+        else:
+            expanded.append(t)
     folders = set()
-    for tok in str(raw).split(","):
-        t = tok.strip()
-        if not t:
-            continue
+    for t in expanded:
         if t.lower() == "core":
             folders |= set(CORE_FOLDERS)
         else:
-            folders.add(SCOPE_TOKEN_MAP.get(t.lower(), t))
+            folders.add(_scope_token_folder(t) if role_read else SCOPE_TOKEN_MAP.get(t.lower(), t))
+    if role_read:
+        for off in toggles["off"]:
+            f = _scope_token_folder(off)
+            if f in CORE_FOLDERS:
+                continue                      # core is never switchable
+            fam = f.split("/", 1)[0]
+            if "/" in f and fam in folders:   # one child of a mounted family: split the family
+                folders.discard(fam)
+                folders |= {fam + "/" + c for c in _family_children(fam)}
+            folders.discard(f)
     return frozenset(folders) if folders else CORE_FOLDERS
+
+
+# --- persistent scope toggles (the /scope-mount on|off switch) --------------
+# Role aliases name a read ROLE instead of a folder list, so the role's mount is
+# declared once here rather than copied into every consumer. Only role reads
+# honour the toggles; the contract lives in .claude/skills/scope-mount/SKILL.md.
+ROLE_MOUNTS = {
+    "@reasoning": "core,Books,document-insights",
+    "@lookup":    "core,Books,document-insights",
+}
+# Committed (not in data/) so the switch travels with git to every runtime.
+SCOPE_TOGGLES_PATH = Path(os.environ.get("SCOPE_TOGGLES_PATH", PROJECT_DIR / "scope_toggles.json"))
+# Never mountable on a reasoning/lookup read (scope-mount "never" list); refused by `on`.
+NEVER_ROLE_MOUNT = frozenset({"05-Meta", "00-Inbox", "04-Output", "DemoCRM"})
+
+
+def _scope_token_folder(token) -> str:
+    """Map a token to its folder, family-aware: 'books/black-swan' -> 'Books/black-swan'."""
+    head, sep, child = str(token).strip().partition("/")
+    folder = SCOPE_TOKEN_MAP.get(head.lower(), head)
+    return folder + sep + child
+
+
+def _family_children(family):
+    """Every fine-grained sub-scope id under a family folder (dirs and loose files)."""
+    root = BRAIN_PATH / family
+    return sorted(p.name for p in root.iterdir() if not p.name.startswith(".")) if root.is_dir() else []
+
+
+def load_scope_toggles() -> dict:
+    """Read the persistent toggles. Missing or unreadable file -> no toggles (standing mounts).
+
+    Re-read on every call (a few hundred bytes) so a long-running daemon picks up a
+    flip without a restart.
+    """
+    try:
+        data = json.loads(SCOPE_TOGGLES_PATH.read_text())
+    except (OSError, ValueError):
+        return {"on": [], "off": []}
+    return {k: [str(t) for t in data.get(k, []) if str(t).strip()] for k in ("on", "off")}
 
 
 def is_pure_core(scope) -> bool:

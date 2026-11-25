@@ -181,6 +181,9 @@ resources/local-brain-search/tmp/
 # Brain search daemon runtime
 resources/local-brain-search/daemon.pid
 resources/local-brain-search/daemon.log
+resources/local-brain-search/daemon.log.1
+resources/local-brain-search/.daemon-ensure.lock
+resources/local-brain-search/.daemon-watchdog.lock
 
 # Python virtual environments
 resources/pdf_env/
@@ -252,6 +255,7 @@ resources/entropy/pca_basis.npz
 
 # Documents a person drops for Cornelius to process (Trinity saves Workspace
 # uploads under inbox/ and chat uploads under uploads/). The notes written from
-# them are the agent's work; the source files stay out of the repo.
-/inbox/
+# them are the agent's work; the source files stay out of the repo. Subfolders
+# only: files another agent delivers directly under inbox/ stay tracked.
+/inbox/*/
 /uploads/

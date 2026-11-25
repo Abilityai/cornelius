@@ -50,11 +50,11 @@ Run the searches **in parallel** (single message, multiple Bash calls):
 
 ```bash
 BRAIN_READ_SCOPE=core                          resources/local-brain-search/run_search.sh "search term 1" --limit 3 --json
-BRAIN_READ_SCOPE=core,Books,document-insights  resources/local-brain-search/run_search.sh "search term 1" --limit 5 --json
+BRAIN_READ_SCOPE=@reasoning  resources/local-brain-search/run_search.sh "search term 1" --limit 5 --json
 BRAIN_READ_SCOPE=core                          resources/local-brain-search/run_search.sh "search term 2" --limit 3 --json
-BRAIN_READ_SCOPE=core,Books,document-insights  resources/local-brain-search/run_search.sh "search term 2" --limit 5 --json
+BRAIN_READ_SCOPE=@reasoning  resources/local-brain-search/run_search.sh "search term 2" --limit 5 --json
 BRAIN_READ_SCOPE=core                          resources/local-brain-search/run_search.sh "search term 3" --limit 3 --json
-BRAIN_READ_SCOPE=core,Books,document-insights  resources/local-brain-search/run_search.sh "search term 3" --limit 5 --json
+BRAIN_READ_SCOPE=@reasoning  resources/local-brain-search/run_search.sh "search term 3" --limit 5 --json
 resources/local-brain-search/run_connections.sh --hubs --json   # fingerprint - always core; for Step 5's attractor check, same batch
 ```
 
@@ -123,7 +123,7 @@ Append the resulting blocks after the Bottom line.
 - **NO changelog creation** - this is conversational, not archival
 - **NO spreading activation** - use static search for speed
 - **Parallel execution** - run all searches in one message, all reads in the next
-- **Maximum 2 rounds of tool calls** - searches + hubs (parallel) + reads (parallel); the reasoning checks reuse those results, no extra round
+- **2 rounds of tool calls by default** - searches + hubs (parallel) + reads (parallel); the reasoning checks reuse those results, no extra round. One extra search round is allowed only for the `scope-mount` thin-read rule (fewer than 3 hits -> re-run at `--threshold 0.3`)
 - **Cite your sources** - always reference the specific notes used
 - **Be actionable** - don't just dump knowledge, apply it to the problem
-- If KB lacks relevant content, say so honestly and offer general reasoning instead
+- If the KB still lacks relevant content after the thin-read re-run, say so honestly and offer general reasoning instead

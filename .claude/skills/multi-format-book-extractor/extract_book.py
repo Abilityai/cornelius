@@ -164,7 +164,8 @@ def extract_mobi_azw3(input_path: Path, output_dir: Path) -> None:
     if not calibre:
         print(
             "ERROR: calibre ebook-convert not found.\n"
-            "  Install: brew install --cask calibre\n"
+            "  Install: sudo apt-get install -y calibre   (Debian / Trinity server)\n"
+            "           brew install --cask calibre        (Mac)\n"
             "  Or:      https://calibre-ebook.com/download"
         )
         sys.exit(1)

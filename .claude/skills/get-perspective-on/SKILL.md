@@ -40,6 +40,17 @@ Extract the user's unique perspective on a topic from the knowledge base. Return
    ```
    - Find 3-5 most relevant permanent notes
    - Look for contrarian or non-obvious angles
+   - Fewer than 3 hits: apply the `scope-mount` thin-read rule (re-run at `--threshold 0.3`) before concluding the user has no view
+
+1.5. **Provenance guard** - `core` is not a voice guard by itself: it holds labelled `ai-inferred` and `encountered` notes. Check every note you intend to cite:
+   ```bash
+   grep -m1 '^provenance:' "<note path>"
+   ```
+   - `originated` / `endorsed` / no field (legacy, pre-dates the axis): may carry the perspective.
+   - `ai-inferred` / `encountered`: never phrased as the user's view. Drop it, or cite it explicitly as "an AI synthesis" / "something he read".
+   - If nothing `originated`/`endorsed`/legacy supports the topic, say the user has no recorded view - do not fill the gap.
+
+1.6. **Canon guard** - if the topic touches Ability AI, Trinity or Cornelius and the text may be used externally, follow the positioning rule in `CLAUDE.md` (function vs positioning, ADR-0011): canon wording wins, the unsayable phrases stay out, and any disagreement in the user's notes is labelled dissent.
 
 2. **Synthesize Perspective**
    - Brief format (1-3 paragraphs)
@@ -70,6 +81,8 @@ Why this matters:
 - [[Note Title 1]]
 - [[Note Title 2]]
 - [[Note Title 3]]
+
+Provenance: originated/endorsed N · unmarked J · ai-inferred/encountered K (labelled above)
 ```
 
 ## Integration with a content agent
@@ -130,7 +143,6 @@ Weak perspective (regenerate):
 |--------|----------|------|-------|-------------|
 | Brain notes | `Brain/**/*.md` | X | | Permanent notes for perspective synthesis |
 | AI Insights | `Brain/AI Extracted Notes/` | X | | AI-extracted unique perspectives |
-| Document Insights | `Brain/Document Insights/` | X | | Research-based insights |
 | Local Brain Search | `resources/local-brain-search/` | X | | Semantic search for relevance |
 
 ## Completion Checklist

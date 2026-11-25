@@ -2,11 +2,17 @@
   "mcpServers": {
     "mermaid-diagram": {
       "command": "npx",
-      "args": ["-y", "@peng-shawn/mermaid-mcp-server"]
+      "args": [
+        "-y",
+        "@peng-shawn/mermaid-mcp-server"
+      ]
     },
     "aistudio": {
       "command": "npx",
-      "args": ["-y", "aistudio-mcp-server"],
+      "args": [
+        "-y",
+        "aistudio-mcp-server"
+      ],
       "env": {
         "GEMINI_API_KEY": "${GEMINI_API_KEY}"
       }
@@ -19,6 +25,15 @@
         "run",
         "ebook-mcp"
       ]
+    },
+    "browserbase": {
+      "command": "/home/developer/.local/bin/browserbase-mcp",
+      "args": [],
+      "env": {
+        "BROWSERBASE_API_KEY": "${BROWSERBASE_API_KEY}",
+        "BROWSERBASE_PROJECT_ID": "${BROWSERBASE_PROJECT_ID}",
+        "GEMINI_API_KEY": "${GEMINI_API_KEY}"
+      }
     }
   }
 }

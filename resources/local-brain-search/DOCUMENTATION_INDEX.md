@@ -7,6 +7,19 @@
 
 ## Documentation Files
 
+### 0. **SIMILARITY-CALIBRATION.md** - READ BEFORE TRUSTING ANY SCORE
+**What it is:** the canonical metric contract - what a similarity number MEANS in this system
+**Who should read it:** anyone setting, quoting, or comparing a threshold
+**Contains:**
+- the three measurement spaces (chunk<->chunk / title-query->vault / new-material->core) with live distributions
+- an inventory of every hard-coded threshold in the vault and whether it is valid where it runs
+- three traps: the printed `similarity` is a Q-adjusted ranking score not raw cosine; `build_scope_selector` needs resolved folders; the frontmatter collision
+- re-measure with `calibrate_similarity.py`
+
+**When to use:** before writing a threshold into a skill, and before reporting any score as a measurement.
+
+---
+
 ### 1. **README.md** (5.4 KB)
 **What it is:** Primary documentation for the system  
 **Who should read it:** Everyone - start here for overview  

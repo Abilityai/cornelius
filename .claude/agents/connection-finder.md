@@ -30,10 +30,10 @@ Use Local Brain Search for all semantic search and connection discovery.
 **Wrapper Scripts:**
 ```bash
 # Semantic search
-BRAIN_READ_SCOPE=core,Books,document-insights resources/local-brain-search/run_search.sh "query" --limit 10 --json
+BRAIN_READ_SCOPE=@lookup resources/local-brain-search/run_search.sh "query" --limit 10 --json
 
 # Find connections for a note
-BRAIN_READ_SCOPE=core,Books,document-insights resources/local-brain-search/run_connections.sh "Note Name" --json
+BRAIN_READ_SCOPE=@lookup resources/local-brain-search/run_connections.sh "Note Name" --json
 
 # Get hub notes
 resources/local-brain-search/run_connections.sh --hubs --json
@@ -49,7 +49,7 @@ resources/local-brain-search/run_connections.sh --bridges --json
 command - with scope enforcement on it silently reads only the **core** fingerprint
 (`02-Permanent`, `03-MOCs`, `AI Extracted Notes`, `01-Sources`). When you are called
 in the **lookup** role (`/find-connections`, `/recall`) the mount is the reasoning
-mount `core,Books,document-insights` (the prefix shown in the listing above); label a
+mount `@lookup` (the prefix shown in the listing above); label a
 `Books/` or `Document Insights/` neighbour as encountered material. `--hubs` /
 `--bridges` / `--stats` are the fingerprint and stay `core`. When your task is to
 connect **newly-created non-core notes** into the graph - e.g. spawned by `deep-research`
@@ -93,10 +93,10 @@ Discover and document:
 - Use local brain search to find connections:
   ```bash
   # Search for notes by topic
-  BRAIN_READ_SCOPE=core,Books,document-insights resources/local-brain-search/run_search.sh "dopamine" --limit 10 --json
+  BRAIN_READ_SCOPE=@lookup resources/local-brain-search/run_search.sh "dopamine" --limit 10 --json
 
   # Get connections for a specific note
-  BRAIN_READ_SCOPE=core,Books,document-insights resources/local-brain-search/run_connections.sh "02-Permanent/Dopamine.md" --json
+  BRAIN_READ_SCOPE=@lookup resources/local-brain-search/run_connections.sh "02-Permanent/Dopamine.md" --json
 
   # Find hub notes (most connected)
   resources/local-brain-search/run_connections.sh --hubs --json

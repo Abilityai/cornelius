@@ -13,16 +13,16 @@ Use Local Brain Search for all semantic search and connection discovery. **Sprea
 **Scripts:**
 ```bash
 # Spreading activation search (recommended for connection discovery)
-BRAIN_READ_SCOPE=core,Books,document-insights resources/local-brain-search/run_search.sh "query" --mode spreading --limit 10 --json
+BRAIN_READ_SCOPE=@lookup resources/local-brain-search/run_search.sh "query" --mode spreading --limit 10 --json
 
 # Static search (for exact lookups)
-BRAIN_READ_SCOPE=core,Books,document-insights resources/local-brain-search/run_search.sh "query" --limit 10 --json
+BRAIN_READ_SCOPE=@lookup resources/local-brain-search/run_search.sh "query" --limit 10 --json
 
 # Force synthesis intent (maximum graph exploration)
-BRAIN_READ_SCOPE=core,Books,document-insights resources/local-brain-search/run_search.sh "query" --mode spreading --intent synthesis --json
+BRAIN_READ_SCOPE=@lookup resources/local-brain-search/run_search.sh "query" --mode spreading --intent synthesis --json
 
 # Find connections
-BRAIN_READ_SCOPE=core,Books,document-insights resources/local-brain-search/run_connections.sh "Note Name" --json
+BRAIN_READ_SCOPE=@lookup resources/local-brain-search/run_connections.sh "Note Name" --json
 
 # Find hubs
 resources/local-brain-search/run_connections.sh --hubs --json
@@ -54,7 +54,7 @@ Map the conceptual network around the specified note or topic, revealing:
 
 ## Analysis Protocol
 
-**Read role: lookup** (contract: `scope-mount`): the anchor search and every neighbourhood call run at the reasoning mount `core,Books,document-insights` (a `Books/` or `Document Insights/` neighbour is encountered material - say so); `--stats` / `--hubs` / `--bridges` are the fingerprint and stay `core`. When the anchor is a freshly ingested non-core note, mount its write target instead (the `connection-finder` agent's READ SCOPE rule).
+**Read role: lookup** (contract: `scope-mount`): the anchor search and every neighbourhood call run at the reasoning mount `@lookup` (a `Books/` or `Document Insights/` neighbour is encountered material - say so); `--stats` / `--hubs` / `--bridges` are the fingerprint and stay `core`. When the anchor is a freshly ingested non-core note, mount its write target instead (the `connection-finder` agent's READ SCOPE rule).
 
 ### Phase 1: Anchor Point Identification
 1. If given a note name, use `Grep` to find files matching the name:
@@ -63,7 +63,7 @@ Map the conceptual network around the specified note or topic, revealing:
    ```
 2. If given a topic, search using Local Brain Search:
    ```bash
-   BRAIN_READ_SCOPE=core,Books,document-insights resources/local-brain-search/run_search.sh "$ARGUMENTS" --limit 5 --json
+   BRAIN_READ_SCOPE=@lookup resources/local-brain-search/run_search.sh "$ARGUMENTS" --limit 5 --json
    ```
 3. Read the anchor note's full content using `Read` tool
 4. Get the exact file path for subsequent operations
@@ -71,7 +71,7 @@ Map the conceptual network around the specified note or topic, revealing:
 ### Phase 2: Immediate Network Mapping
 1. Use Local Brain Search to get connections:
    ```bash
-   BRAIN_READ_SCOPE=core,Books,document-insights resources/local-brain-search/run_connections.sh "Note Name" --json
+   BRAIN_READ_SCOPE=@lookup resources/local-brain-search/run_connections.sh "Note Name" --json
    ```
 2. Identify the top 3-5 most connected notes (both explicit and semantic)
 3. Use `Read` to examine their content and understand connection nature

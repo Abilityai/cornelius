@@ -233,6 +233,7 @@ def _static_search(query, query_embedding, limit, threshold, track_usage, read_s
             continue
         results.append({
             "similarity": similarity,
+            "raw_similarity": similarity,  # unadjusted cosine; lockstep with search.static_search
             "title": meta["title"],
             "heading": meta["heading"],
             "filepath": meta["filepath"],
@@ -578,6 +579,7 @@ def health():
         "loaded_at": store.loaded_at,
         "build_id": store.build_id,
         "scope_enforced": scope_enforced(),
+        "role_aliases": True,   # resolves @reasoning/@lookup + scope toggles (wrappers fail over without it)
         "chunks": store.index.ntotal if store.index else 0,
         "nodes": store.graph.number_of_nodes() if store.graph else 0,
         "edges": store.graph.number_of_edges() if store.graph else 0,

@@ -1,10 +1,10 @@
 ---
 name: extract-document-insights
-description: Extract insights from external documents (research papers, books, articles). Spawns document-insight-extractor subagent. Requires session name.
+description: Extract insights from external documents (research papers, books, articles). Spawns document-insight-extractor subagent. Session name and source default when omitted.
 automation: autonomous
 allowed-tools: [Task]
 user-invocable: true
-arg-description: "<session name> <file path or content description>"
+arg-description: "[session name] [file path or content description]"
 ---
 
 # Extract Document Insights
@@ -36,11 +36,14 @@ User-invocable wrapper that spawns the `document-insight-extractor` subagent to:
 /extract-document-insights "AI Agent Papers" "the transcript above"
 ```
 
-**Session name is REQUIRED** - describes the research session for organization.
+**Arguments are optional - default them, do not stop to ask:**
+- **No session name:** derive `YYYY-MM-DD <short source title>` from the document itself (e.g. `2026-10-19 NBER Meetings Paper`).
+- **No source:** take the document the user just attached. The client-portal notice lists the WHOLE cumulative inbox (`~/inbox/<user>/`), not what is new, so pick the newest file by mtime and skip anything this skill does not fit (photos, the user's own drafts -> `/extract-insights`; books -> `/ingest-source`).
+- **Ask only when the default is genuinely ambiguous** - several fitting files arrived together with no way to tell which was meant. Name the files you picked and skipped in the result.
 
 ## Process
 
-1. **Parse arguments** to extract session name and source
+1. **Parse arguments** to extract session name and source, applying the defaults above when either is missing
 2. **Spawn document-insight-extractor subagent** via Task tool with:
    ```
    Task(
