@@ -99,6 +99,8 @@ meta = data.get('metadata', {})
 
 if not results:
     print(f\"No results found for: {data.get('query', '')}\")
+    if data.get('hint'):
+        print(data['hint'])
     sys.exit(0)
 
 print(f\"\nFound {len(results)} results for: {data.get('query', '')}\")

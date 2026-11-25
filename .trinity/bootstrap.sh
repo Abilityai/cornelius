@@ -46,13 +46,17 @@ log "reindex start"
 log "daemon start"
 timeout 120 ./run_daemon.sh start >> "$LOG" 2>&1 || log "warn: daemon start timed out or failed (search falls back to the CLI path)"
 
-# 4. Smoke search
-N=$(BRAIN_READ_SCOPE=core,books,document-insights ./run_search.sh "decision under uncertainty" --limit 3 --json 2>/dev/null | python3 -c "import sys,json
+# 4. Smoke search. An unattended start never adds the seed library (#21): the
+#    brain starts empty, so "0 results + the empty-vault hint" is a pass too.
+#    Bring the library in later with /first-run --with-library.
+N=$(BRAIN_READ_SCOPE=@lookup ./run_search.sh "decision under uncertainty" --limit 3 --json 2>/dev/null | python3 -c "import sys,json
 try:
-    d=json.load(sys.stdin); r=d.get('results',d); print(len(r))
+    d=json.load(sys.stdin); r=d.get('results',d); print(len(r) if r else ('empty' if d.get('hint') else 0))
 except Exception: print(0)")
 log "smoke search: $N results"
-if [ "${N:-0}" -gt 0 ]; then
+if [ "$N" = "empty" ]; then
+  date -u +%FT%TZ > "$DONE"; log "bootstrap DONE - empty brain (seed library not added; /first-run --with-library adds it)"
+elif [ "${N:-0}" -gt 0 ] 2>/dev/null; then
   date -u +%FT%TZ > "$DONE"; log "bootstrap DONE"
 else
   log "bootstrap finished but the smoke search returned 0 - run /first-run to diagnose"

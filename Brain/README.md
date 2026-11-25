@@ -1,6 +1,6 @@
 # Brain - Your Knowledge Workspace
 
-This is your primary intellectual workspace where knowledge flows from capture to creation. It **ships pre-seeded** with ~1,000 interlinked notes on decision-making and cognition - explore them via [[MOC - Knowledge Base]], then add your own thinking on top.
+This is your primary intellectual workspace where knowledge flows from capture to creation. It starts **empty** - only your own thinking goes here. An optional seed library of ~1,050 notes on decision-making and cognition waits outside the vault in `library/`; add it with `/first-run --with-library` and start at [[MOC - Knowledge Base]].
 
 ## 🗺️ Folder Structure
 
@@ -13,8 +13,8 @@ Brain/
 ├── 04-Output/             Published work & synthesis
 ├── 05-Meta/               Workflow & evolution tracking
 ├── AI Extracted Notes/    AI-generated notes (separate provenance)
-├── Document Insights/     Seeded: research-finding summaries (57 sessions)
-└── Books/                 Seeded: atomic insights from decision-science books
+├── Document Insights/     Insights from external documents (seed library adds 57 sessions)
+└── Books/                 Per-book insight scopes (seed library adds 6 books)
 ```
 
 ## 📊 Information Flow
@@ -148,4 +148,4 @@ See these files for details:
 
 ---
 
-**Start here**: Open [[MOC - Knowledge Base]] to explore the ~1,000 seeded notes, try `/advise <a decision you're facing>`, then create your first note in `02-Permanent/` and run `/find-connections` to weave it in. ✨
+**Start here**: create your first note in `02-Permanent/` or hand Cornelius a document with `/intake` (or add the seed library with `/first-run --with-library` and open [[MOC - Knowledge Base]]), try `/advise <a decision you're facing>`, then create your first note in `02-Permanent/` and run `/find-connections` to weave it in. ✨

@@ -700,6 +700,41 @@ SCOPE_ENFORCE = MEMORY_CONFIG["scope"]["enforce"]
 # scoped_subgraph()/core_subgraph()/clear_scoped_subgraph_cache() - all import directly.
 
 
+# =============================================================================
+# EMPTY-VAULT HINT (Abilityai/cornelius#21 - start with an empty brain)
+# =============================================================================
+# A fresh copy starts EMPTY by default: the seed library lives in <repo>/library/,
+# outside the vault, until `/first-run --with-library` copies it in. Scaffolding
+# (READMEs, templates, _SAMPLE notes, index/changelog files) is not a note.
+_SCAFFOLD_NAMES = {"README.md", "CHANGELOG.md", "ARTICLE-INDEX.md", "_metadata.md"}
+
+
+def vault_note_count(limit=1):
+    """Count real notes in the vault, stopping at `limit` (cheap existence test)."""
+    n = 0
+    if not BRAIN_PATH.exists():
+        return 0
+    for f in BRAIN_PATH.rglob("*.md"):
+        rel = f.relative_to(BRAIN_PATH)
+        if any(part in EXCLUDED_FOLDERS for part in rel.parts) or "Templates" in rel.parts:
+            continue
+        if f.name in _SCAFFOLD_NAMES or f.name.startswith("_SAMPLE"):
+            continue
+        n += 1
+        if n >= limit:
+            break
+    return n
+
+
+def empty_vault_hint():
+    """Plain-language message when the vault holds no notes yet, else None."""
+    if vault_note_count(1):
+        return None
+    return ("Your brain is empty - there are no notes in the vault yet, so nothing can match. "
+            "Add a note to Brain/02-Permanent/, hand Cornelius a document with /intake, "
+            "or bring in the seed library with /first-run --with-library.")
+
+
 if __name__ == "__main__":
     import json
 

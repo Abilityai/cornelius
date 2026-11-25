@@ -93,11 +93,14 @@ class TestReadOnlyHooks(unittest.TestCase):
         for e in d["available"]:
             self.assertIn("token", e)
             self.assertIn("label", e)
-        # the seeded vault ships a Books family: shelf + per-book children
+        # The vault ships empty (#21); per-book child scopes appear only once a
+        # book is in Brain/Books/ (the seed library adds six).
         shelf = [e for e in d["available"] if e.get("family")]
         children = [e for e in d["available"] if e.get("parent")]
-        self.assertTrue(shelf, "Books family shelf entry missing")
-        self.assertTrue(children, "per-book child scopes missing")
+        books = [p for p in (ROOT / "Brain" / "Books").glob("*/") if p.is_dir()]
+        if books:
+            self.assertTrue(shelf, "Books family shelf entry missing")
+            self.assertTrue(children, "per-book child scopes missing")
         for c in children:
             self.assertIn(c["parent"], tokens)
         # active tokens must all be offered
@@ -109,7 +112,9 @@ class TestReadOnlyHooks(unittest.TestCase):
         self.assertEqual(d.get("contract_version"), 1)
         self.assertIn(d.get("backend"), ("semantic", "keyword"))
         self.assertIsInstance(d["results"], list)
-        self.assertTrue(d["results"], "seeded KB must yield hits for 'decision'")
+        if not d["results"]:
+            # empty vault (#21): no hits is right, but it must say so plainly
+            self.assertTrue(d.get("hint"), "empty result without the empty-vault hint")
         for r in d["results"]:
             self.assertTrue(r.get("title"))
             self.assertIn("content", r)
@@ -218,7 +223,13 @@ class TestSeedSchema(unittest.TestCase):
 
     def test_nodes(self):
         nodes = self.data["nodes"]
-        self.assertGreater(len(nodes), 100, "seed graph suspiciously small")
+        # The seed is the EMPTY-vault picture (#21): the vault's scaffolding, never
+        # an empty list (that blanks the canvas), and never the seed library.
+        self.assertTrue(nodes, "seed graph must not be empty")
+        for n in nodes:
+            self.assertFalse(n["id"].startswith(("Document Insights/", "Books/")),
+                             f"seed library note in the empty-vault seed: {n['id']}")
+        self.assertTrue(self.data["meta"].get("notice"), "empty-vault seed must carry meta.notice")
         ids = set()
         for n in nodes:
             self.assertTrue(n.get("title"), f"node without title: {n.get('id')}")
@@ -257,3 +268,20 @@ class TestSeedSchema(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestEmptyBrainDefault(unittest.TestCase):
+    """#21: the seed library ships outside the vault and stays out until asked for."""
+
+    def test_library_outside_vault(self):
+        lib = ROOT / "library"
+        self.assertTrue((lib / "README.md").is_file())
+        self.assertGreater(len(list(lib.rglob("*.md"))), 1000, "seed library missing")
+        if any((ROOT / "Brain" / "Document Insights").rglob("*.md")):
+            self.skipTest("library already added to this vault (/first-run --with-library)")
+
+    def test_no_prebuilt_index_tracked(self):
+        out = subprocess.run(["git", "ls-files", "resources/local-brain-search/data"],
+                             capture_output=True, text=True, cwd=str(ROOT)).stdout.split()
+        self.assertEqual([f for f in out if not f.endswith("README.md")], [],
+                         "a prebuilt index would put the library back into search")

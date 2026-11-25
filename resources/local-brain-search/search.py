@@ -52,7 +52,7 @@ from learning import (
     adjust_scores_with_q_values,
     log_retrieval,
 )
-from memory_config import MEMORY_CONFIG
+from memory_config import MEMORY_CONFIG, empty_vault_hint
 from scope import build_scope_selector
 from spreading import (
     SpreadingConfig,
@@ -443,12 +443,16 @@ def main():
         track_usage=not args.no_track,
     )
 
+    hint = empty_vault_hint() if not results else None
+
     if args.json:
         output = {
             'query': args.query,
             'mode': args.mode,
             'results': results,
         }
+        if hint:
+            output['hint'] = hint
         if meta:
             output['metadata'] = meta
         print(json.dumps(output, indent=2, cls=NumpyEncoder))
@@ -457,6 +461,8 @@ def main():
     if not results:
         print(f"No results found for: {args.query}")
         print(f"(threshold: {args.threshold}, mode: {args.mode})")
+        if hint:
+            print(hint)
         return
 
     # Print header

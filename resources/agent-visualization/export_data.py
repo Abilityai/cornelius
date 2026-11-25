@@ -421,6 +421,14 @@ def overlay_vault_delta(raw_nodes, raw_edges):
     return len(new_bodies), total_missing
 
 
+def _empty_notice():
+    try:
+        from memory_config import empty_vault_hint
+        return empty_vault_hint()
+    except Exception:
+        return None
+
+
 def main():
     have_enrich = os.path.exists(ENRICH)
     if have_enrich:
@@ -796,6 +804,8 @@ def main():
             "core_folders": sorted(CORE_FOLDERS),
             "reference_folders": sorted(reference_folders()),  # registered reference scopes (Company, …)
             "scope_counts": scope_counts,
+            # empty vault (#21): a plain notice for the orb's briefing, null otherwise
+            "notice": _empty_notice(),
         },
         "nodes": out_nodes,
         "edges": out_edges,

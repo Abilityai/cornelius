@@ -63,7 +63,7 @@ from config import (
 )
 from intent import QueryIntent, classify_intent
 from learning import adjust_scores_with_q_values, log_retrieval
-from memory_config import MEMORY_CONFIG
+from memory_config import MEMORY_CONFIG, empty_vault_hint
 from scope import build_scope_selector
 from spreading import SpreadingConfig, get_top_activated, spreading_activation
 
@@ -199,7 +199,8 @@ def search_endpoint(
 
     return JSONResponse(
         content=json.loads(json.dumps(
-            {"query": q, "mode": mode, "results": results, "metadata": meta},
+            {"query": q, "mode": mode, "results": results, "metadata": meta,
+             **({"hint": h} if not results and (h := empty_vault_hint()) else {})},
             cls=NumpyEncoder,
         ))
     )
