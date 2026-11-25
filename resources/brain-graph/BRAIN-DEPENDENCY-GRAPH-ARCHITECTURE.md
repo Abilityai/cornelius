@@ -320,10 +320,10 @@ Note content and wiki-links remain unchanged. The BDG classifies existing `[[wik
 
 ### Central Graph Definition
 
-A top-level `brain-graph.yaml` declares the structural rules:
+The shipped, tracked file `resources/brain-graph/brain_graph_config.yaml` declares the structural rules. **That file is authoritative**; the block below is its documented core and must stay a subset of it - same `propagation` and `lifecycle` values, same artifact types/layers/modes, edges drawn from its `default_edges`. The live file also carries `same_layer_defaults` and `framework_detection`. `test_config.py` enforces this (Abilityai/cornelius#15):
 
 ```yaml
-# brain-graph.yaml
+# brain_graph_config.yaml (core subset - see the file for the full set)
 # Declares artifact types, default relationships, and propagation rules
 
 artifact_types:
