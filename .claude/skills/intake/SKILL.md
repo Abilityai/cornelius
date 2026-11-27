@@ -7,10 +7,11 @@ user-invocable: true
 argument-hint: "<file path | link | --all> [--as auto|source|own|keep] [--from <person>]"
 effort: high
 metadata:
-  version: "1.1"
+  version: "1.2"
   created: 2026-11-24
   author: trinity-pm (for Cornelius)
   changelog:
+    - "1.2: Conversions run from the search venv (markitdown, pymupdf, trafilatura installed there by /first-run and the boot bootstrap) - no uv. A fresh Trinity container has no uv, so every PDF/Word intake failed. Preflight with intake_check.py, and the Skipped line names the exact missing thing instead of blaming the search engine (first-boot test of c0f7890, 2026-11-27)"
     - "1.1: First live run (2026-11-25, three inputs). Fingerprint falls back to sha256sum; --from for a dispatched run; web links keep title/url/date via trafilatura --with-metadata; exact non-book PDF command (absolute paths, chunks concatenated to one file); HTML nav chrome note; session-name convention; an OOM-killed reindex is failed at indexed, resumable; a resumed run appends a new ledger row"
     - "1.0: Initial version. One entry point for a dropped document: decides the treatment, converts Word / PowerPoint / Excel / HTML / web links to markdown, files a PDF as a book only when it is one, delegates to /ingest-source or /extract-insights, never asks, fixed closing summary, --all for the inbox, INTAKE-LEDGER.md (Abilityai/cornelius#19)"
 ---
@@ -96,22 +97,26 @@ When it is honestly unclear whether the words are the person's own, choose `sour
 
 `/ingest-source` reads `.epub`, `.mobi`, `.azw3`, book PDFs, YouTube links, `.md` and `.txt` by itself. `/extract-insights` reads text. Everything else is turned into markdown first, into `resources/ingest-workspace/<slug>/<name>.md`.
 
+Every converter lives in the search venv that `/first-run` (and, on Trinity, the boot-time bootstrap) builds - no `uv`, no second toolchain. Check first; the script names exactly what is missing:
+
 ```bash
-UV="$(command -v uv || echo "$HOME/.local/bin/uv")"
+python3 -I resources/local-brain-search/intake_check.py      # "intake tools: ok", or one "missing: ..." line per gap
+ROOT="$(git rev-parse --show-toplevel)"
+VENV="$ROOT/resources/local-brain-search/venv/bin"
 OUT="resources/ingest-workspace/<slug>"; mkdir -p "$OUT"
 ```
 
 | Input | Conversion |
 |---|---|
-| `.docx` `.pptx` `.xlsx` `.html` `.htm` | `"$UV" run --with 'markitdown[docx,pptx,xlsx]' markitdown "<file>" -o "$OUT/<name>.md"` |
-| a PDF that is not a book | `(cd "$(git rev-parse --show-toplevel)/.claude/skills/multi-format-book-extractor" && "$UV" run --with pymupdf --with requests python extract_book.py "<absolute path to pdf>" "$PWD/$OUT")` — absolute paths both, because the command runs inside the skill folder. It writes chapter or 20-page chunk files (`01_pages-1-20.md` ...): concatenate them in order into one `$OUT/<slug>.md` (source line first) and delete the chunks, because `/ingest-source` takes one path. Hand on that markdown, never the PDF |
-| a web link that is not YouTube | `"$UV" run --with trafilatura trafilatura -u "<link>" --markdown --with-metadata > "$OUT/<name>.md"` (without `--with-metadata` the title, date and URL are lost; the frontmatter it writes counts as the source line); if the result is empty or under 500 characters, read the page with WebFetch and write its main text to the same file |
+| `.docx` `.pptx` `.xlsx` `.html` `.htm` | `"$VENV/markitdown" "<file>" -o "$OUT/<name>.md"` |
+| a PDF that is not a book | `(cd "$ROOT/.claude/skills/multi-format-book-extractor" && "$VENV/python" extract_book.py "<absolute path to pdf>" "$ROOT/$OUT")` — absolute paths both, because the command runs inside the skill folder (`$ROOT/$OUT`, never `$PWD/$OUT`: inside the subshell `$PWD` is already the skill folder, and the chunks would land there). It writes chapter or 20-page chunk files (`01_pages-1-20.md` ...): concatenate them in order into one `$OUT/<slug>.md` (source line first) and delete the chunks, because `/ingest-source` takes one path. Hand on that markdown, never the PDF |
+| a web link that is not YouTube | `"$VENV/trafilatura" -u "<link>" --markdown --with-metadata > "$OUT/<name>.md"` (without `--with-metadata` the title, date and URL are lost; the frontmatter it writes counts as the source line); if the result is empty or under 500 characters, read the page with WebFetch and write its main text to the same file |
 | `.rtf`, `.odt`, an email export | try the `markitdown` line above; if it fails, `keep` with the reason |
 | a scanned document or an image of text | needs an OCR-capable model key (`GEMINI_API_KEY`); without one, `keep` with that reason |
 
 After any conversion, check the result before going on: the file exists, has more than 500 characters, and reads as prose, not as markup or an error page. A page that is a login wall, a cookie notice or a "enable JavaScript" stub is a failed conversion: `keep`, with the reason. Put the source link or the original file name in the first line of the markdown (or in a `url:` frontmatter field, as trafilatura writes it), so the notes can cite where it came from. `markitdown` on a saved web page keeps the site's navigation links at the top; that is fine, judge the body, and tell the extractor to ignore the navigation lines.
 
-If `uv` is missing, say so in the summary (`Skipped: no uv on this machine — run /first-run`) and `keep`.
+If the conversion this document needs cannot run, `keep`, and put the `missing:` line from `intake_check.py` in the summary word for word, e.g. `Skipped: pymupdf (PDF conversion) not installed in the search venv - run /first-run`. Name only what this document needed (a missing PDF converter says nothing about a `.docx`), and never say "the search engine is not installed" unless the check said the venv, faiss, sentence-transformers or the index is missing. `.md` and `.txt` need no converter at all.
 
 ### Step 4: Run the playbook
 
@@ -173,7 +178,7 @@ Never run two documents at once: each one is extracted against the index the pre
 |---|---|
 | File not found, or the link does not answer | `Treatment: failed`, `Skipped: <the error in plain words>`, ledger row `failed at resolve` |
 | Conversion produced nothing usable | `keep`, with the reason; the original stays where it is |
-| Search engine not installed (the called playbook reports an import error or an empty index) | `failed`, `Skipped: run /first-run, then /intake again` |
+| The called playbook reports an import error or an empty index | run `python3 -I resources/local-brain-search/intake_check.py`; `failed`, `Skipped: <its missing: line, word for word>`. If the check says `intake tools: ok`, the engine is there: report the playbook's own error in plain words instead, never "not installed" |
 | The called playbook stopped at its time limit | `failed at <its checkpoint phase>`; the next `/intake` of the same file resumes |
 | The index rebuild was killed (`run_index.sh: ... Killed`, out of memory - often another execution running at the same time) | `failed at indexed`: the notes are written and the vector index saved, but the graph is not, so nothing is linked. Do not retry in this run; the next `/intake` of the same document resumes at the index step |
 | The inbox folder does not exist | not an error on a local machine: say `no inbox here — pass a path or a link` |
@@ -185,6 +190,7 @@ Never run two documents at once: each one is extracted against the index the pre
 - [ ] A PDF went to the book shelf only if it is a book
 - [ ] The original document is untouched
 - [ ] One ledger row was appended, with `<from>` filled in
+- [ ] Any `Skipped` line about a missing tool names the thing `intake_check.py` named
 - [ ] The closing block is the last thing printed, in the fixed shape
 
 ## Self-Improvement

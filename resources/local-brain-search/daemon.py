@@ -577,6 +577,7 @@ def health():
     """Health check."""
     return {
         "status": "ok",
+        "pid": os.getpid(),     # run_daemon.sh adopts a running daemon by this when lsof is absent (Trinity images)
         "loaded_at": store.loaded_at,
         "build_id": store.build_id,
         "scope_enforced": scope_enforced(),

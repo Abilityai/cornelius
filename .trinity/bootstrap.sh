@@ -6,7 +6,7 @@
 # first time a container starts without a working search venv; never blocks
 # startup. Idempotent: every step checks before it acts.
 #
-# Steps: venv -> pip (CPU torch, no cache) -> daemon -> reindex (fix stored
+# Steps: venv -> pip (CPU torch + intake converters, no cache) -> daemon -> reindex (fix stored
 # paths) -> daemon reload -> smoke search -> marker. Log: ~/.trinity-bootstrap.log
 
 set -u
@@ -27,11 +27,13 @@ log "bootstrap start in $AGENT_DIR"
 cd "$LBS" || { log "FAIL: $LBS missing"; exit 1; }
 
 # 1. Python environment
-if ./venv/bin/python -c "import faiss, sentence_transformers, networkx" >/dev/null 2>&1; then
+#    The same venv carries the document converters /intake uses (markitdown,
+#    pymupdf, trafilatura) - no uv, no second toolchain.
+if ./venv/bin/python -c "import faiss, sentence_transformers, networkx, markitdown, pymupdf, trafilatura" >/dev/null 2>&1; then
   log "venv ok"
 else
   log "building venv (CPU torch, no cache - a few minutes)"
-  python3 -m venv venv >> "$LOG" 2>&1 || { log "FAIL: venv create"; exit 1; }
+  [ -x ./venv/bin/python ] || python3 -m venv venv >> "$LOG" 2>&1 || { log "FAIL: venv create"; exit 1; }
   ./venv/bin/pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu -r requirements.txt >> "$LOG" 2>&1 \
     || { log "FAIL: pip install (see above)"; exit 1; }
   log "venv built"

@@ -5,10 +5,11 @@ allowed-tools: Bash, Read
 user-invocable: true
 argument-hint: "[--empty | --with-library] [--verify-only]"
 metadata:
-  version: "1.3"
+  version: "1.4"
   created: 2026-10-08
   author: Ability.ai
   changelog:
+    - "1.4: The search venv now also carries the document converters /intake uses (markitdown, pymupdf, trafilatura) - a fresh Trinity container has no uv, so PDF and Word intake failed. Step 2 tops up an existing venv; new Step 5b converts a real PDF and a real .docx and the report says so. The daemon is on the orphan-sweep allowlist (.trinity/persistent-processes.allow, cornelius#17), so it survives after this run ends (first-boot test of c0f7890, 2026-11-27)"
     - "1.3: Start with an empty brain (Abilityai/cornelius#21). The seed library (~1,050 notes) now lives in library/, outside the vault, the index and the Brain Orb. Step 0 asks once - empty is the default, unattended runs get empty - and --with-library copies it in (also later, any time). The smoke search accepts an empty vault (0 results + the plain empty-vault hint). No prebuilt index ships any more; Step 3 builds it"
     - "1.2: Install in the foreground of one streaming Bash call, never detached - on Trinity v0.9.5 the agent-server orphan sweeper kills unowned background processes ~90 s after container start (the boot-time bootstrap dies at the first long step after pip). Lock-file guidance updated"
     - "1.1: Reindex before the daemon, daemon start bounded by timeout, fastapi/uvicorn added to requirements (the daemon imported them but nothing installed them). From the first fresh-fork test on a 4 GB droplet"
@@ -17,7 +18,7 @@ metadata:
 
 # First Run
 
-> ℹ️ Print one line first: `first-run v1.3 - recent: you choose an empty brain (default) or the seed library`. Then proceed.
+> ℹ️ Print one line first: `first-run v1.4 - recent: PDF and Word intake work on a fresh container (converters in the search venv, no uv)`. Then proceed.
 
 ## Purpose
 
@@ -67,10 +68,18 @@ ls -la ~/.trinity-bootstrap.done ~/.trinity-bootstrap.lock 2>/dev/null; tail -5 
 ### Step 2 - The Python environment
 
 ```bash
-cd resources/local-brain-search && ./venv/bin/python -c "import faiss, sentence_transformers, networkx; print('ok')" 2>&1 | tail -1
+cd resources/local-brain-search && ./venv/bin/python -c "import faiss, sentence_transformers, networkx, markitdown, pymupdf, trafilatura; print('ok')" 2>&1 | tail -1
 ```
 
-If that prints `ok`, skip to Step 2b. Otherwise build it in the **foreground of one Bash call**, with output streaming (pip prints as it goes, so the platform's stall watchdog does not fire; on a 2-vCPU box with the CPU-only torch wheel this takes 1-2 minutes, ~1.5 GB):
+The same venv carries the search engine and the document converters `/intake` uses (markitdown for Word/PowerPoint/Excel/HTML, pymupdf for PDF, trafilatura for web pages) - nothing else, no `uv`, is needed.
+
+If that prints `ok`, skip to Step 2b. If the venv exists and only the converters are missing (an install from before 1.4), top it up - seconds, nothing is rebuilt:
+
+```bash
+cd resources/local-brain-search && ./venv/bin/pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu -r requirements.txt 2>&1 | tail -2
+```
+
+Otherwise build it in the **foreground of one Bash call**, with output streaming (pip prints as it goes, so the platform's stall watchdog does not fire; on a 2-vCPU box with the CPU-only torch wheel this takes 1-2 minutes, ~1.5 GB):
 
 ```bash
 cd resources/local-brain-search && python3 -m venv venv && ./venv/bin/pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu -r requirements.txt 2>&1 | grep -v -E "Downloading|Using cached|^\s+━" ; ./venv/bin/python -c "import faiss, sentence_transformers; print('ok')"
@@ -113,6 +122,8 @@ cd resources/local-brain-search && timeout 120 ./run_daemon.sh start
 
 "Daemon already running" is success. "started but not yet responding" → wait 20 s and run `./run_daemon.sh status`. If the daemon will not come up, searches still work through the CLI fallback, only slower - do not block on it.
 
+On Trinity the daemon survives after this run ends only because `.trinity/persistent-processes.allow` puts it on the orphan-sweep allowlist (cornelius#17). Check the file is there: `grep -c daemon.py ~/.trinity/persistent-processes.allow` (on a local machine there is no sweep and the file does nothing). If the daemon is gone anyway, the next search starts it again by itself (`run_search.sh` → `run_daemon.sh ensure`) and serves that one query from the slower CLI path.
+
 ### Step 5 - Verify with one smoke search
 
 ```bash
@@ -133,6 +144,14 @@ resources/local-brain-search/venv/bin/python resources/agent-visualization/expor
 
 On an empty brain the export draws the vault's scaffolding and sets `meta.notice` to the same empty-vault line, so the orb says the brain is empty instead of showing nothing.
 
+### Step 5b - Prove document conversion
+
+```bash
+python3 -I resources/local-brain-search/intake_check.py --convert-test
+```
+
+It writes a small PDF and a small `.docx`, converts both with the exact commands `/intake` uses, and prints `PDF conversion: ok` and `docx conversion: ok`. Any `missing:` or `FAILED` line goes into the report as printed - never "ok". A missing converter means Step 2 did not finish: run its top-up command and this step again.
+
 ### Step 6 - Report
 
 One short block, no prose padding:
@@ -143,12 +162,13 @@ Python env     : ok (faiss, sentence-transformers, torch) | built now in <m> min
 Search daemon  : running (pid <n>) | not responding
 Index          : rebuilt now | already current - <notes> notes, <edges> edges (manifest.json)
 Brain          : empty (seed library not added - /first-run --with-library adds it) | library added - <n> notes (<k> already present)
+Conversions    : PDF ok · docx ok (from the search venv) | <the missing:/FAILED line as printed>
 Smoke search   : 3 results - <title 1> · <title 2> · <title 3> | empty brain - search answered plainly
 Brain Orb data : refreshed - <n> nodes | n/a
 Try next       : empty → write a note in Brain/02-Permanent/ or /intake <a file or link>   ·   library → /recall <topic>   ·   /advise <a problem you are weighing>
 ```
 
-If `--verify-only` was passed, run Steps 1, 2 (check only), 3 (status only), 5 and 6 and change nothing (no Step 0 question, no Step 2b).
+If `--verify-only` was passed, run Steps 1, 2 (check only), 3 (status only), 5, 5b (temporary files only) and 6 and change nothing (no Step 0 question, no Step 2b).
 
 ## Refusals and limits
 
@@ -162,4 +182,5 @@ If `--verify-only` was passed, run Steps 1, 2 (check only), 3 (status only), 5 a
 
 - Fresh fork on Trinity v0.9.5, 4 GB droplet: `/first-run` completes in 4-8 minutes, `/recall sunk cost` then returns three cited notes (1.2, with the library in the vault).
 - 1.3, scratch clone, both ways (2026-11-25): unattended `bootstrap.sh` → empty brain, index of 11 scaffolding files in 14 s, smoke search `0 results` + the empty-vault line (CLI, daemon and orb search hook), orb export with `meta.notice`, marker written. Then `--with-library` on the same clone → 1,056 files copied (second copy: 0 added), three index calls (500/500/56 notes, ~7 min), daemon fresh, smoke search three library titles, orb re-exported (1,067 nodes, notice null).
+- 1.4, scratch clones with `uv` removed from PATH (2026-11-27): Step 2 built the venv with the converters in ~2 min; Step 5b `PDF conversion: ok` / `docx conversion: ok`; a pre-1.4 venv was topped up by the Step 2 command (lxml pin applied). `bootstrap.sh` on a second clone: venv + converters + reindex + daemon + `bootstrap DONE` in 2m39s. `/intake` of a 1-page PDF, a .docx and a .txt: 3 notes each. Daemon killed by hand: the next search answered through the CLI path and the daemon was fresh again ~12 s later; a killed `ensure` worker's lock was cleared on the next call.
 - Second run: every step reports "already", nothing is rebuilt, the report still shows three titles.
