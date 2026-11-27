@@ -44,8 +44,16 @@ get_pid() {
     fi
     # No pid file but something owns the port (daemon started by another path):
     # adopt it so stop/restart never leave a zombie holding :$PORT.
+    # lsof is not in the Trinity base image, so fall back to the pid the daemon
+    # itself reports on /health. Without this, a daemon started by `ensure` (e.g.
+    # from run_index.sh) while a second `start` lost the port race was left with
+    # daemon.pid naming the dead loser - "the daemon is gone" while it was serving.
     local port_pid
     port_pid=$(lsof -nP -tiTCP:"$PORT" -sTCP:LISTEN 2>/dev/null | head -1)
+    if [ -z "$port_pid" ]; then
+        port_pid=$(curl -s --max-time 0.5 "$HEALTH_URL" 2>/dev/null | python3 -c "import sys,json; print(json.load(sys.stdin).get('pid') or '')" 2>/dev/null)
+        kill -0 "$port_pid" 2>/dev/null || port_pid=""
+    fi
     if [ -n "$port_pid" ]; then
         echo "$port_pid" > "$PID_FILE"
         echo "$port_pid"
@@ -99,6 +107,10 @@ case "${1:-status}" in
         echo $daemon_pid > "$PID_FILE"
         printf '=== start %s pid %s ===\n' "$(date -u +%FT%TZ)" "$daemon_pid" >> "$LOG_FILE"
         if wait_healthy 60; then
+            # The pid that answers is the one that owns the port - if another
+            # start won the bind race, ours has exited; record the winner.
+            served=$(curl -s --max-time 1 "$HEALTH_URL" 2>/dev/null | python3 -c "import sys,json; print(json.load(sys.stdin).get('pid') or '')" 2>/dev/null)
+            [ -n "$served" ] && kill -0 "$served" 2>/dev/null && echo "$served" > "$PID_FILE"
             echo "Daemon started (PID $(cat "$PID_FILE"))"
             exit 0
         fi
@@ -156,17 +168,25 @@ case "${1:-status}" in
         [ "${BRAIN_DAEMON_AUTOSTART:-1}" = "0" ] && exit 0
         if reason=$(freshness); then exit 0; fi
         [ -x "$PYTHON" ] || exit 0           # fail soft: no venv, nothing to start
-        # One starter at a time. A lock older than 3 minutes is a crashed starter.
-        if [ -d "$ENSURE_LOCK" ] && [ -n "$(find "$ENSURE_LOCK" -maxdepth 0 -mmin +3 2>/dev/null)" ]; then
-            rmdir "$ENSURE_LOCK" 2>/dev/null
+        # One starter at a time. The lock holds the worker's pid: a dead worker
+        # (on Trinity the orphan sweep can kill it mid-start, cornelius#17) means a
+        # stale lock, cleared now rather than blocking restarts. A lock with no pid
+        # yet older than 3 minutes is a starter that crashed before writing it.
+        if [ -d "$ENSURE_LOCK" ]; then
+            lock_pid=$(cat "$ENSURE_LOCK/pid" 2>/dev/null)
+            if { [ -n "$lock_pid" ] && ! kill -0 "$lock_pid" 2>/dev/null; } \
+               || [ -n "$(find "$ENSURE_LOCK" -maxdepth 0 -mmin +3 2>/dev/null)" ]; then
+                rm -rf "$ENSURE_LOCK"
+            fi
         fi
         if mkdir "$ENSURE_LOCK" 2>/dev/null; then
             echo "$(date -u +%FT%TZ) ensure: daemon $reason - (re)starting" >> "$LOG_FILE"
             # Detached worker: restart if a (stale/old) daemon is up, else start; then drop the lock.
             nohup bash -c "
+                echo \$\$ > '$ENSURE_LOCK/pid'
                 if curl -s --max-time 0.5 '$HEALTH_URL' > /dev/null 2>&1; then '$0' stop; sleep 1; fi
                 '$0' start
-                rmdir '$ENSURE_LOCK' 2>/dev/null
+                rm -rf '$ENSURE_LOCK'
             " > /dev/null 2>&1 < /dev/null &
             disown 2>/dev/null
         fi

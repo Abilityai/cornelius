@@ -5,3 +5,13 @@ numpy>=1.21.0
 scipy>=1.9.0
 fastapi>=0.100
 uvicorn>=0.23
+# Document intake (/intake): conversions run from this venv, no uv needed
+markitdown[docx,pptx,xlsx]>=0.1
+pymupdf>=1.24
+requests>=2.28
+trafilatura>=1.6
+# lxml 6.2.0 drops XML namespace prefixes when BeautifulSoup parses with
+# features="xml"; markitdown's .docx pre-pass then rewrites word/document.xml
+# without "w:" and every Word file fails ("Could not find the body element").
+# Found on the 2026-11-27 fresh-clone test; lift the cap once a fixed lxml ships.
+lxml>=5.0,<6.2
