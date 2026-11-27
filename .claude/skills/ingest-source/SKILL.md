@@ -7,11 +7,12 @@ user-invocable: true
 argument-hint: <source path or URL> [session name]
 effort: high
 metadata:
-  version: "1.2"
+  version: "1.3"
   created: 2026-06-03
-  updated: 2026-09-02
+  updated: 2026-11-27
   author: Cornelius
   changelog:
+    - "1.3: Step 3b - after the refresh, verify_searchable.sh must find every new note in the destination mount before linking or reporting; a shortfall is a failure stated in the check's own words, never a silent pass (first-boot test 2026-11-27: notes indexed, but a bare core-scope search could not see Document Insights/). score_neighbours.sh now ships with the template, in resources/local-brain-search/"
     - "1.2: Link rails + measurement discipline (2026-09-02 ingestion run). AUTO_LINK_THRESHOLD 0.75 -> 0.45 with a MANDATORY conceptual-validity filter (0.75 was unreachable in this population - new material tops out at 0.560 against core - and had produced 0 auto-links in every run to date); link by FILENAME not frontmatter title, with a resolve check over the extractor's links too; Step 3 must chain run_brain_graph.sh lifecycle after bootstrap --force; three measurement traps documented (Q-adjusted similarity is not raw cosine and is unstable in --limit; build_scope_selector needs resolved folders; scope tokens must be explicit). Calibration reasoning moved to resources/local-brain-search/SIMILARITY-CALIBRATION.md - the earlier ceiling claim in this file was a small-sample artifact and is corrected there"
     - "1.1: Step 6b - a source that declares its own incompleteness (\"investigation ongoing\", \"postmortem pending\", \"results forthcoming\", \"phase 2 to follow\") must register a DATED row in Brain/05-Meta/Watching/PENDING-SOURCES.md, which /domain-watch Step 5.5 probes when the due date passes. Human-directed (the user 2026-08-27) after the Hugging Face postmortem miss: the expectation was recorded in a session changelog and nothing ever re-read it"
     - "1.0: Initial version"
@@ -159,6 +160,25 @@ resources/local-brain-search/run_connections.sh --stats --json   # verify count 
 (This is exactly `/refresh-index`; one full rebuild per source also sweeps in the prior source's auto-links.)
 
 **The `lifecycle` call is not optional.** `bootstrap --force` resets every node's lifecycle score to the rough structural proxy, overwriting the full engine's values — the double-writer defect diagnosed in `knowledge-base-analysis.md` and fixed for the daily job by `refresh-index` **Step 5** (`0c584f14b`). This skill calls `bootstrap --force` too, so without chaining the engine here every ingestion silently degrades the KB's lifecycle metric to the proxy until the next 03:30 run. Added 2026-09-02.
+### Step 3b: Prove the new notes are searchable (MANDATORY - never skip)
+
+A refresh that "ran" is not a refresh that worked. Before anything downstream, search for every new note, through the same wrapper every playbook reads with, in the destination mount:
+
+```bash
+# non-book:
+resources/local-brain-search/verify_searchable.sh core,document-insights "Brain/Document Insights/<session>"
+# book:
+resources/local-brain-search/verify_searchable.sh core,Books "Brain/Books/<book-slug>"
+```
+
+It prints one `not found:` line per miss and ends with exactly one line, `searchable: N/N` or `searchable: k/N - <why>`. **The mount matters:** a bare search reads `core` only, and `Document Insights/` and `Books/` are outside it - a bare search for notes just written there returns nothing even when the index holds them (that, not a lost index, is what a 2026-11-27 first-boot test saw).
+
+- `searchable: N/N` → carry the line into the result and go on.
+- Anything else → run `resources/local-brain-search/run_index.sh` once more, then the check again. Still short → stop here: `phase=extracted` (so the next run redoes the refresh), and return the check's last line **word for word** as the failure, with `run_index.sh`'s last lines. Never report the source as ingested with notes that search cannot find.
+
+The daemon needs no attention here: `run_index.sh` restarts it on the new index in the background, and until it answers, every read is served from the on-disk index through the CLI path (a `daemon stale, build_id differed` line in `daemon.log` right after a reindex is that restart, and is normal).
+
+Return the `searchable:` line with the note list - `/intake` prints it in its summary.
 Checkpoint: `phase=indexed`.
 
 ### Step 4: Discover connections (bounded, new → existing)
@@ -210,13 +230,13 @@ resources/brain-graph/run_brain_graph.sh inspect "<New Note Title>" --json   # e
    isolated until the floor was lowered. Always pass `--threshold 0.44` (just under the auto-link
    threshold) together with a generous `--limit` (~100): a book's own chunks otherwise fill the pool.
 
-**All four traps are encoded in `resources/ingest-workspace/score_neighbours.sh`** (added 2026-10-21 after
+**All four traps are encoded in `resources/local-brain-search/score_neighbours.sh`** (added 2026-10-21 after
 the same ad-hoc helper was rewritten on the Urban and Davies runs): title-only static query at `--limit 100
 --threshold 0.44`, `raw_similarity` read from `--json`, same-scope / changelog / hub hits excluded, top-8 per
-note deduped by `note_id`. `score_neighbours.sh <Brain/Books/<slug>> <Books/<slug>> > <workspace>/connections.txt`,
+note deduped by `note_id`. `resources/local-brain-search/score_neighbours.sh <Brain/Books/<slug>> <Books/<slug>> > <workspace>/connections.txt`,
 then apply the Step 5 conceptual-validity filter by hand on that file.
 **Non-book sessions (added 2026-10-23):** the helper defaulted to the book mount; pass `SCOPE=core,document-insights` and the session
-folder as the exclusion prefix: `SCOPE=core,document-insights score_neighbours.sh "Brain/Document Insights/<session>" "Document Insights/<session>"`.
+folder as the exclusion prefix: `SCOPE=core,document-insights resources/local-brain-search/score_neighbours.sh "Brain/Document Insights/<session>" "Document Insights/<session>"`.
 
 Exclude same-session notes and the session changelog from the neighbor list — they are guaranteed
 near-hits that crowd out the new→existing connections this step exists to find.
@@ -254,7 +274,7 @@ Write `Brain/05-Meta/Changelogs/CHANGELOG - Source Ingestion <session> YYYY-MM-D
 ## Source Ingestion: <session> — YYYY-MM-DD
 
 **Source:** <path/URL>  |  **Tier:** <primary|credible-interpreter>  |  **Format:** <epub/pdf/...>
-**Notes created:** N  (confirmed: X · theoretical: Y · speculative: Z)
+**Notes created:** N  (confirmed: X · theoretical: Y · speculative: Z)  |  **Searchable:** <the Step 3b line>
 
 ### Auto-linked (≥ AUTO_LINK_THRESHOLD)
 - [[New Note]] → [[Existing]] (0.82, derives-from)

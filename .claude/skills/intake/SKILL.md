@@ -7,10 +7,11 @@ user-invocable: true
 argument-hint: "<file path | link | --all> [--as auto|source|own|keep] [--from <person>]"
 effort: high
 metadata:
-  version: "1.2"
+  version: "1.3"
   created: 2026-11-24
   author: trinity-pm (for Cornelius)
   changelog:
+    - "1.3: Step 4b + a Search line in the summary - every written note must be found by verify_searchable.sh in its own mount before the summary; a shortfall is reported in the check's words and fails the intake at indexed (first-boot test 2026-11-27: a second intake searched the bare core scope, found none of the first intake's 4 notes and blamed the index)"
     - "1.2: Conversions run from the search venv (markitdown, pymupdf, trafilatura installed there by /first-run and the boot bootstrap) - no uv. A fresh Trinity container has no uv, so every PDF/Word intake failed. Preflight with intake_check.py, and the Skipped line names the exact missing thing instead of blaming the search engine (first-boot test of c0f7890, 2026-11-27)"
     - "1.1: First live run (2026-11-25, three inputs). Fingerprint falls back to sha256sum; --from for a dispatched run; web links keep title/url/date via trafilatura --with-metadata; exact non-book PDF command (absolute paths, chunks concatenated to one file); HTML nav chrome note; session-name convention; an OOM-killed reindex is failed at indexed, resumable; a resumed run appends a new ledger row"
     - "1.0: Initial version. One entry point for a dropped document: decides the treatment, converts Word / PowerPoint / Excel / HTML / web links to markdown, files a PDF as a book only when it is one, delegates to /ingest-source or /extract-insights, never asks, fixed closing summary, --all for the inbox, INTAKE-LEDGER.md (Abilityai/cornelius#19)"
@@ -130,6 +131,19 @@ If the called playbook rejects the source at its own gate (a content farm, machi
 
 If it fails partway, do not retry here and do not clean up its checkpoint: record `failed` with the step it reached. Running `/intake` on the same file again resumes through that playbook's own checkpoint.
 
+### Step 4b: Search finds the new notes (for `source` and `own`)
+
+Before the ledger and the summary, check for yourself that what was written can be found - do not take the called playbook's word for it:
+
+```bash
+# source (non-book) / source (book) / own words:
+resources/local-brain-search/verify_searchable.sh core,document-insights "Brain/Document Insights/<session>"
+resources/local-brain-search/verify_searchable.sh core,Books "Brain/Books/<book-slug>"
+resources/local-brain-search/verify_searchable.sh core <each new note path under Brain/AI Extracted Notes/>
+```
+
+Its last line goes into the summary's `Search:` line **as printed** (`searchable: 4/4`, or `searchable: 1/4 - index older than 3 of the notes ...`). If it is short, run `resources/local-brain-search/run_index.sh` once and check again; if it is still short, the treatment is `failed at indexed` and the `Search:` line says so in the check's words. Never write a summary that claims notes the search cannot find. Do not search with a bare `run_search.sh` for this: it reads `core` only and cannot see `Document Insights/` or `Books/`.
+
 ### Step 5: Ledger
 
 Append one row:
@@ -142,7 +156,7 @@ Append one row:
 
 ### Step 6: The summary
 
-End with exactly this block and nothing after it. Six lines at most; leave a line out only when it has nothing to say.
+End with exactly this block and nothing after it. Seven lines at most; leave a line out only when it has nothing to say (`Search:` is left out only for `keep` / `hold` / `rejected`, where nothing was written).
 
 ```
 INTAKE  <file name or link>
@@ -150,6 +164,7 @@ What it is:  <one line: kind, author or origin, length>
 Treatment:   <source | own words | kept | held | rejected at the door | already taken in on DATE | failed>
 Playbook:    </ingest-source | /extract-insights | none>
 Written:     <N notes in <directory> — up to three titles> | nothing
+Search:      <the verify_searchable.sh line as printed, e.g. searchable: 4/4>
 Skipped:     <what was not done and why, or what it is waiting for> 
 ```
 
@@ -189,6 +204,7 @@ Never run two documents at once: each one is extracted against the index the pre
 - [ ] Exactly one playbook ran, or none for `keep` / `hold`
 - [ ] A PDF went to the book shelf only if it is a book
 - [ ] The original document is untouched
+- [ ] Every note written was found by `verify_searchable.sh` in its own mount, or the summary's `Search:` line says how many were not
 - [ ] One ledger row was appended, with `<from>` filled in
 - [ ] Any `Skipped` line about a missing tool names the thing `intake_check.py` named
 - [ ] The closing block is the last thing printed, in the fixed shape

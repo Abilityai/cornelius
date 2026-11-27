@@ -28,18 +28,21 @@ if [ -f "$VIZ_DIR/data.seed.json" ] && [ ! -f "$VIZ_DIR/data.json" ]; then
 fi
 
 # --- Local brain search: first-boot bootstrap, then the daemon ---------------
-# A fresh fork has the prebuilt index but no venv, and the index carries the
-# build machine's paths. If the engine is not importable yet, launch the
-# bootstrap DETACHED (venv -> pip -> daemon -> reindex -> smoke search; log in
-# ~/.trinity-bootstrap.log, marker ~/.trinity-bootstrap.done) and return at
-# once - startup must never block. /first-run finishes and verifies it.
+# A fresh fork has no venv and no index. Until ~/.trinity-bootstrap.done exists,
+# launch the bootstrap DETACHED on EVERY start (venv -> pip -> reindex -> daemon ->
+# smoke search; log ~/.trinity-bootstrap.log) and return at once - startup must
+# never block. It resumes where an earlier run was cut off: the platform restarts
+# a new instance's container minutes after its first start (to apply the Claude
+# credential), usually mid-way, and the venv may already import by then - so
+# "venv works" is NOT "bootstrap finished" (that test used to skip the resume and
+# leave the instance without a marker for good). /first-run finishes it too.
 LBS="$AGENT_DIR/resources/local-brain-search"
 BOOTSTRAP="$AGENT_DIR/.trinity/bootstrap.sh"
-if [ -x "$LBS/venv/bin/python" ] && "$LBS/venv/bin/python" -c "import faiss, sentence_transformers" >/dev/null 2>&1; then
+if [ -f "$BOOTSTRAP" ] && [ ! -f "$HOME/.trinity-bootstrap.done" ]; then
+    chmod +x "$BOOTSTRAP" 2>/dev/null || true
+    echo "Brain search bootstrap not finished - (re)starting it in the background (see ~/.trinity-bootstrap.log, or run /first-run)"
+    nohup bash "$BOOTSTRAP" >/dev/null 2>&1 < /dev/null &
+elif [ -x "$LBS/venv/bin/python" ] && "$LBS/venv/bin/python" -c "import faiss, sentence_transformers" >/dev/null 2>&1; then
     echo "Starting brain search daemon..."
     "$LBS/run_daemon.sh" start || true
-elif [ -f "$BOOTSTRAP" ] && [ ! -f "$HOME/.trinity-bootstrap.done" ]; then
-    chmod +x "$BOOTSTRAP" 2>/dev/null || true
-    echo "Brain search engine not built yet - starting first-boot bootstrap in the background (see ~/.trinity-bootstrap.log, or run /first-run)"
-    nohup bash "$BOOTSTRAP" >/dev/null 2>&1 &
 fi

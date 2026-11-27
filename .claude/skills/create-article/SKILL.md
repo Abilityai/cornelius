@@ -46,7 +46,6 @@ Create publication-ready long-form articles by synthesizing insights from the us
 | Main Article | `Brain/04-Output/Articles/[article-name]/[article-name].md` | | ✓ | The article itself |
 | Metadata File | `Brain/04-Output/Articles/[article-name]/_metadata.md` | | ✓ | Creation record |
 | Google Drive | `Articles/cornelius_drafts` (shared drive) | | ✓ | Upload article folder for review |
-| Drive Folder Map | `.claude/resources/google_drive_folders.md` | ✓ | | Google Drive folder IDs |
 
 ## Core Workflow
 
@@ -145,20 +144,9 @@ Add entry to `ARTICLE-INDEX.md`:
 - Status (Draft)
 - Notes
 
-### Step 8: Upload to Google Drive
+### Step 8: Share the draft (optional)
 
-Upload the article folder to `Articles/cornelius_drafts` on the shared Google Drive:
-
-```bash
-# Upload the entire article folder (with images, metadata, etc.)
-python3 .claude/scripts/google/google_drive.py upload-folder "Brain/04-Output/Articles/[article-name]" 1fxxbEwS86gguYXA1hJsFesr13ruXx80S --recursive
-```
-
-**Google Drive folder IDs**: See `.claude/resources/google_drive_folders.md`
-
-- `Articles/cornelius_drafts` folder ID: `1fxxbEwS86gguYXA1hJsFesr13ruXx80S`
-- This puts the article where the user and a content agent can access it for review and publishing
-- The folder preserves the same structure as the local article folder
+The template ships no upload step. If you keep a sharing script of your own (a Drive or Dropbox upload, a copy to a shared folder), run it on `Brain/04-Output/Articles/[article-name]/` here; otherwise skip this step and give the person the folder path.
 
 ## File References
 

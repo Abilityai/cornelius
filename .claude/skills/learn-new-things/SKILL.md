@@ -89,7 +89,7 @@ ls -la resources/local-brain-search/data/brain.faiss
 If older than 24 hours, refresh:
 
 ```bash
-resources/local-brain-search/run_reindex.sh
+resources/local-brain-search/run_index.sh
 ```
 
 ### Check Knowledge Base State

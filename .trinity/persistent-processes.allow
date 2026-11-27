@@ -13,3 +13,9 @@
 # drops .daemon-ensure.lock. If swept mid-start the lock would block restarts for
 # 3 minutes. Exits on its own once the daemon answers.
 bash -c *local-brain-search/.daemon-ensure.lock*
+
+# First-boot bootstrap (.trinity/bootstrap.sh, launched detached by setup.sh until
+# ~/.trinity-bootstrap.done exists). Its pip install and reindex run as its
+# descendants and take minutes; without this line the sweep kills them mid-way.
+# It exits by itself when done.
+bash */.trinity/bootstrap.sh*
