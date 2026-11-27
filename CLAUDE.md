@@ -520,6 +520,7 @@ Content agents can call Cornelius in headless mode using:
 - `/synthesize-insights` - Combine insights into narratives
 
 When called in headless mode:
+- Never ask a question: nobody is there to answer. `/ref-ingest` keeps work facts from another agent as unconfirmed offers and drops personal, health and an individual's money facts, then replies with a short receipt; `/ref-query` and `/recall` answer in a few lines with sources, and `nothing on record` when the brain has nothing (a fresh brain is not an error). A person talking to the Brain directly keeps the interactive flow.
 - Provide focused, citation-rich responses
 - Always cite specific permanent notes
 - Focus on unique/contrarian perspectives

@@ -6,10 +6,11 @@ allowed-tools: [Read, Bash, Glob, Grep]
 user-invocable: true
 argument-hint: "[scope=Company] <entity name | filter, e.g. 'engagements active expiring 90d' | 'competitors'>"
 metadata:
-  version: "1.0"
+  version: "1.2"
   created: 2026-07-08
   author: Cornelius
   changelog:
+    - "1.2: Agent callers get a few lines with sources; an empty or missing reference scope answers 'nothing on record', never an error; unconfirmed offers are shown as unconfirmed"
     - "1.1: Declared automation: autonomous - read-only, no gates, no interactive prompt, so it is fleet-callable per protocols/playbook-call.md obligation 7 (published 2026-08-22 in docs/cognition-query-interface.md)"
     - "1.0: Initial version — deterministic frontmatter scan + fuzzy fallback with read-time interpretation (active>superseded, valid_until, as_of discount vs per-type SLA, always print as_of)"
 ---
@@ -21,6 +22,18 @@ metadata:
 Answer a **structured question about reference records** with the temporal contract applied. This is **not** `/recall` — `/recall` searches the user's cognitive insights; `ref-query` reads the CRM/market source of truth and honours `status`/validity/`as_of`.
 
 **Read first:** `resources/layered-brains/COMPANY-BRAIN-SCHEMA.md` → "The temporal model" (read-time interpretation + the per-type Freshness SLA). This skill enforces those rules.
+
+## Step 0 — Who is asking, and is there anything on record?
+
+- **Agent mode** — another agent asked (an agent-to-agent call, an MCP or API trigger, a scheduled or headless run, or no person in the chat). Skip the version line and answer in the short form of Step 4.
+- **Person mode** — a person is in the chat: everything below is unchanged.
+
+Before any search, check the scope has records:
+```bash
+SCOPE_DIR="Brain/${scope:-Company}"
+[ -d "$SCOPE_DIR" ] && find "$SCOPE_DIR" -name '*.md' ! -name 'README.md' ! -name '_*' | head -1 | grep -q . || echo "EMPTY"
+```
+`EMPTY` (a fresh brain, or a scope nobody has written yet) → answer `nothing on record for "<question>"` and stop. That is the answer, not an error. The same applies when the search finds no matching note.
 
 ## State Dependencies
 
@@ -63,16 +76,28 @@ Before presenting any fact:
 
 ### Step 4 — Answer
 
-Compact, sourced, staleness-legible. One line per record: `name — key fact (as_of YYYY-MM-DD [· ⚠ stale] · status)`. For an entity lookup, summarise the body + list its `[[relations]]` + the freshness verdict.
+**Agent mode — the short form** (at most ~6 lines, no headings, no preamble):
+```text
+ref-query: <question>
+- <entity> - <key fact> (as_of YYYY-MM-DD [· ⚠ stale] [· unconfirmed, offered by <agent>]) [<path from the repo root>]
+- ...
+sources: <the notes read, paths from the repo root>
+```
+or, when nothing matches, the single line `nothing on record for "<question>"`. A fact under `## Offered by agents (unconfirmed)` or in a note with `confirmation: unconfirmed` is always labelled `unconfirmed`, never presented as confirmed.
+
+**Person mode:** compact, sourced, staleness-legible. One line per record: `name — key fact (as_of YYYY-MM-DD [· ⚠ stale] · status)`. For an entity lookup, summarise the body + list its `[[relations]]` + the freshness verdict.
 
 ## Verification
 
 - A real entity question ("what do we know about Acme Corp as of today?") returns the note's facts **with the `as_of` date printed** and a freshness verdict.
 - A real filter ("which engagements are `active`?") returns exactly the notes whose frontmatter matches (cross-check the count against `grep -rlE '^status: active' engagements/*.md | wc -l`).
 - Nothing is written; `git status` is unchanged after a query.
+- On a fresh brain (no `Brain/Company/`), an agent-mode query returns `nothing on record for "<question>"` and no error.
 
 ## This skill must refuse to
 
 - Write or mutate any note (read-only).
 - Present a `superseded` fact as current, or a fact without its `as_of` date.
+- Present an unconfirmed (agent-offered) fact as confirmed.
+- Answer an empty scope with an error or a stack trace instead of `nothing on record`.
 - Set/alter provenance, crystallize, lifecycle-classify, or promote a record into a cognitive insight.

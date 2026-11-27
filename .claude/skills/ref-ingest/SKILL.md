@@ -4,19 +4,88 @@ description: The single entry point for incoming information of ANY kind about a
 automation: gated
 allowed-tools: [Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion, Skill]
 user-invocable: true
-argument-hint: "[scope=Company] <entity name or the incoming info> [--source <where it came from>] [--no-reindex]"
+argument-hint: "[scope=Company] <entity name or the incoming info> [--source <where it came from>] [--from-agent <name>] [--no-reindex]"
 metadata:
-  version: "1.1"
+  version: "1.2"
   created: 2026-07-08
   author: Cornelius
   changelog:
+    - "1.2: Agent offers - when another agent sends facts (headless, no person in the chat) the skill never asks: it keeps work facts as unconfirmed offers with source and date, drops personal / health / an individual's money with a reason, and replies with a short receipt. A person in the chat keeps the gated flow."
     - "1.1: Fix — Step 3 named a phantom agents-as-product/ sub-scope; type: agent notes live in products/. Corrected."
     - "1.0: Initial version — extract→resolve→reconcile→gate→upsert entry point for the Company reference family; overwrite-only market branch invariant; composes ref-supersede; grows manage-reference-data"
 ---
 
 # Ref Ingest
 
-> ℹ️ **First, set expectations:** before anything else, print one short line with this skill's version and its most recent change — the top entry of `metadata.changelog` above — e.g. `ref-ingest v1.0 — recent: initial version`. Then proceed.
+> ℹ️ **First, set expectations:** before anything else, print one short line with this skill's version and its most recent change — the top entry of `metadata.changelog` above — e.g. `ref-ingest v1.0 — recent: initial version`. Then proceed. (In agent mode, below, the receipt's `skill:` line carries the version instead.)
+
+## Step 0 — Who is asking? (person mode vs agent mode)
+
+Decide this first; it changes Steps 4-6 and the reply.
+
+- **Person mode** — a person is in this conversation and can answer a question now. Everything below applies unchanged: CRM writes are gated, ambiguity is asked.
+- **Agent mode** — anything else: another agent sent the facts (an agent-to-agent call, an MCP or API trigger, a scheduled or headless run, `--from-agent <name>` passed, or the message says it comes from an agent). **Nobody can answer, so this run never asks a question** (no `AskUserQuestion`, no "shall I?", no waiting). Follow **Agent mode** below in place of the gates.
+- **Can't tell?** Use agent mode. A question nobody answers is worse than a marked, reversible offer.
+
+## Agent mode — offers from another agent
+
+An offer is a set of facts another agent believes are true. They are kept as **offers**: written with their source and date and marked unconfirmed until a person confirms them. They never overwrite what is already on record.
+
+### A1 — Sort each fact: keep or drop
+
+**Keep** facts about work:
+- who someone is at work and their role, team, employer, or work relationship to us;
+- a decision and its stated reason (who decided, what, why, when);
+- a stated preference of a customer or partner (how they want to work, buy, be contacted at work);
+- the same kinds of facts about an organisation, product or engagement (what it does, a deal stage, a term, a date).
+
+**Drop** (never written, not even marked):
+- anything personal about an individual — family, home life, relationships, beliefs, private contact details or address;
+- health of an individual — conditions, leave reasons, wellbeing;
+- money of an individual — pay, personal finances, debts, personal spending (company money such as a deal size or a price is a work fact and is kept);
+- a fact with no entity it is about (`no entity named`);
+- a fact with no source — neither its own nor `--source` (`no source`);
+- a fact whose entity matches two or more existing notes (`ambiguous: <A> or <B> - resend naming one`). Never guess, never create a new note to dodge the choice.
+
+When a fact mixes both (e.g. "Dana moved to the platform team after her surgery"), keep the work part and drop the rest, and say so. When unsure whether something is personal, drop it — the caller can resend.
+
+### A2 — Date every kept fact
+
+Use the fact's own date if it has one; otherwise the date the offer arrived, written `received <YYYY-MM-DD>`. The source is the fact's own source, else `--source`.
+
+### A3 — Write kept facts as unconfirmed offers
+
+Route (Step 3) and resolve (Step 4, without asking) as usual, then:
+- **Existing note** — do **not** overwrite the body. Append each fact under a `## Offered by agents (unconfirmed)` section (create it above `## Change Log` if missing). If a fact contradicts the body, keep it anyway and add `contradicts: <the current line>`; a person decides later.
+- **No note yet** — create it with the normal reference frontmatter plus `confirmation: unconfirmed` and `offered_by: <agent>` (`as_of` = the day the offer arrived); the body holds only the offered section, plus a `## Relations` wiki-link when a kept fact names another entity (e.g. a person's employer). A person confirming the note later removes those two fields.
+- Fact line format, one per fact:
+  ```markdown
+  - <fact> (source: <source>; date: <YYYY-MM-DD | received YYYY-MM-DD>; offered by: <agent or "an agent">; unconfirmed)
+  ```
+- Append one `## Change Log` line per note: `- <today> - <N> fact(s) offered by <agent>, unconfirmed (source: <source>)`.
+- This applies to every sub-scope, `market/` included: an offer never overwrites and never calls `/ref-supersede`.
+- Then Step 7 (reindex) as usual. If the reindex fails, the facts are still kept; say so in the receipt.
+
+### A4 — Reply with a receipt, nothing else
+
+The whole reply is this block, so the caller can log it:
+
+```text
+ref-ingest receipt
+skill: ref-ingest v1.2
+mode: agent-offer
+caller: <agent name | unknown>
+kept: <N>
+dropped: <N>
+dropped-reasons:
+- "<first ~60 chars of the fact>" - <one or more of: personal, health, individual money, no entity named, no source, ambiguous: A or B>
+written:
+- <path from the repo root, e.g. Brain/Company/people/<name>.md> (+<N> facts, new | existing)
+status: unconfirmed - a person confirms later
+reindex: done | skipped (--no-reindex) | failed: <one line>
+```
+
+With nothing kept, `written:` is `- none`. Never include the dropped text beyond its first ~60 characters.
 
 The **one operation every input funnels through** for a reference scope: `incoming info → resolve → reconcile → upsert`. It grows the manual single-upsert `manage-reference-data` with the two load-bearing hard parts — **entity resolution** (is this new "Reply" the existing `Reply.io`?) and **reconciliation** (new fact contradicts old → overwrite / supersede-with-history / flag) — plus the **automation split by scope**.
 
@@ -85,7 +154,8 @@ BRAIN_READ_SCOPE=core,Company resources/local-brain-search/run_search.sh "<entit
 grep -rilE "<name>|<alias1>|<alias2>" Brain/Company/
 ```
 - **Match found** → this is an *update* to that note. Use its exact path.
-- **Ambiguous** (2+ plausible matches, e.g. "Reply" vs "Reply.io") → present the candidates and ask which entity this is (`AskUserQuestion`); do NOT guess a new note into existence.
+- **Ambiguous** (2+ plausible matches, e.g. "Reply" vs "Reply.io") → present the candidates and ask which entity this is (`AskUserQuestion`); do NOT guess a new note into existence. *(Agent mode: do not ask — drop the fact as `ambiguous`, see A1.)*
+- **No `Brain/Company/` yet** (a fresh brain) → there is nothing to resolve against; every entity is new. Create the sub-scope folder when you write the first note.
 - **No match** → genuinely new entity → *add*.
 
 ### Step 5 — RECONCILIATION (new fact vs old)
@@ -99,7 +169,7 @@ Compare the incoming fact to the note's current body:
 
 ### Step 6 — Automation gate + upsert
 
-- **`market/`** → proceed (no gate). **CRM sub-scopes** → show the before/after diff and get explicit approval (`AskUserQuestion`) before writing.
+- **`market/`** → proceed (no gate). **CRM sub-scopes** → show the before/after diff and get explicit approval (`AskUserQuestion`) before writing. *(Agent mode replaces this gate with A3: no question, facts written as unconfirmed offers, body untouched.)*
 - Write the note with the reference frontmatter contract (copy the template from `manage-reference-data` Step 2 — do not restate it here). On update: **overwrite the body** (current truth), preserve `created`/`created_by`, re-stamp `as_of` + `updated` to today, bump `updated_by` to your model. Append a `## Change Log` line:
   ```markdown
   ## Change Log
@@ -125,11 +195,13 @@ Content-hash detection → a changed note triggers a **full FAISS rebuild** (min
   ```
 - **Learn-gate held:** `md5 resources/local-brain-search/data/q_values.json` is byte-identical before and after (a mounted read trains nothing).
 - **Audit trail:** the note has a new `## Change Log` line; the body is the current truth (no append-only drift); `as_of` = today.
+- **Agent offer:** a headless run with one work fact and one personal fact returns a receipt with `kept: 1`, `dropped: 1` and the reason, asks nothing, leaves the existing body unchanged, and adds one `(unconfirmed)` line under `## Offered by agents (unconfirmed)`.
 - **No duplicate:** exactly one note exists for the entity (`grep -ril "<name>" Brain/Company/` returns one canonical file).
 
 ## This skill must refuse to
 
 - Write into a non-reference / core / cognitive folder, or set any `provenance` but `reference`.
 - **Create a duplicate** entity note when resolution finds (or is unsure of) an existing one.
-- **Auto-supersede or gate-skip on a CRM sub-scope**, or run `/ref-supersede` on the `market/` branch.
+- **Auto-supersede or gate-skip on a CRM sub-scope**, or run `/ref-supersede` on the `market/` branch. (Agent mode is not a gate-skip: it never changes what is on record, it only adds marked offers.)
+- **Ask a question in agent mode**, or write a fact it dropped under A1.
 - Crystallize, lifecycle-classify, synthesis-pulse, or **promote a record into an endorsed cognitive insight** — that crossing stays the human `encountered → endorsed` act.
