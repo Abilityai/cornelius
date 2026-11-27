@@ -120,6 +120,8 @@ for r in results:
     filepath = r.get('filepath', '')
     if filepath:
         print(f\"  Path: {filepath}\")
+    if r.get('source_kind'):
+        print(f\"  Source: {r.get('source', '')} - {r['source_kind']}\")
     content = r.get('content', '')
     if content:
         preview = content[:300]

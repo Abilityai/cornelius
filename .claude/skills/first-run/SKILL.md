@@ -5,10 +5,11 @@ allowed-tools: Bash, Read
 user-invocable: true
 argument-hint: "[--empty | --with-library] [--verify-only]"
 metadata:
-  version: "1.5"
+  version: "1.6"
   created: 2026-10-08
   author: Ability.ai
   changelog:
+    - "1.6: The Brain Orb line states the count or says plainly there is nothing to show yet. The export now ends with one `orb:` summary line and Step 5 keeps that line; before, `tail -3` cut the node count off and the report read \"refreshed\" with no number (first-boot test 2026-11-27)"
     - "1.5: Resumes a cut-off boot bootstrap and finishes it (first-boot test 2026-11-27: the platform restarted the container to apply the Claude credential, the bootstrap log stopped at reindex start, no marker, a stale lock). Step 1 reads `bootstrap.sh --status`, which clears a lock whose process is dead; new Step 5c runs the bootstrap in the foreground - finished steps are skipped - so the marker is written. setup.sh now relaunches the bootstrap on every boot until the marker exists, and the bootstrap is on the orphan-sweep allowlist"
     - "1.4: The search venv now also carries the document converters /intake uses (markitdown, pymupdf, trafilatura) - a fresh Trinity container has no uv, so PDF and Word intake failed. Step 2 tops up an existing venv; new Step 5b converts a real PDF and a real .docx and the report says so. The daemon is on the orphan-sweep allowlist (.trinity/persistent-processes.allow, cornelius#17), so it survives after this run ends (first-boot test of c0f7890, 2026-11-27)"
     - "1.3: Start with an empty brain (Abilityai/cornelius#21). The seed library (~1,050 notes) now lives in library/, outside the vault, the index and the Brain Orb. Step 0 asks once - empty is the default, unattended runs get empty - and --with-library copies it in (also later, any time). The smoke search accepts an empty vault (0 results + the plain empty-vault hint). No prebuilt index ships any more; Step 3 builds it"
@@ -19,7 +20,7 @@ metadata:
 
 # First Run
 
-> ℹ️ Print one line first: `first-run v1.5 - recent: finishes a boot-time bootstrap the platform restart cut off, and writes its marker`. Then proceed.
+> ℹ️ Print one line first: `first-run v1.6 - recent: the Brain Orb line gives the node count or says there is nothing to show yet`. Then proceed.
 
 ## Purpose
 
@@ -143,10 +144,10 @@ cd resources/local-brain-search && BRAIN_READ_SCOPE=@lookup ./run_search.sh "dec
 Then refresh the Brain Orb so it draws what is actually in the vault (on Trinity, `.trinity/setup.sh` copies an empty-vault `data.seed.json` at first boot; after Step 2b that picture is out of date):
 
 ```bash
-resources/local-brain-search/venv/bin/python resources/agent-visualization/export_data.py 2>&1 | tail -3
+resources/local-brain-search/venv/bin/python resources/agent-visualization/export_data.py 2>&1 | grep -E '^orb: |Error|Traceback' | tail -3
 ```
 
-On an empty brain the export draws the vault's scaffolding and sets `meta.notice` to the same empty-vault line, so the orb says the brain is empty instead of showing nothing.
+The export always ends with one `orb:` line, and the report's Brain Orb line copies it: `orb: <n> nodes, <e> edges`, or on an empty brain `orb: nothing to show yet - the vault has no notes, only its folders and templates` (the export also sets `meta.notice`, so the orb itself says the brain is empty instead of showing nothing). No `orb:` line means the export failed: report the error line as printed, never "refreshed".
 
 ### Step 5b - Prove document conversion
 
@@ -178,7 +179,7 @@ Index          : rebuilt now | already current - <notes> notes, <edges> edges (m
 Brain          : empty (seed library not added - /first-run --with-library adds it) | library added - <n> notes (<k> already present)
 Conversions    : PDF ok · docx ok (from the search venv) | <the missing:/FAILED line as printed>
 Smoke search   : 3 results - <title 1> · <title 2> · <title 3> | empty brain - search answered plainly
-Brain Orb data : refreshed - <n> nodes | n/a
+Brain Orb data : refreshed - <n> nodes, <e> edges | refreshed - nothing to show yet (the vault has no notes) | FAILED: <error line> | n/a
 Boot bootstrap : done (marker written <date>) | finished now (was: interrupted after <steps>) | n/a (local machine) | <status line as printed>
 Try next       : empty → write a note in Brain/02-Permanent/ or /intake <a file or link>   ·   library → /recall <topic>   ·   /advise <a problem you are weighing>
 ```

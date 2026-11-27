@@ -27,7 +27,7 @@ The **integrity health check** for a reference scope. It answers "is the source 
 
 | Source | Location | Read | Write | Description |
 |--------|----------|------|-------|-------------|
-| Company family | `Brain/Company/{people,orgs,products,engagements,market}/*.md` | ✓ | | Entity notes audited |
+| Company family | `Brain/Company/{people,orgs,products,engagements,market,decisions}/*.md` | ✓ | | Entity notes audited |
 | Reports | `resources/company-brain/reports/` | | ✓ | `ref-audit-YYYY-MM-DD.md` |
 
 ## The contract this audits
@@ -38,7 +38,7 @@ The **integrity health check** for a reference scope. It answers "is the source 
 - **as_of:** present + a valid `YYYY-MM-DD`.
 - **status ∈** `active · superseded`; a `superseded` note MUST have a `superseded_by: "[[...]]"` that resolves.
 - **partition rule:** a `relationship: competitor` note belongs in `market/`; a transacted entity does not.
-- **links:** every `[[wiki-link]]` resolves to an existing note; every entity has at least one relation (no orphans).
+- **links:** every `[[wiki-link]]` resolves to an existing note; every entity has at least one relation (no orphans). A `type: decision-record` note (`decisions/`) is exempt from the orphan check - it exists precisely for decisions that name no entity.
 
 ## Process
 
@@ -81,7 +81,7 @@ For **duplicate candidates**, flag near-identical display names / aliases across
 Write `resources/company-brain/reports/ref-audit-YYYY-MM-DD.md` (create the dir if absent):
 ```markdown
 # Ref Audit — Company — YYYY-MM-DD
-Total entity notes: N  (people · orgs · products · engagements · market)
+Total entity notes: N  (people · orgs · products · engagements · market · decisions)
 
 ## Violations
 - Provenance: <count> [list]

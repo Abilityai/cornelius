@@ -44,9 +44,9 @@ Keep it brief:
 ## [Query]
 
 **Top matches:**
-1. [[Note Title]] (0.XX) - [one-line summary from content]
-2. [[Note Title]] (0.XX) - [one-line summary]
-3. [[Note Title]] (0.XX) - [one-line summary]
+1. [[Note Title]] (0.XX, <source_kind>) - [one-line summary from content]
+2. [[Note Title]] (0.XX, <source_kind>) - [one-line summary]
+3. [[Note Title]] (0.XX, <source_kind>) - [one-line summary]
 
 **Graph neighborhood** (for top hit):
 - Outgoing: [[Note]], [[Note]], ...
@@ -55,6 +55,8 @@ Keep it brief:
 **Top result content:**
 [First ~30 lines of the highest-scoring note]
 ```
+
+`<source_kind>` is the result's own field: `your thinking` (their notes), `read, not endorsed` (a document or book they added), `record` (Company facts).
 
 ## Rules
 

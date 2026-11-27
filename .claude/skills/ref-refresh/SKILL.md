@@ -42,12 +42,13 @@ The **temporal maintenance** loop: which records have gone stale, and which can 
 | `organization` (client) | ~90 days |
 | `person` (bio/role) | ~180 days |
 | `product` (own) | on-change (no age SLA — skip) |
+| `decision-record` | never (historical record — skip) |
 
 ## Process
 
 ### Step 1 — Sweep as_of vs SLA
 
-For every `Brain/Company/*/*.md`, read `type`/`relationship`/`status`/`as_of`, compute `today − as_of` in days, and compare to the SLA for that type. Collect the overdue notes; sort by how far over SLA they are. Skip `status: superseded` and own-`product` (on-change).
+For every `Brain/Company/*/*.md`, read `type`/`relationship`/`status`/`as_of`, compute `today − as_of` in days, and compare to the SLA for that type. Collect the overdue notes; sort by how far over SLA they are. Skip `status: superseded`, own-`product` (on-change) and `decision-record` (historical).
 ```bash
 cd $PROJECT_ROOT/Brain/Company
 # example: market notes older than 14 days (compute days-since in the agent; illustrative)

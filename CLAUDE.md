@@ -31,6 +31,8 @@ You are not collecting generic knowledge but hunting for the gems of original th
 
 **Problem-Solving Queries:** When the user asks for advice, help with a decision, or poses a problem (even without `/advise`), use the `/advise` skill to ground the response in KB insights.
 
+**Questions About Your Notes:** When a person asks what their notes, their brain or their documents say about something ("what do my notes say about X", "what do I have on X", "did I save anything about X") - even without `/recall` - answer with `/recall` (or `/quick-search` for a one-line lookup). Search everything they put in: their own notes, the books and documents they handed over (`Document Insights/`, `Books/`), and records when the question names a person or organisation - the `@lookup` mount (`BRAIN_READ_SCOPE=@lookup`). Say where each finding comes from: **your thinking** (their own notes), **read, not endorsed** (from a document or book they added), **record** (Company facts). Never answer such a question from a bare search: without `BRAIN_READ_SCOPE` a search reads only their own notes, so notes made from a document are invisible. If a search prints `... notes outside it were not searched`, search again at `@lookup` before saying anything - never fall back to grep, and never say "nothing" for notes you did not search.
+
 **New User / Setup Detection:** When it's clear the user is new to Cornelius, asking how to get started, asking how to install or update plugins, or asking how to deploy the agent to Trinity - invoke `/start-here`. Trigger signals include: "how do I set this up", "what can you do", "how do I install", "how do I deploy", "what plugins are available", or any first-session uncertainty about capabilities.
 
 **First install (fresh copy of the template):** a fresh fork starts with an empty brain (the optional seed library waits in `library/`, outside the vault, until `/first-run --with-library` copies it in) and ships without the Python search engine or an index - so until `/first-run` has completed once, every search-backed playbook (`/recall`, `/advise`, `/decide`, `/find-connections`, `/extract-insights`, the `ref-*` suite) returns nothing or fails. A search that returns zero results with the line `Your brain is empty - ...` is working correctly: say so and suggest a first note, `/intake`, or `/first-run --with-library`. When a search fails or `venv/bin/python` is missing, or the user says "set up", "first run", "nothing comes back", "is it working" - run `/first-run` (idempotent; on Trinity the same bootstrap starts by itself at first boot and `/first-run` finishes and verifies it).
@@ -566,8 +568,9 @@ The memory system implements a dynamic spreading activation architecture based o
 
 **Wrapper Scripts:**
 ```bash
-# Semantic search
-./resources/local-brain-search/run_search.sh "query" --limit 10 --json
+# Semantic search - a person's question: everything they put in, each hit labelled with its source kind
+BRAIN_READ_SCOPE=@lookup ./resources/local-brain-search/run_search.sh "query" --limit 10 --json
+# (no BRAIN_READ_SCOPE = your own notes only - for dedup and maintenance, never for answering a question)
 
 # Find connections for a note
 ./resources/local-brain-search/run_connections.sh "Note Name" --json

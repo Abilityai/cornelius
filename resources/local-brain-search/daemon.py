@@ -63,7 +63,7 @@ from config import (
 )
 from intent import QueryIntent, classify_intent
 from learning import adjust_scores_with_q_values, log_retrieval
-from memory_config import MEMORY_CONFIG, empty_vault_hint
+from memory_config import MEMORY_CONFIG, empty_vault_hint, label_sources
 from scope import build_scope_selector
 from spreading import SpreadingConfig, get_top_activated, spreading_activation
 
@@ -197,6 +197,7 @@ def search_endpoint(
         )
         meta = {"mode": "static", "learning_enabled": MEMORY_CONFIG["learning"]["enabled"]}
 
+    label_sources(results)
     return JSONResponse(
         content=json.loads(json.dumps(
             {"query": q, "mode": mode, "results": results, "metadata": meta,
