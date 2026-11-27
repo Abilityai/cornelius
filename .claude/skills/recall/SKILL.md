@@ -40,7 +40,9 @@ $ARGUMENTS
 Check the brain before searching:
 ```bash
 INDEX=resources/local-brain-search/data/brain.faiss
-NOTES=$(find Brain -name '*.md' ! -name 'README.md' ! -name 'CHANGELOG.md' 2>/dev/null | head -1)
+# real notes only: skip READMEs, changelogs, indexes, templates and _SAMPLE files
+NOTES=$(find Brain -name '*.md' ! -name 'README.md' ! -name 'CHANGELOG.md' ! -name '*INDEX*.md' \
+  ! -name '_*' ! -path '*/Templates/*' 2>/dev/null | head -1)
 [ -f "$INDEX" ] && [ -n "$NOTES" ] || echo "EMPTY"
 ```
 `EMPTY` (a fresh brain: no notes, or the index not built yet) → answer `nothing on record for "<topic>"` and stop; add `(search index not built yet)` when notes exist but the index does not. This is the answer, not an error. The same line answers a search that returns no results after the thin-read retry. If notes and an index exist but the search itself fails, say `search unavailable: <one line>` - never claim "nothing on record" for a brain you could not read.
@@ -75,9 +77,9 @@ NOTES=$(find Brain -name '*.md' ! -name 'README.md' ! -name 'CHANGELOG.md' 2>/de
 **Agent mode — the short form** (a few lines, no headings):
 ```text
 recall: <topic>
-- <one-line finding> [<vault-relative path>] (<your thinking | read, not endorsed | record>)
+- <one-line finding> [<path from the repo root>] (<your thinking | read, not endorsed | record>)
 - ...
-sources: <the notes read, vault-relative paths>
+sources: <the notes read, paths from the repo root>
 ```
 or the single line `nothing on record for "<topic>"`. At most 5 findings. Material the user has read but not endorsed is labelled as read, never as their view.
 
@@ -127,7 +129,7 @@ or the single line `nothing on record for "<topic>"`. At most 5 findings. Materi
 
 - [ ] Step 0 done: agent vs person mode decided; empty brain answered `nothing on record`
 - [ ] Layer 1 search executed (spreading mode for synthesis queries)
-- [ ] Layer 2 connections retrieved for top result
-- [ ] Layer 3 hub notes checked for context
+- [ ] Layer 2 connections retrieved for top result (person mode)
+- [ ] Layer 3 hub notes checked for context (person mode)
 - [ ] Key insights synthesized from findings
 - [ ] Relevant excerpts included in output

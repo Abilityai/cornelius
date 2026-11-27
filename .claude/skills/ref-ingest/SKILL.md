@@ -57,12 +57,12 @@ Use the fact's own date if it has one; otherwise the date the offer arrived, wri
 
 Route (Step 3) and resolve (Step 4, without asking) as usual, then:
 - **Existing note** — do **not** overwrite the body. Append each fact under a `## Offered by agents (unconfirmed)` section (create it above `## Change Log` if missing). If a fact contradicts the body, keep it anyway and add `contradicts: <the current line>`; a person decides later.
-- **No note yet** — create it with the normal reference frontmatter plus `confirmation: unconfirmed` and `offered_by: <agent>`; the body holds only the offered section. A person confirming the note later removes those two fields.
+- **No note yet** — create it with the normal reference frontmatter plus `confirmation: unconfirmed` and `offered_by: <agent>` (`as_of` = the day the offer arrived); the body holds only the offered section, plus a `## Relations` wiki-link when a kept fact names another entity (e.g. a person's employer). A person confirming the note later removes those two fields.
 - Fact line format, one per fact:
   ```markdown
   - <fact> (source: <source>; date: <YYYY-MM-DD | received YYYY-MM-DD>; offered by: <agent or "an agent">; unconfirmed)
   ```
-- Append one `## Change Log` line per note: `- <today> — <N> fact(s) offered by <agent>, unconfirmed (source: <source>)`.
+- Append one `## Change Log` line per note: `- <today> - <N> fact(s) offered by <agent>, unconfirmed (source: <source>)`.
 - This applies to every sub-scope, `market/` included: an offer never overwrites and never calls `/ref-supersede`.
 - Then Step 7 (reindex) as usual. If the reindex fails, the facts are still kept; say so in the receipt.
 
@@ -78,9 +78,9 @@ caller: <agent name | unknown>
 kept: <N>
 dropped: <N>
 dropped-reasons:
-- "<first ~60 chars of the fact>" - <personal | health | individual money | no entity named | no source | ambiguous: A or B>
+- "<first ~60 chars of the fact>" - <one or more of: personal, health, individual money, no entity named, no source, ambiguous: A or B>
 written:
-- <vault-relative path> (+<N> facts, new | existing)
+- <path from the repo root, e.g. Brain/Company/people/<name>.md> (+<N> facts, new | existing)
 status: unconfirmed - a person confirms later
 reindex: done | skipped (--no-reindex) | failed: <one line>
 ```

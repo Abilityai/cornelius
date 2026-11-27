@@ -31,7 +31,7 @@ Answer a **structured question about reference records** with the temporal contr
 Before any search, check the scope has records:
 ```bash
 SCOPE_DIR="Brain/${scope:-Company}"
-[ -d "$SCOPE_DIR" ] && find "$SCOPE_DIR" -name '*.md' | head -1 | grep -q . || echo "EMPTY"
+[ -d "$SCOPE_DIR" ] && find "$SCOPE_DIR" -name '*.md' ! -name 'README.md' ! -name '_*' | head -1 | grep -q . || echo "EMPTY"
 ```
 `EMPTY` (a fresh brain, or a scope nobody has written yet) → answer `nothing on record for "<question>"` and stop. That is the answer, not an error. The same applies when the search finds no matching note.
 
@@ -79,9 +79,9 @@ Before presenting any fact:
 **Agent mode — the short form** (at most ~6 lines, no headings, no preamble):
 ```text
 ref-query: <question>
-- <entity> — <key fact> (as_of YYYY-MM-DD [· ⚠ stale] [· unconfirmed, offered by <agent>]) [<vault-relative path>]
+- <entity> - <key fact> (as_of YYYY-MM-DD [· ⚠ stale] [· unconfirmed, offered by <agent>]) [<path from the repo root>]
 - ...
-sources: <the notes read, vault-relative paths>
+sources: <the notes read, paths from the repo root>
 ```
 or, when nothing matches, the single line `nothing on record for "<question>"`. A fact under `## Offered by agents (unconfirmed)` or in a note with `confirmation: unconfirmed` is always labelled `unconfirmed`, never presented as confirmed.
 
