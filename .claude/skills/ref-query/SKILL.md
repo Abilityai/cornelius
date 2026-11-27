@@ -39,7 +39,7 @@ SCOPE_DIR="Brain/${scope:-Company}"
 
 | Source | Location | Read | Write | Description |
 |--------|----------|------|-------|-------------|
-| Company family | `Brain/Company/{people,orgs,products,engagements,market}/*.md` | ✓ | | Entity notes + frontmatter |
+| Company family | `Brain/Company/{people,orgs,products,engagements,market,decisions}/*.md` | ✓ | | Entity notes + frontmatter |
 | Search wrapper | `resources/local-brain-search/run_search.sh` | ✓ | | Fuzzy "tell me about X" under a `core,Company` mount |
 
 ## Process

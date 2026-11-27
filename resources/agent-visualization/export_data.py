@@ -849,6 +849,12 @@ def main():
         f"  tensions:{len(out_tensions)}  incubation:{len(incubation)}  converged:{len(converged)}",
         f"  activity:{len(activity)} events  metrics:{len(metrics.get('cards', []))} cards",
     ]
+    # One plain summary line, always LAST, so a caller that keeps only the tail
+    # (/first-run Step 5) still reports the count - or says there is nothing yet.
+    if data["meta"].get("notice"):
+        _report.append("orb: nothing to show yet - the vault has no notes, only its folders and templates")
+    else:
+        _report.append(f"orb: {len(out_nodes)} nodes, {len(out_edges)} edges")
     print("\n".join(_report), file=sys.stderr)
 
 

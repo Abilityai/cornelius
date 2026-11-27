@@ -42,6 +42,7 @@ The model is two orthogonal axes. Do not collapse them (collapsing them is the c
 | `Company/products/` | your offerings + internal agent workforce | **curated** | `core,Company/products` |
 | `Company/engagements/` | deals/contracts (join-nodes) | **curated** | `core,Company/engagements` |
 | `Company/market/` | competitors, their products, ecosystem you **watch** | **autonomous** (domain-watch overwrites) | `core,Company/market` |
+| `Company/decisions/` | dated decisions that name no person or organisation - one record per month (`Decisions YYYY-MM.md`), append-only | **curated**; agent offers land as `unconfirmed` lines (`/ref-ingest` A3a) | `core,Company/decisions` |
 | whole brain | all of the above | — | `core,Company` |
 
 **The partition rule: watch vs. transact.** `market/` holds what you *watch* (competitors, competitor products, ecosystem players). `orgs/` + `products/` hold what you *own or transact with* (self, clients, prospects, partners, vendors, your offerings). A competitor org lives in `market/`, not `orgs/`, because `market/` is the autonomously-maintained scope and an org you compete with is watched, not transacted with.
@@ -60,6 +61,7 @@ The model is two orthogonal axes. Do not collapse them (collapsing them is the c
 | `agent` | an internal AI worker (first-class: the business *is* agents) | — |
 | `engagement` | a deal/contract **join-node** (client × product × owner × dates × value) | — |
 | `interaction` | *(optional)* an atomic dated event: meeting, milestone, signal | — |
+| `decision-record` | a month of decisions with no entity to live on: what, why, who decided, source, date, confirmed or not | — |
 
 "List my competitors" = `type: organization AND relationship: competitor` (or simply: everything in `market/` with `relationship: competitor`). The taxonomy no longer lies.
 
@@ -111,6 +113,7 @@ True recency-weighted retrieval (newer edges automatically beat older) is **C-Ph
 | `organization` (client) | ~90 days | slower-moving facts |
 | `person` (bio/role) | ~180 days | rarely changes |
 | `product` (own) | on-change | you know when it changes |
+| `decision-record` | never (historical) | a decision taken is a dated fact; a later decision is a new line, not a refresh |
 
 ---
 

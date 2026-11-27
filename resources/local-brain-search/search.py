@@ -52,7 +52,7 @@ from learning import (
     adjust_scores_with_q_values,
     log_retrieval,
 )
-from memory_config import MEMORY_CONFIG, empty_vault_hint
+from memory_config import MEMORY_CONFIG, empty_vault_hint, label_sources
 from scope import build_scope_selector
 from spreading import (
     SpreadingConfig,
@@ -89,6 +89,8 @@ def format_result(result: dict, show_full: bool = False, mode: str = "static") -
         lines.append(f"  Section: {heading}")
     if filepath:
         lines.append(f"  Path: {filepath}")
+    if result.get('source_kind'):
+        lines.append(f"  Source: {result.get('source', '')} - {result['source_kind']}")
 
     # Content preview (only for static mode which has content)
     content = result.get('content', '')
@@ -443,6 +445,7 @@ def main():
         track_usage=not args.no_track,
     )
 
+    label_sources(results)
     hint = empty_vault_hint(resolve_read_scope()) if not results else None
 
     if args.json:

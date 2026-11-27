@@ -6,10 +6,11 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion, Skill]
 user-invocable: true
 argument-hint: "[scope=Company] <entity name or the incoming info> [--source <where it came from>] [--from-agent <name>] [--no-reindex]"
 metadata:
-  version: "1.2"
+  version: "1.3"
   created: 2026-07-08
   author: Cornelius
   changelog:
+    - "1.3: Decisions with no named person or organisation are kept, not dropped. They go to a dated decisions record, Brain/Company/decisions/Decisions YYYY-MM.md - what was decided, the reason (or \"reason not stated\"), who decided when named, source, date, offered by, unconfirmed. Agent mode and person mode alike. Origin: first-boot test 2026-11-27 dropped \"warehouse move confirmed for 2 February\" as `no entity named`."
     - "1.2: Agent offers - when another agent sends facts (headless, no person in the chat) the skill never asks: it keeps work facts as unconfirmed offers with source and date, drops personal / health / an individual's money with a reason, and replies with a short receipt. A person in the chat keeps the gated flow."
     - "1.1: Fix — Step 3 named a phantom agents-as-product/ sub-scope; type: agent notes live in products/. Corrected."
     - "1.0: Initial version — extract→resolve→reconcile→gate→upsert entry point for the Company reference family; overwrite-only market branch invariant; composes ref-supersede; grows manage-reference-data"
@@ -43,7 +44,7 @@ An offer is a set of facts another agent believes are true. They are kept as **o
 - anything personal about an individual — family, home life, relationships, beliefs, private contact details or address;
 - health of an individual — conditions, leave reasons, wellbeing;
 - money of an individual — pay, personal finances, debts, personal spending (company money such as a deal size or a price is a work fact and is kept);
-- a fact with no entity it is about (`no entity named`);
+- a fact with no entity it is about (`no entity named`) - **except a decision**, which is kept (see A3a);
 - a fact with no source — neither its own nor `--source` (`no source`);
 - a fact whose entity matches two or more existing notes (`ambiguous: <A> or <B> - resend naming one`). Never guess, never create a new note to dodge the choice.
 
@@ -66,13 +67,48 @@ Route (Step 3) and resolve (Step 4, without asking) as usual, then:
 - This applies to every sub-scope, `market/` included: an offer never overwrites and never calls `/ref-supersede`.
 - Then Step 7 (reindex) as usual. If the reindex fails, the facts are still kept; say so in the receipt.
 
+### A3a — Decisions with no named person or organisation: the decisions record
+
+A decision is kept even when it names no person, organisation, product or engagement ("warehouse move confirmed for 2 February, old site closes in March because the lease ends"). Decisions and their reasons are the most valuable thing a meeting produces; dropping them for want of an entity loses exactly that. Its home is a dated record, one file per month, chosen by the decision's date (else the date the offer arrived):
+
+`Brain/Company/decisions/Decisions YYYY-MM.md`
+
+- **No record for that month yet** - create it:
+  ```markdown
+  ---
+  type: decision-record
+  provenance: reference
+  status: active
+  as_of: <today>
+  period: YYYY-MM
+  confirmation: unconfirmed
+  ---
+  # Decisions YYYY-MM
+
+  Decisions recorded for this month, newest last. A line marked `unconfirmed` was offered by an agent and not yet confirmed by a person.
+
+  ## Decisions
+
+  ## Change Log
+  ```
+- Append one line per decision under `## Decisions` (never rewrite an existing line):
+  ```markdown
+  - <date> - <what was decided>. Reason: <the stated reason | reason not stated>. Decided by: <name | not stated>. (source: <source>; date: <YYYY-MM-DD | received YYYY-MM-DD>; offered by: <agent or "an agent">; unconfirmed)
+  ```
+  `<date>` is the day the decision was made, not a date inside it (the warehouse decision above taken at a 27 November meeting is dated 2026-11-27; "2 February" stays in the text). When it does name an entity that has a note, add a `[[wiki-link]]` to it in the line; the entity note gets the fact as usual (A3).
+- Re-stamp `as_of: <today>`, keep `confirmation: unconfirmed` while any line is unconfirmed, and append one `## Change Log` line: `- <today> - <N> decision(s) offered by <agent>, unconfirmed (source: <source>)`.
+- The same line already present (same decision, same date) is not added twice; count it as kept and say `(already on record)` in the receipt.
+- The A1 drops still apply: a decision about a person's health, family or pay is dropped like any other personal fact, and a decision with no source is dropped `no source`.
+
+In **person mode** the same record is the home for an entity-less decision, gated like the CRM sub-scopes: show the line, write it on approval, without `unconfirmed` and with `offered by: <the person>`.
+
 ### A4 — Reply with a receipt, nothing else
 
 The whole reply is this block, so the caller can log it:
 
 ```text
 ref-ingest receipt
-skill: ref-ingest v1.2
+skill: ref-ingest v1.3
 mode: agent-offer
 caller: <agent name | unknown>
 kept: <N>
@@ -81,6 +117,7 @@ dropped-reasons:
 - "<first ~60 chars of the fact>" - <one or more of: personal, health, individual money, no entity named, no source, ambiguous: A or B>
 written:
 - <path from the repo root, e.g. Brain/Company/people/<name>.md> (+<N> facts, new | existing)
+- <e.g. Brain/Company/decisions/Decisions 2026-11.md> (+<N> decisions, new | existing)
 status: unconfirmed - a person confirms later
 reindex: done | skipped (--no-reindex) | failed: <one line>
 ```
@@ -142,7 +179,8 @@ From the incoming info (the user in conversation · a document/contract/deck/cal
 Apply the partition rule from COMPANY-BRAIN-SCHEMA "The two axes":
 - an entity you **watch** (competitor, competitor product, ecosystem player) → `market/`
 - an entity you **own or transact with** (self, client, prospect, partner, vendor, your offering, internal agent, a deal) → `people/ orgs/ products/ engagements/` by `type:`. The internal agent workforce (`type: agent`) lives in `products/` alongside own products — there is no separate `agents/` sub-scope.
-- `type:`/`relationship:` values MUST come from the schema doc's enum (person·organization·product·agent·engagement·interaction × the relationship axis). Never invent a value.
+- a **decision that names no entity** → `decisions/`, the dated monthly record (`type: decision-record`, format in A3a). A decision that names an entity goes to that entity's note as usual.
+- `type:`/`relationship:` values MUST come from the schema doc's enum (person·organization·product·agent·engagement·interaction·decision-record × the relationship axis). Never invent a value.
 
 ### Step 4 — ENTITY RESOLUTION (never duplicate)
 
@@ -195,6 +233,7 @@ Content-hash detection → a changed note triggers a **full FAISS rebuild** (min
   ```
 - **Learn-gate held:** `md5 resources/local-brain-search/data/q_values.json` is byte-identical before and after (a mounted read trains nothing).
 - **Audit trail:** the note has a new `## Change Log` line; the body is the current truth (no append-only drift); `as_of` = today.
+- **Decision with no entity:** a headless offer of "warehouse move confirmed for 2 February, old site closes in March because the lease ends" (source: meeting notes) is kept, not dropped: the receipt lists `Brain/Company/decisions/Decisions <YYYY-MM>.md (+1 decisions, new)`, the line carries the reason, the source, the date, the offering agent and `unconfirmed`, and `/ref-query "what did we decide about the warehouse"` finds it.
 - **Agent offer:** a headless run with one work fact and one personal fact returns a receipt with `kept: 1`, `dropped: 1` and the reason, asks nothing, leaves the existing body unchanged, and adds one `(unconfirmed)` line under `## Offered by agents (unconfirmed)`.
 - **No duplicate:** exactly one note exists for the entity (`grep -ril "<name>" Brain/Company/` returns one canonical file).
 

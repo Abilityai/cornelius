@@ -81,7 +81,7 @@ recall: <topic>
 - ...
 sources: <the notes read, paths from the repo root>
 ```
-or the single line `nothing on record for "<topic>"`. At most 5 findings. Material the user has read but not endorsed is labelled as read, never as their view.
+or the single line `nothing on record for "<topic>"`. At most 5 findings. Material the user has read but not endorsed is labelled as read, never as their view. The label is the result's own `source_kind` field (`your thinking` · `read, not endorsed` · `record`).
 
 **Person mode** — present the findings in this structured format:
 

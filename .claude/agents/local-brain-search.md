@@ -25,8 +25,10 @@ resources/local-brain-search/
 Find notes by meaning, not just keywords.
 
 ```bash
-resources/local-brain-search/run_search.sh "your query here"
+BRAIN_READ_SCOPE=@lookup resources/local-brain-search/run_search.sh "your query here"
 ```
+
+**Scope:** answering a person's question always runs at `BRAIN_READ_SCOPE=@lookup` - their own notes plus the documents and books they added. Without it the search reads only their own notes (`core`), and notes made from a document are not searched. Each hit carries `source_kind` (`your thinking` · `read, not endorsed` · `record`); report it with the finding. If the output says `... notes outside it were not searched`, re-run at `@lookup`; never fall back to grep. The bare examples below are for dedup and maintenance reads.
 
 **Options:**
 - `--limit N` or `-n N` - Maximum results (default: 10)

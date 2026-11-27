@@ -739,6 +739,35 @@ def _vault_note_ids():
         yield rel.as_posix()
 
 
+def source_kind(note_id) -> str:
+    """Plain label for WHERE a search result comes from, shown beside every hit so a
+    reader never mistakes something read for the person's own view:
+      core folders           -> "your thinking"
+      other cognitive scopes -> "read, not endorsed"   (Document Insights, Books)
+      reference scopes       -> "record"               (Company, Canon, Thinkers)
+      anything else          -> its top folder name
+    """
+    top = scope_of(note_id)
+    if top in CORE_FOLDERS:
+        return "your thinking"
+    kind = scope_kind(top)
+    if kind == SCOPE_KIND_REFERENCE:
+        return "record"
+    if kind == SCOPE_KIND_COGNITIVE:
+        return "read, not endorsed"
+    return top
+
+
+def label_sources(results):
+    """Add `source` (folder) and `source_kind` to each result dict, in place."""
+    for r in results or []:
+        nid = r.get("note_id") or ""
+        if nid and "source_kind" not in r:
+            r["source"] = scope_id(nid)
+            r["source_kind"] = source_kind(nid)
+    return results
+
+
 def empty_vault_hint(read_scope=None):
     """Plain-language message for a search that found nothing, when the reason is
     structural rather than "no note matched"; else None.
@@ -760,17 +789,29 @@ def empty_vault_hint(read_scope=None):
         return None                           # caller did not say what it mounted (orb notice)
     if isinstance(read_scope, str):
         read_scope = resolve_read_scope(read_scope)
-    outside = {}
+    outside, inside = {}, 0
     for nid in _vault_note_ids():
         if in_read_scope(nid, read_scope):
-            return None                       # something is mountable: a real no-match
+            inside += 1
+            continue
         top = scope_of(nid)
         outside[top] = outside.get(top, 0) + 1
+    # only scopes a lookup could mount are worth pointing at (not changelogs, inbox, output)
+    lookup = resolve_read_scope("@lookup")
+    outside = {k: v for k, v in outside.items() if k in lookup or k in {f.split("/", 1)[0] for f in lookup}}
     if not outside:
-        return None
+        return None                           # nothing searchable was left out: a real no-match
     where = ", ".join(f"{k} ({v})" for k, v in sorted(outside.items(), key=lambda x: -x[1])[:4])
-    return (f"No notes inside the mounted read scope - all {sum(outside.values())} sit outside it: "
-            f"{where}. Widen the read with BRAIN_READ_SCOPE=@lookup (your notes + what you have read).")
+    widen = ("Search again with BRAIN_READ_SCOPE=@lookup (your notes + what you have read) "
+             "before saying the notes have nothing - never fall back to grep.")
+    if not inside:
+        return (f"No notes inside the mounted read scope - all {sum(outside.values())} sit outside it: "
+                f"{where}. {widen}")
+    # Notes exist in scope but none matched, while notes OUTSIDE the scope were never
+    # searched. A bare search mounts only core (the fail-closed default), so a person's
+    # question about notes made from a document came back empty (first-boot test 2026-11-27).
+    return (f"Nothing matched in the mounted read scope ({inside} note{'s' if inside != 1 else ''}). "
+            f"{sum(outside.values())} notes outside it were not searched: {where}. {widen}")
 
 
 if __name__ == "__main__":
