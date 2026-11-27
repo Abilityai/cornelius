@@ -443,7 +443,7 @@ def main():
         track_usage=not args.no_track,
     )
 
-    hint = empty_vault_hint() if not results else None
+    hint = empty_vault_hint(resolve_read_scope()) if not results else None
 
     if args.json:
         output = {

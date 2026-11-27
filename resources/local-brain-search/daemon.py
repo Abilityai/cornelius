@@ -200,7 +200,7 @@ def search_endpoint(
     return JSONResponse(
         content=json.loads(json.dumps(
             {"query": q, "mode": mode, "results": results, "metadata": meta,
-             **({"hint": h} if not results and (h := empty_vault_hint()) else {})},
+             **({"hint": h} if not results and (h := empty_vault_hint(read_scope)) else {})},
             cls=NumpyEncoder,
         ))
     )

@@ -726,13 +726,51 @@ def vault_note_count(limit=1):
     return n
 
 
-def empty_vault_hint():
-    """Plain-language message when the vault holds no notes yet, else None."""
-    if vault_note_count(1):
+def _vault_note_ids():
+    """note_ids (POSIX, relative to BRAIN_PATH) of real notes - same filter as vault_note_count."""
+    if not BRAIN_PATH.exists():
+        return
+    for f in BRAIN_PATH.rglob("*.md"):
+        rel = f.relative_to(BRAIN_PATH)
+        if any(part in EXCLUDED_FOLDERS for part in rel.parts) or "Templates" in rel.parts:
+            continue
+        if f.name in _SCAFFOLD_NAMES or f.name.startswith("_SAMPLE"):
+            continue
+        yield rel.as_posix()
+
+
+def empty_vault_hint(read_scope=None):
+    """Plain-language message for a search that found nothing, when the reason is
+    structural rather than "no note matched"; else None.
+
+    1. The vault holds no notes at all -> the empty-brain line (#21).
+    2. The vault holds notes but NONE inside the mounted read scope -> say so and
+       name the widening mount. A fresh brain whose only notes came in through
+       /intake has everything in Document Insights/, outside the bare `core`
+       default; without this line a core search of it returns [] and reads exactly
+       like "the index lost the notes" (first-boot test, 2026-11-27).
+    read_scope: a resolved set or a raw mount string; None = check 1 only (callers that
+    render a notice, not a search result).
+    """
+    if not vault_note_count(1):
+        return ("Your brain is empty - there are no notes in the vault yet, so nothing can match. "
+                "Add a note to Brain/02-Permanent/, hand Cornelius a document with /intake, "
+                "or bring in the seed library with /first-run --with-library.")
+    if read_scope is None:
+        return None                           # caller did not say what it mounted (orb notice)
+    if isinstance(read_scope, str):
+        read_scope = resolve_read_scope(read_scope)
+    outside = {}
+    for nid in _vault_note_ids():
+        if in_read_scope(nid, read_scope):
+            return None                       # something is mountable: a real no-match
+        top = scope_of(nid)
+        outside[top] = outside.get(top, 0) + 1
+    if not outside:
         return None
-    return ("Your brain is empty - there are no notes in the vault yet, so nothing can match. "
-            "Add a note to Brain/02-Permanent/, hand Cornelius a document with /intake, "
-            "or bring in the seed library with /first-run --with-library.")
+    where = ", ".join(f"{k} ({v})" for k, v in sorted(outside.items(), key=lambda x: -x[1])[:4])
+    return (f"No notes inside the mounted read scope - all {sum(outside.values())} sit outside it: "
+            f"{where}. Widen the read with BRAIN_READ_SCOPE=@lookup (your notes + what you have read).")
 
 
 if __name__ == "__main__":

@@ -27,11 +27,11 @@ Use Local Brain Search for all semantic search operations.
 
 **Wrapper Scripts:**
 ```bash
-# Semantic search for duplicates/similar notes
-resources/local-brain-search/run_search.sh "query" --limit 10 --json
+# Semantic search for duplicates/similar notes (ALWAYS with the scope prefix - see below)
+BRAIN_READ_SCOPE=core,document-insights resources/local-brain-search/run_search.sh "query" --limit 10 --json
 
 # Find connections for a note
-resources/local-brain-search/run_connections.sh "Note Name" --json
+BRAIN_READ_SCOPE=core,document-insights resources/local-brain-search/run_connections.sh "Note Name" --json
 ```
 
 **READ SCOPE (important for duplicate-detection):** prior extractions live in
@@ -45,7 +45,7 @@ with the scopes you span - `BRAIN_READ_SCOPE=core,document-insights` (default) o
 BRAIN_READ_SCOPE=core,document-insights resources/local-brain-search/run_search.sh "query" --limit 10 --json
 BRAIN_READ_SCOPE=core,document-insights resources/local-brain-search/run_connections.sh "Note Name" --json
 ```
-(Harmless today - the prefix is a no-op until enforcement flips on - and correct after.)
+Scope enforcement is ON: a bare `run_search.sh` reads `core` only, and on a fresh brain every note you or an earlier run wrote sits in `Document Insights/`, outside it - a bare search then returns nothing and reads exactly like "the index lost the notes". Every search command below carries the prefix; keep it when you adapt them. (Book Mode: swap in `core,Books,document-insights`.)
 
 ---
 
@@ -195,7 +195,7 @@ When analyzing large files:
 2. **Search existing knowledge for context**:
    ```bash
    # For each major topic/theme identified:
-   resources/local-brain-search/run_search.sh "topic" --limit 10 --threshold 0.60 --json
+   BRAIN_READ_SCOPE=core,document-insights resources/local-brain-search/run_search.sh "topic" --limit 10 --threshold 0.60 --json
 
    # Review results to understand:
    # * Existing terminology and framing
@@ -244,7 +244,7 @@ For each potential insight, evaluate:
 1. **Search by semantic similarity**:
    ```bash
    # Search for existing notes on the concept
-   resources/local-brain-search/run_search.sh "main idea in 5-10 words" --limit 10 --threshold 0.35 --json
+   BRAIN_READ_SCOPE=core,document-insights resources/local-brain-search/run_search.sh "main idea in 5-10 words" --limit 10 --threshold 0.35 --json
    ```
 
    > **Read-gate corrected twice on 2026-09-02.** The first correction (`>0.70` -> `>0.45`) argued
@@ -289,8 +289,8 @@ For each potential insight, evaluate:
 ### Step 4: Connection Discovery
 - Search for related insights using local brain search:
   ```bash
-  resources/local-brain-search/run_search.sh "topic" --limit 10 --json
-  resources/local-brain-search/run_connections.sh "Note Name" --json
+  BRAIN_READ_SCOPE=core,document-insights resources/local-brain-search/run_search.sh "topic" --limit 10 --json
+  BRAIN_READ_SCOPE=core,document-insights resources/local-brain-search/run_connections.sh "Note Name" --json
   ```
 - Identify potential connections to existing knowledge
 - Note contrasts with conventional thinking
@@ -662,7 +662,7 @@ Provide a structured report:
 4. **For EACH potential insight**:
    - Search vault for duplicates using Local Brain Search:
      ```bash
-     resources/local-brain-search/run_search.sh "insight topic" --limit 5 --json
+     BRAIN_READ_SCOPE=core,document-insights resources/local-brain-search/run_search.sh "insight topic" --limit 5 --json
      ```
    - Evaluate similarity scores
    - Make intelligent decision (Create / Skip / Update)

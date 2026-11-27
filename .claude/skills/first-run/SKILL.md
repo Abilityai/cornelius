@@ -5,10 +5,11 @@ allowed-tools: Bash, Read
 user-invocable: true
 argument-hint: "[--empty | --with-library] [--verify-only]"
 metadata:
-  version: "1.4"
+  version: "1.5"
   created: 2026-10-08
   author: Ability.ai
   changelog:
+    - "1.5: Resumes a cut-off boot bootstrap and finishes it (first-boot test 2026-11-27: the platform restarted the container to apply the Claude credential, the bootstrap log stopped at reindex start, no marker, a stale lock). Step 1 reads `bootstrap.sh --status`, which clears a lock whose process is dead; new Step 5c runs the bootstrap in the foreground - finished steps are skipped - so the marker is written. setup.sh now relaunches the bootstrap on every boot until the marker exists, and the bootstrap is on the orphan-sweep allowlist"
     - "1.4: The search venv now also carries the document converters /intake uses (markitdown, pymupdf, trafilatura) - a fresh Trinity container has no uv, so PDF and Word intake failed. Step 2 tops up an existing venv; new Step 5b converts a real PDF and a real .docx and the report says so. The daemon is on the orphan-sweep allowlist (.trinity/persistent-processes.allow, cornelius#17), so it survives after this run ends (first-boot test of c0f7890, 2026-11-27)"
     - "1.3: Start with an empty brain (Abilityai/cornelius#21). The seed library (~1,050 notes) now lives in library/, outside the vault, the index and the Brain Orb. Step 0 asks once - empty is the default, unattended runs get empty - and --with-library copies it in (also later, any time). The smoke search accepts an empty vault (0 results + the plain empty-vault hint). No prebuilt index ships any more; Step 3 builds it"
     - "1.2: Install in the foreground of one streaming Bash call, never detached - on Trinity v0.9.5 the agent-server orphan sweeper kills unowned background processes ~90 s after container start (the boot-time bootstrap dies at the first long step after pip). Lock-file guidance updated"
@@ -18,7 +19,7 @@ metadata:
 
 # First Run
 
-> ℹ️ Print one line first: `first-run v1.4 - recent: PDF and Word intake work on a fresh container (converters in the search venv, no uv)`. Then proceed.
+> ℹ️ Print one line first: `first-run v1.5 - recent: finishes a boot-time bootstrap the platform restart cut off, and writes its marker`. Then proceed.
 
 ## Purpose
 
@@ -32,7 +33,7 @@ Safe to run repeatedly: every step checks before it acts.
 |--------|----------|------|-------|
 | Search engine | `resources/local-brain-search/` (venv, `requirements.txt`, `run_daemon.sh`, `run_index.sh`, `run_search.sh`) | ✓ | ✓ (venv, daemon, index files) |
 | Index manifest | `resources/local-brain-search/data/manifest.json` | ✓ | via reindex |
-| Bootstrap log and marker (Trinity) | `~/.trinity-bootstrap.log`, `~/.trinity-bootstrap.done`, `~/.trinity-bootstrap.lock` | ✓ | ✓ |
+| Bootstrap log, marker, steps (Trinity) | `~/.trinity-bootstrap.log`, `~/.trinity-bootstrap.done`, `~/.trinity-bootstrap.lock`, `~/.trinity-bootstrap.steps` | ✓ | ✓ (via `.trinity/bootstrap.sh`) |
 | The vault | `$VAULT_BASE_PATH` (default `./Brain`) | ✓ | ✓ (only with `--with-library`: library notes copied in, never overwriting) |
 | Seed library | `library/` (same folder layout as `Brain/`) | ✓ | |
 | Brain Orb data | `resources/agent-visualization/data.json` | | ✓ (re-exported when the library is added) |
@@ -58,12 +59,15 @@ The boot-time bootstrap (`.trinity/bootstrap.sh`) is unattended, so it never add
 ### Step 1 - Is a bootstrap already running or done?
 
 ```bash
-ls -la ~/.trinity-bootstrap.done ~/.trinity-bootstrap.lock 2>/dev/null; tail -5 ~/.trinity-bootstrap.log 2>/dev/null
+[ -f .trinity/bootstrap.sh ] && bash .trinity/bootstrap.sh --status; tail -3 ~/.trinity-bootstrap.log 2>/dev/null
 ```
 
-- `.done` present → the boot-time bootstrap finished (it always leaves the brain empty); skip to Step 5 (verify) - or, if Step 0 chose the library, to Step 2b, then 3, 4, 5.
-- `.lock` present and the log still growing → it is running; poll `tail -3 ~/.trinity-bootstrap.log` every 30 s until `.done` appears or the log stops for 2 minutes. A log that stops after "venv built" or "reindex start" with no process behind it means the boot-time bootstrap was swept (see Step 2) - continue with Step 2; every step checks before it acts, so nothing is redone.
-- Neither → continue with Step 2.
+`--status` clears a lock whose process is gone (a run cut off by a container restart - on Trinity the platform restarts every new instance minutes after its first start to apply the Claude credential) and prints one of:
+
+- `done (<date>)` → the boot-time bootstrap finished (it always leaves the brain empty); skip to Step 5 (verify) - or, if Step 0 chose the library, to Step 2b, then 3, 4, 5.
+- `running (pid N)` → a live bootstrap is at work; poll `bash .trinity/bootstrap.sh --status` every 30 s (each call a short Bash call) until it says `done`, or stops saying `running` - then continue with Step 2.
+- `interrupted after: venv,...` / `interrupted before any step finished` / `not started` → continue with Step 2. Every step checks before it acts, so nothing finished is redone, and Step 5c finishes the bootstrap itself.
+- No `.trinity/bootstrap.sh` (a local machine) → continue with Step 2.
 
 ### Step 2 - The Python environment
 
@@ -152,6 +156,16 @@ python3 -I resources/local-brain-search/intake_check.py --convert-test
 
 It writes a small PDF and a small `.docx`, converts both with the exact commands `/intake` uses, and prints `PDF conversion: ok` and `docx conversion: ok`. Any `missing:` or `FAILED` line goes into the report as printed - never "ok". A missing converter means Step 2 did not finish: run its top-up command and this step again.
 
+### Step 5c - Finish the boot-time bootstrap (Trinity only)
+
+If `.trinity/bootstrap.sh` exists and `--status` did not say `done`, run it once in the foreground - it skips every step already finished (the venv check takes a second, a stamped reindex is skipped, the daemon `ensure` is a no-op when fresh) and writes `~/.trinity-bootstrap.done` when its smoke search passes:
+
+```bash
+timeout 280 bash .trinity/bootstrap.sh; bash .trinity/bootstrap.sh --status; tail -4 ~/.trinity-bootstrap.log
+```
+
+`done (...)` is the pass. Anything else: put the status line and the last log line in the report as printed - never report the bootstrap as finished without the marker. Without this step a bootstrap that a restart cut off restarts at every boot until the marker exists (harmless, but each boot rechecks the venv and the index).
+
 ### Step 6 - Report
 
 One short block, no prose padding:
@@ -165,10 +179,11 @@ Brain          : empty (seed library not added - /first-run --with-library adds 
 Conversions    : PDF ok · docx ok (from the search venv) | <the missing:/FAILED line as printed>
 Smoke search   : 3 results - <title 1> · <title 2> · <title 3> | empty brain - search answered plainly
 Brain Orb data : refreshed - <n> nodes | n/a
+Boot bootstrap : done (marker written <date>) | finished now (was: interrupted after <steps>) | n/a (local machine) | <status line as printed>
 Try next       : empty → write a note in Brain/02-Permanent/ or /intake <a file or link>   ·   library → /recall <topic>   ·   /advise <a problem you are weighing>
 ```
 
-If `--verify-only` was passed, run Steps 1, 2 (check only), 3 (status only), 5, 5b (temporary files only) and 6 and change nothing (no Step 0 question, no Step 2b).
+If `--verify-only` was passed, run Steps 1, 2 (check only), 3 (status only), 5, 5b (temporary files only) and 6 and change nothing (no Step 5c) (no Step 0 question, no Step 2b).
 
 ## Refusals and limits
 
