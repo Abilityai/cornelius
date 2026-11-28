@@ -23,8 +23,10 @@ When a note is substantially edited, this skill computes which downstream notes 
 ### Step 1: Run propagation
 
 ```bash
+(
 cd $PROJECT_ROOT/resources/brain-graph
 ../local-brain-search/venv/bin/python cli.py propagate "<NOTE_NAME>"
+)
 ```
 
 Optional: specify change magnitude (0.0-1.0) for partial changes:

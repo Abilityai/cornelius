@@ -87,7 +87,7 @@ python3 --version 2>/dev/null && echo "PASS: Python3 available" || echo "FAIL: P
 uv --version 2>/dev/null && echo "PASS: uv available" || echo "FAIL: uv not found"
 
 # Test 2.3: Check Local Brain Search can run (simple test)
-cd resources/local-brain-search && python3 -c "import sqlite3; import json; print('PASS: Core Python modules available')" 2>/dev/null || echo "FAIL: Python modules missing"
+(cd resources/local-brain-search && python3 -c "import sqlite3; import json; print('PASS: Core Python modules available')" 2>/dev/null || echo "FAIL: Python modules missing")
 
 # Test 2.4: Check mermaid-diagram MCP is responsive
 # (Just verify the skill file exists - actual MCP test would require invocation)

@@ -421,6 +421,29 @@ def overlay_vault_delta(raw_nodes, raw_edges):
     return len(new_bodies), total_missing
 
 
+def orb_summary(shown, total, links, total_links, wikilinks_only, left_out=None):
+    """The one `orb:` line /first-run copies into its report.
+
+    The orb is a legible PICTURE, not the index: it draws a sample (per-layer caps
+    plus always-included hubs, recent notes and tensions - see DEFAULT_CONFIG), so
+    "516 nodes" against 1,067 indexed notes is by design. The line says so, and says
+    where the links come from, so nobody reads the gap as notes being dropped.
+    """
+    line = f"orb: {shown} of {total} notes shown"
+    if shown < total:
+        line += " (a sample: the most-connected and most-recent notes of each layer; caps in viz_config.json"
+        if left_out:
+            top = sorted(left_out.items(), key=lambda kv: -kv[1])[:3]
+            line += "; left out: " + ", ".join(f"{n} {k}" for k, n in top)
+        line += ")"
+    line += f", {links} links"
+    if links < total_links:
+        line += f" of {total_links}"
+    if wikilinks_only:
+        line += " (wiki-links only - similarity links appear after the Brain Dependency Graph is built)"
+    return line
+
+
 def _empty_notice():
     try:
         from memory_config import empty_vault_hint
@@ -854,7 +877,12 @@ def main():
     if data["meta"].get("notice"):
         _report.append("orb: nothing to show yet - the vault has no notes, only its folders and templates")
     else:
-        _report.append(f"orb: {len(out_nodes)} nodes, {len(out_edges)} edges")
+        _left = {}
+        for nid in raw_nodes:
+            if nid not in selected:
+                _left[scope_of(nid)] = _left.get(scope_of(nid), 0) + 1
+        _report.append(orb_summary(len(out_nodes), len(raw_nodes), len(out_edges), len(raw_edges),
+                                   wikilinks_only=not have_enrich, left_out=_left))
     print("\n".join(_report), file=sys.stderr)
 
 

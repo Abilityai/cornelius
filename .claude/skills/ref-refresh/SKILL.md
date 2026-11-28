@@ -50,9 +50,11 @@ The **temporal maintenance** loop: which records have gone stale, and which can 
 
 For every `Brain/Company/*/*.md`, read `type`/`relationship`/`status`/`as_of`, compute `today − as_of` in days, and compare to the SLA for that type. Collect the overdue notes; sort by how far over SLA they are. Skip `status: superseded`, own-`product` (on-change) and `decision-record` (historical).
 ```bash
+(
 cd $PROJECT_ROOT/Brain/Company
 # example: market notes older than 14 days (compute days-since in the agent; illustrative)
 for f in market/*.md; do a=$(grep -m1 '^as_of:' "$f" | cut -d' ' -f2); echo "$a  $f"; done | sort
+)
 ```
 
 ### Step 2 — Split the queue by scope
@@ -67,7 +69,7 @@ For each stale `market/` item, hand it to `/ref-ingest` with the fresh signal an
 
 In **9d** the fetch source is whatever the invoker supplies; the **autonomous web re-fetch is wired in 9e** (domain-watch feeding `market/` through `ref-ingest`). If no fresh signal is available this run, record the item as "queued, awaiting signal" rather than restamping a fact you did not actually re-verify. After all market items, reindex **once**:
 ```bash
-cd resources/local-brain-search && ./run_index.sh && ./run_daemon.sh restart
+(cd resources/local-brain-search && ./run_index.sh && ./run_daemon.sh restart)
 ```
 
 ### Step 4 — Report

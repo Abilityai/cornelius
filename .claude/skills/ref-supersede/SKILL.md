@@ -54,7 +54,7 @@ Write the new note; edit the old note to `status: superseded` + the `superseded_
 ### Step 4 — Reindex
 
 ```bash
-cd resources/local-brain-search && ./run_index.sh && ./run_daemon.sh restart   # :7437, RESTART not reload
+(cd resources/local-brain-search && ./run_index.sh && ./run_daemon.sh restart)   # :7437, RESTART not reload
 ```
 (No BDG bootstrap — reference notes are BDG-excluded.)
 

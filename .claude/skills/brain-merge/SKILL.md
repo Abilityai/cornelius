@@ -125,8 +125,7 @@ done < /tmp/unique_to_source.txt
 #### Step 4: Refresh index in target
 
 ```bash
-cd [TARGET_AGENT_ROOT]
-resources/local-brain-search/run_index.sh
+(cd [TARGET_AGENT_ROOT] && resources/local-brain-search/run_index.sh)
 ```
 
 Report total files copied, skipped, and confirm index refreshed.
@@ -163,8 +162,8 @@ rsync -av --ignore-existing \
 #### Step 4: Refresh indexes in both agents
 
 ```bash
-cd [TARGET_AGENT_ROOT] && resources/local-brain-search/run_index.sh
-cd [SOURCE_AGENT_ROOT] && resources/local-brain-search/run_index.sh
+(cd [TARGET_AGENT_ROOT] && resources/local-brain-search/run_index.sh)
+(cd [SOURCE_AGENT_ROOT] && resources/local-brain-search/run_index.sh)
 ```
 
 Report: files exchanged in each direction, both indexes refreshed.

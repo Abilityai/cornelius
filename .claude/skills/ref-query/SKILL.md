@@ -57,12 +57,14 @@ SCOPE_DIR="Brain/${scope:-Company}"
 
 Frontmatter is the query surface. Examples:
 ```bash
+(
 cd Brain/Company
 # all active competitors
 grep -rlE '^relationship: competitor' */*.md | while read f; do grep -qE '^status: active' "$f" && echo "$f"; done
 # active engagements + their as_of
 for f in engagements/*.md; do grep -qE '^status: active' "$f" && printf "%s  as_of=%s valid_until=%s\n" \
   "$(basename "$f" .md)" "$(grep -m1 '^as_of:' "$f" | cut -d' ' -f2)" "$(grep -m1 '^valid_until:' "$f" | cut -d' ' -f2)"; done
+)
 ```
 For an "expiring in N days" filter, compare `valid_until` to today + N. Note: notes that predate incremental `valid_until` adoption have no window — report them as "no recorded term" rather than dropping them.
 

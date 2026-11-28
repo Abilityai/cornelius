@@ -5,10 +5,11 @@ allowed-tools: Bash, Read
 user-invocable: true
 argument-hint: "[--empty | --with-library] [--verify-only]"
 metadata:
-  version: "1.6"
+  version: "1.7"
   created: 2026-10-08
   author: Ability.ai
   changelog:
+    - "1.7: Every `cd` runs in a subshell, so the session stays at the repo root after the playbook - before, the Step 2-5 `cd resources/local-brain-search` stayed in effect, the orb export and every later search command answered `No such file or directory`, and the Brain told the person the engine was not set up while the daemon was serving. The Brain Orb line says how many notes the orb shows out of how many, and why (a capped sample; wiki-links only before the dependency graph is built)"
     - "1.6: The Brain Orb line states the count or says plainly there is nothing to show yet. The export now ends with one `orb:` summary line and Step 5 keeps that line; before, `tail -3` cut the node count off and the report read \"refreshed\" with no number (first-boot test 2026-11-27)"
     - "1.5: Resumes a cut-off boot bootstrap and finishes it (first-boot test 2026-11-27: the platform restarted the container to apply the Claude credential, the bootstrap log stopped at reindex start, no marker, a stale lock). Step 1 reads `bootstrap.sh --status`, which clears a lock whose process is dead; new Step 5c runs the bootstrap in the foreground - finished steps are skipped - so the marker is written. setup.sh now relaunches the bootstrap on every boot until the marker exists, and the bootstrap is on the orphan-sweep allowlist"
     - "1.4: The search venv now also carries the document converters /intake uses (markitdown, pymupdf, trafilatura) - a fresh Trinity container has no uv, so PDF and Word intake failed. Step 2 tops up an existing venv; new Step 5b converts a real PDF and a real .docx and the report says so. The daemon is on the orphan-sweep allowlist (.trinity/persistent-processes.allow, cornelius#17), so it survives after this run ends (first-boot test of c0f7890, 2026-11-27)"
@@ -73,7 +74,7 @@ The boot-time bootstrap (`.trinity/bootstrap.sh`) is unattended, so it never add
 ### Step 2 - The Python environment
 
 ```bash
-cd resources/local-brain-search && ./venv/bin/python -c "import faiss, sentence_transformers, networkx, markitdown, pymupdf, trafilatura; print('ok')" 2>&1 | tail -1
+(cd resources/local-brain-search && ./venv/bin/python -c "import faiss, sentence_transformers, networkx, markitdown, pymupdf, trafilatura; print('ok')" 2>&1 | tail -1)
 ```
 
 The same venv carries the search engine and the document converters `/intake` uses (markitdown for Word/PowerPoint/Excel/HTML, pymupdf for PDF, trafilatura for web pages) - nothing else, no `uv`, is needed.
@@ -81,13 +82,13 @@ The same venv carries the search engine and the document converters `/intake` us
 If that prints `ok`, skip to Step 2b. If the venv exists and only the converters are missing (an install from before 1.4), top it up - seconds, nothing is rebuilt:
 
 ```bash
-cd resources/local-brain-search && ./venv/bin/pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu -r requirements.txt 2>&1 | tail -2
+(cd resources/local-brain-search && ./venv/bin/pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu -r requirements.txt 2>&1 | tail -2)
 ```
 
 Otherwise build it in the **foreground of one Bash call**, with output streaming (pip prints as it goes, so the platform's stall watchdog does not fire; on a 2-vCPU box with the CPU-only torch wheel this takes 1-2 minutes, ~1.5 GB):
 
 ```bash
-cd resources/local-brain-search && python3 -m venv venv && ./venv/bin/pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu -r requirements.txt 2>&1 | grep -v -E "Downloading|Using cached|^\s+━" ; ./venv/bin/python -c "import faiss, sentence_transformers; print('ok')"
+(cd resources/local-brain-search && python3 -m venv venv && ./venv/bin/pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu -r requirements.txt 2>&1 | grep -v -E "Downloading|Using cached|^\s+━" ; ./venv/bin/python -c "import faiss, sentence_transformers; print('ok')")
 ```
 
 Tell the user it is installing before you run it. On an error, paste the last 20 lines and stop - do not retry blindly. **Do not run the install detached (`nohup … &`) on Trinity**: the agent-server's orphan sweeper kills background processes it does not own ~90 s after container start, which is exactly how the boot-time bootstrap gets cut off mid-way - this playbook exists to finish the job inside an execution the platform owns.
@@ -116,13 +117,13 @@ The library stays in `library/` as the source; the vault copies are the person's
 No index ships with the template; this builds it from whatever is in the vault right now - a handful of templates for an empty brain (seconds), about 6,600 chunks with the library (a few minutes on 2 vCPU). It downloads the embedding model (~90 MB) on first use. Run it again after Step 2b. The indexer embeds at most 500 new notes per call and prints `RESULT ... remaining=<n>`; **repeat the command until it prints `remaining=0`** (the library takes three calls, ~3 minutes each on 2 vCPU - each call reuses what the last one embedded).
 
 ```bash
-cd resources/local-brain-search && ./run_index.sh 2>&1 | tail -8   # repeat until RESULT shows remaining=0
+(cd resources/local-brain-search && ./run_index.sh 2>&1 | tail -8)   # repeat until RESULT shows remaining=0
 ```
 
 ### Step 4 - The search daemon
 
 ```bash
-cd resources/local-brain-search && timeout 120 ./run_daemon.sh start
+(cd resources/local-brain-search && timeout 120 ./run_daemon.sh start)
 ```
 
 "Daemon already running" is success. "started but not yet responding" → wait 20 s and run `./run_daemon.sh status`. If the daemon will not come up, searches still work through the CLI fallback, only slower - do not block on it.
@@ -132,10 +133,10 @@ On Trinity the daemon survives after this run ends only because `.trinity/persis
 ### Step 5 - Verify with one smoke search
 
 ```bash
-cd resources/local-brain-search && BRAIN_READ_SCOPE=@lookup ./run_search.sh "decision under uncertainty" --limit 3 --json 2>/dev/null | python3 -c "import sys,json; d=json.load(sys.stdin); r=d.get('results',[]); print(len(r),'results'); [print('-', x.get('title') or x.get('note') or x.get('path')) for x in r[:3]]; print(d.get('hint',''))"
+(cd resources/local-brain-search && BRAIN_READ_SCOPE=@lookup ./run_search.sh "decision under uncertainty" --limit 3 --json 2>/dev/null | python3 -c "import sys,json; d=json.load(sys.stdin); r=d.get('results',[]); print(len(r),'results'); [print('-', x.get('title') or x.get('note') or x.get('path')) for x in r[:3]]; print(d.get('hint',''))")
 ```
 
-(`@lookup` is the role mount `/recall` and `/search-vault` use: your own notes plus the reading pile, where the library lands.)
+(`@lookup` is the role mount `/recall` and `/search-vault` use: your own notes, the reading pile where the library lands, and the Company records.)
 
 - **Library added:** three titles → the engine, the index and the library are all there. Zero results → the index was not rebuilt after Step 2b (run Step 3 again) or the daemon is serving the old one (`./run_daemon.sh restart`).
 - **Empty brain:** `0 results` followed by the line `Your brain is empty - ...` is the **pass**: search works and says so plainly. Zero results *without* that line means the vault has notes but none matched - fine too.
@@ -147,7 +148,7 @@ Then refresh the Brain Orb so it draws what is actually in the vault (on Trinity
 resources/local-brain-search/venv/bin/python resources/agent-visualization/export_data.py 2>&1 | grep -E '^orb: |Error|Traceback' | tail -3
 ```
 
-The export always ends with one `orb:` line, and the report's Brain Orb line copies it: `orb: <n> nodes, <e> edges`, or on an empty brain `orb: nothing to show yet - the vault has no notes, only its folders and templates` (the export also sets `meta.notice`, so the orb itself says the brain is empty instead of showing nothing). No `orb:` line means the export failed: report the error line as printed, never "refreshed".
+The export always ends with one `orb:` line, and the report's Brain Orb line copies it: `orb: <n> of <total> notes shown (a sample: ...), <e> links (...)` - the orb draws a capped sample of the vault, not every indexed note, and the line says so (copy it whole; never explain the gap yourself), or on an empty brain `orb: nothing to show yet - the vault has no notes, only its folders and templates` (the export also sets `meta.notice`, so the orb itself says the brain is empty instead of showing nothing). No `orb:` line means the export failed: report the error line as printed, never "refreshed".
 
 ### Step 5b - Prove document conversion
 
@@ -179,7 +180,7 @@ Index          : rebuilt now | already current - <notes> notes, <edges> edges (m
 Brain          : empty (seed library not added - /first-run --with-library adds it) | library added - <n> notes (<k> already present)
 Conversions    : PDF ok · docx ok (from the search venv) | <the missing:/FAILED line as printed>
 Smoke search   : 3 results - <title 1> · <title 2> · <title 3> | empty brain - search answered plainly
-Brain Orb data : refreshed - <n> nodes, <e> edges | refreshed - nothing to show yet (the vault has no notes) | FAILED: <error line> | n/a
+Brain Orb data : refreshed - <the orb: line as printed, without `orb: `> | refreshed - nothing to show yet (the vault has no notes) | FAILED: <error line> | n/a
 Boot bootstrap : done (marker written <date>) | finished now (was: interrupted after <steps>) | n/a (local machine) | <status line as printed>
 Try next       : empty → write a note in Brain/02-Permanent/ or /intake <a file or link>   ·   library → /recall <topic>   ·   /advise <a problem you are weighing>
 ```

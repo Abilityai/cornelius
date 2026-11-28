@@ -257,8 +257,10 @@ Examples:
 
 3. **Download and Save Images**
    ```bash
+   (
    cd "$VAULT_BASE_PATH/Brain/04-Output/Articles/[Article-Title]/images"
    curl -o "[descriptive-filename].png" "[diagram-url]"
+   )
    ```
 
 4. **Verify Saved Files**

@@ -28,6 +28,7 @@ Maintain a **reference-kind scope** — a non-core Brain/ layer of *external fac
 ## Step 0 — Resolve the scope and confirm it is registered + reference-kind
 
 ```bash
+(
 cd resources/local-brain-search
 SCOPE="${1:-Company}"   # or parse scope=<Folder> from args
 ./venv/bin/python - "$SCOPE" <<'PY'
@@ -37,6 +38,7 @@ print("kind         :", mc.scope_kind(folder))
 print("is_reference :", mc.is_reference_scope(folder))
 print("is_core      :", folder in mc.CORE_FOLDERS)
 PY
+)
 ```
 
 - If `is_reference` is **False**: the scope is not registered as reference. Stop and either (a) add a `ScopeDef(..., SCOPE_KIND_REFERENCE, False, (...))` to `SCOPE_REGISTRY` in `memory_config.py`, or (b) `register_scope("<Folder>", kind="reference", slugs=(...))`. See the schema doc → "Adding a new reference scope". Do **not** write entity notes into a non-reference folder.
@@ -84,7 +86,7 @@ agent_version: 01.25
 ## Step 3 — Reindex (so the note becomes a connection target)
 
 ```bash
-cd resources/local-brain-search && ./run_index.sh        # then, if the daemon is running:
+(cd resources/local-brain-search && ./run_index.sh)        # then, if the daemon is running:
 ./run_daemon.sh restart                                   # daemon is long-lived: RESTART, never reload
 ```
 

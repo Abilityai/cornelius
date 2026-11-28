@@ -158,4 +158,10 @@ fi
 # disables both the start and the wait.
 
 # Fallback: direct Python (original behavior)
+# No daemon answered and there is no venv: say so plainly (the agent reads this
+# line; a bare "No such file or directory" was taken for "the engine is gone").
+if [ ! -x "$SCRIPT_DIR/venv/bin/python" ]; then
+    echo "Search engine not installed: no Python environment at $SCRIPT_DIR/venv and no search daemon answering on port $PORT. Run /first-run to set it up." >&2
+    exit 3
+fi
 "$SCRIPT_DIR/venv/bin/python" "$SCRIPT_DIR/search.py" "$@"
