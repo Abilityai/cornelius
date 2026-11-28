@@ -131,6 +131,16 @@ python index_brain.py
 python index_brain.py --force
 ```
 
+## Memory
+
+The embedding model (torch + sentence-transformers) is the expensive part, about 0.5 GB per process that loads it. Three rules keep one copy resident:
+
+- **One model per machine.** `index_brain.py` embeds new chunks through the running daemon (`POST /embed`) and does not import torch at all when the daemon is up; with no daemon it loads the model itself, as before. If the previous run's `run_daemon.sh ensure` is restarting the daemon, the indexer waits for it (`BRAIN_DAEMON_WAIT`, default 90 s) instead of loading a second copy. `BRAIN_INDEX_EMBED=local` forces the in-process path.
+- **No duplicate daemons, no cold reads during a restart.** The daemon binds its port before it loads anything, so a start that loses the race exits in about a second. `run_search.sh` waits for an in-progress daemon start (`BRAIN_DAEMON_WAIT`, default 30 s) before falling back to the cold CLI path, which would load another model.
+- **Freed memory goes back to the OS.** `allocator.py` (the first import of `daemon.py`, `index_brain.py`, `search.py`) pins glibc's mmap threshold so the activation buffers of each embedding batch are returned when freed instead of staying in the heap.
+
+None of this changes a number: same model, same `encode()` arguments, same 512-chunk calls, so vectors, scores and rankings are bit-identical.
+
 ## Data Storage
 
 ```
