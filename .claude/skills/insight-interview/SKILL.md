@@ -33,7 +33,7 @@ The KB is the context, not the content. Every question is anchored in a note you
 Run semantic search on the topic using Local Brain Search:
 
 ```bash
-cd resources/local-brain-search && python search.py "[topic]" --top_k 15 --mode spreading
+(cd resources/local-brain-search && python search.py "[topic]" --top_k 15 --mode spreading)
 ```
 
 Also run a keyword grep across permanent notes:

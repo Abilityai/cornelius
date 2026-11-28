@@ -58,6 +58,7 @@ Comprehensively test the new memory improvements implemented in Local Brain Sear
 Verify all components are installed and accessible.
 
 ```bash
+(
 cd resources/local-brain-search
 source venv/bin/activate
 
@@ -69,6 +70,7 @@ python -c "import faiss; import networkx; import sentence_transformers; print('A
 
 # Check new modules exist
 python -c "from intent import classify_intent; from spreading import spreading_activation; from learning import get_learning_stats; print('All new modules OK')"
+)
 ```
 
 **Expected:** All files exist, all imports succeed.
@@ -80,9 +82,11 @@ python -c "from intent import classify_intent; from spreading import spreading_a
 Test that queries are correctly classified into four intent types.
 
 ```bash
+(
 cd resources/local-brain-search
 source venv/bin/activate
 python intent.py
+)
 ```
 
 **Test Cases:**
@@ -109,6 +113,7 @@ python intent.py
 Compare results between static (traditional) and spreading activation modes.
 
 ```bash
+(
 cd resources/local-brain-search
 
 # Test 1: Static search
@@ -120,6 +125,7 @@ cd resources/local-brain-search
 # Test 3: Synthesis query (where spreading should excel)
 ./run_search.sh "connect Buddhism neuroscience consciousness" --mode static --limit 5 --json
 ./run_search.sh "connect Buddhism neuroscience consciousness" --mode spreading --limit 5 --json
+)
 ```
 
 **Expected Results:**
@@ -139,6 +145,7 @@ cd resources/local-brain-search
 Verify that different intents produce different spreading parameters.
 
 ```bash
+(
 cd resources/local-brain-search
 
 # Factual query (should use minimal spreading)
@@ -146,6 +153,7 @@ cd resources/local-brain-search
 
 # Synthesis query (should use maximum spreading)
 ./run_search.sh "connect dopamine Buddhism identity" --mode spreading --json 2>&1 | grep -E "(iterations|Intent)"
+)
 ```
 
 **Expected:**
@@ -168,12 +176,14 @@ Verify that hub notes don't dominate results.
 > only its *centrality ranking* changed (it is no longer a top hub).
 
 ```bash
+(
 cd resources/local-brain-search
 
 # Search for topic where Dopamine.md is a known hub
 ./run_search.sh "motivation reward behavior" --mode spreading --limit 10 --json
 
 # Check if Dopamine.md dominates or if diverse results appear
+)
 ```
 
 **Expected:**
@@ -192,6 +202,7 @@ cd resources/local-brain-search
 Check current learning system state.
 
 ```bash
+(
 cd resources/local-brain-search
 
 # Check learning status
@@ -202,6 +213,7 @@ cd resources/local-brain-search
 
 # Export full learning data
 ./run_learning.sh export --output /tmp/learning_export.json
+)
 ```
 
 **Expected:**
@@ -221,6 +233,7 @@ cd resources/local-brain-search
 Verify that search operations are being tracked.
 
 ```bash
+(
 cd resources/local-brain-search
 
 # Count events before
@@ -236,6 +249,7 @@ echo "Events before: $BEFORE, after: $AFTER, new: $((AFTER - BEFORE))"
 
 # Verify event structure
 tail -5 data/usage_history.jsonl | python -m json.tool
+)
 ```
 
 **Expected:**
@@ -249,6 +263,7 @@ tail -5 data/usage_history.jsonl | python -m json.tool
 Verify that different event types produce appropriate Q-value changes.
 
 ```bash
+(
 cd resources/local-brain-search
 
 # Get current Q-value for a test note
@@ -259,6 +274,7 @@ cat data/q_values.json | python -c "import json,sys; d=json.load(sys.stdin); pri
 
 # Check Q-value increased
 cat data/q_values.json | python -c "import json,sys; d=json.load(sys.stdin); print(d.get('02-Permanent/Dopamine.md', 'not found'))"
+)
 ```
 
 **Expected Q-value changes:**
@@ -276,6 +292,7 @@ cat data/q_values.json | python -c "import json,sys; d=json.load(sys.stdin); pri
 Verify that Q-values influence search result ranking.
 
 ```bash
+(
 cd resources/local-brain-search
 
 # First, artificially boost a note's Q-value
@@ -293,6 +310,7 @@ print('Q-value set for Identity.md')
 ./run_search.sh "belief systems self" --mode spreading --limit 10 --json
 
 # Check if Identity.md ranks higher due to Q-value boost
+)
 ```
 
 **Expected:**
@@ -306,6 +324,7 @@ print('Q-value set for Identity.md')
 Verify that --no-track flag prevents usage logging.
 
 ```bash
+(
 cd resources/local-brain-search
 
 # Count events before
@@ -318,6 +337,7 @@ BEFORE=$(wc -l < data/usage_history.jsonl)
 AFTER=$(wc -l < data/usage_history.jsonl)
 
 echo "Events should be same: before=$BEFORE, after=$AFTER"
+)
 ```
 
 **Expected:** No new events logged when --no-track is used.
@@ -329,6 +349,7 @@ echo "Events should be same: before=$BEFORE, after=$AFTER"
 Verify memory_config.py is the single source of truth.
 
 ```bash
+(
 cd resources/local-brain-search
 
 # Print current configuration
@@ -341,6 +362,7 @@ print('Spreading max_iterations:', MEMORY_CONFIG['spreading']['max_iterations'])
 print('Learning enabled:', MEMORY_CONFIG['learning']['enabled'])
 print('Q-weight:', MEMORY_CONFIG['learning']['q_weight'])
 "
+)
 ```
 
 **Expected:**
@@ -354,6 +376,7 @@ print('Q-weight:', MEMORY_CONFIG['learning']['q_weight'])
 Measure search latency for both modes.
 
 ```bash
+(
 cd resources/local-brain-search
 
 # Benchmark static search
@@ -361,6 +384,7 @@ time (for i in {1..5}; do ./run_search.sh "dopamine" --mode static --limit 10 --
 
 # Benchmark spreading search
 time (for i in {1..5}; do ./run_search.sh "dopamine" --mode spreading --limit 10 --no-track > /dev/null; done)
+)
 ```
 
 **Expected:**
@@ -375,6 +399,7 @@ time (for i in {1..5}; do ./run_search.sh "dopamine" --mode spreading --limit 10
 Test boundary conditions.
 
 ```bash
+(
 cd resources/local-brain-search
 
 # Empty query
@@ -388,6 +413,7 @@ cd resources/local-brain-search
 
 # Unicode query
 ./run_search.sh "意識 consciousness" --mode spreading --limit 5 --json
+)
 ```
 
 **Expected:**

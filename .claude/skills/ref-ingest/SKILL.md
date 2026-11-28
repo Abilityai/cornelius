@@ -160,6 +160,7 @@ The **one operation every input funnels through** for a reference scope: `incomi
 ### Step 1 — Resolve the scope + confirm reference-kind
 
 ```bash
+(
 cd resources/local-brain-search
 SCOPE="${scope:-Company}"
 ./venv/bin/python - "$SCOPE" <<'PY'
@@ -167,6 +168,7 @@ import sys, memory_config as mc
 f = sys.argv[1]
 print("kind:", mc.scope_kind(f), "| is_reference:", mc.is_reference_scope(f))
 PY
+)
 ```
 If `is_reference` is False → **stop** (this skill only writes reference scopes). See the schema doc's "Adding a new reference scope".
 
@@ -218,7 +220,7 @@ Compare the incoming fact to the note's current body:
 ### Step 7 — Reindex (unless deferred)
 
 ```bash
-cd resources/local-brain-search && ./run_index.sh && ./run_daemon.sh restart   # daemon on :7437, RESTART not reload
+(cd resources/local-brain-search && ./run_index.sh && ./run_daemon.sh restart)   # daemon on :7437, RESTART not reload
 ```
 Content-hash detection → a changed note triggers a **full FAISS rebuild** (minutes). Reference notes are **BDG-excluded**, so **no `run_brain_graph.sh bootstrap` is needed**. If invoked with `--no-reindex` (batch mode, e.g. by `ref-refresh` over many market items), **skip this step** and let the batch caller reindex once at the end.
 

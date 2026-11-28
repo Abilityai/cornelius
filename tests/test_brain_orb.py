@@ -285,3 +285,42 @@ class TestEmptyBrainDefault(unittest.TestCase):
                              capture_output=True, text=True, cwd=str(ROOT)).stdout.split()
         self.assertEqual([f for f in out if not f.endswith("README.md")], [],
                          "a prebuilt index would put the library back into search")
+
+
+class TestOrbSummaryLine(unittest.TestCase):
+    """The orb draws a capped sample; its `orb:` line must say so and account for
+    every note (shown + left out = total), so a gap against the index count is not
+    read as notes being dropped (first-run with the library, 2026-11-28)."""
+
+    def test_sampled_vault_is_explained_and_accounted_for(self):
+        tmp = Path(tempfile.mkdtemp(prefix="orb-summary-"))
+        try:
+            viz = tmp / "resources" / "agent-visualization"
+            viz.mkdir(parents=True)
+            shutil.copy2(ROOT / "resources/agent-visualization/export_data.py", viz)
+            shutil.copy2(ROOT / "resources/agent-visualization/viz_config.json", viz)
+            lbs = tmp / "resources" / "local-brain-search"
+            lbs.mkdir(parents=True)
+            shutil.copy2(ROOT / "resources/local-brain-search/memory_config.py", lbs)
+            total = 700   # over the impression cap in viz_config.json (480) plus the always-included sets
+            for i in range(total):
+                p = tmp / "Brain" / "Document Insights" / "s" / f"Finding {i}.md"
+                p.parent.mkdir(parents=True, exist_ok=True)
+                p.write_text(f"# Finding {i}\n\nSee [[Finding {(i + 1) % total}]].\n")
+            env = dict(os.environ)
+            env.pop("BRAIN_READ_SCOPE", None)
+            out = subprocess.run([sys.executable, "-I", str(viz / "export_data.py")], env=env,
+                                 capture_output=True, text=True, timeout=120, cwd=str(tmp))
+            self.assertEqual(out.returncode, 0, out.stderr)
+            line = out.stderr.strip().splitlines()[-1]
+            m = re.match(r"orb: (\d+) of (\d+) notes shown \(a sample.*left out: (\d+) Document Insights\)", line)
+            self.assertTrue(m, line)
+            shown, of, left = map(int, m.groups())
+            self.assertEqual(of, total)
+            self.assertLess(shown, total)
+            self.assertEqual(shown + left, total, line)
+            self.assertIn("wiki-links only", line)
+            data = json.loads((viz / "data.json").read_text())
+            self.assertEqual(len(data["nodes"]), shown)
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)

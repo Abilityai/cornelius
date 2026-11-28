@@ -294,7 +294,7 @@ def resolve_read_scope(raw=None) -> frozenset:
 # honour the toggles; the contract lives in .claude/skills/scope-mount/SKILL.md.
 ROLE_MOUNTS = {
     "@reasoning": "core,Books,document-insights",
-    "@lookup":    "core,Books,document-insights",
+    "@lookup":    "core,Books,document-insights,company",   # a lookup answers about records too
 }
 # Committed (not in data/) so the switch travels with git to every runtime.
 SCOPE_TOGGLES_PATH = Path(os.environ.get("SCOPE_TOGGLES_PATH", PROJECT_DIR / "scope_toggles.json"))
@@ -802,7 +802,7 @@ def empty_vault_hint(read_scope=None):
     if not outside:
         return None                           # nothing searchable was left out: a real no-match
     where = ", ".join(f"{k} ({v})" for k, v in sorted(outside.items(), key=lambda x: -x[1])[:4])
-    widen = ("Search again with BRAIN_READ_SCOPE=@lookup (your notes + what you have read) "
+    widen = ("Search again with BRAIN_READ_SCOPE=@lookup (your notes, what you have read and your records) "
              "before saying the notes have nothing - never fall back to grep.")
     if not inside:
         return (f"No notes inside the mounted read scope - all {sum(outside.values())} sit outside it: "

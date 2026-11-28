@@ -102,9 +102,11 @@ returns the tools the turn actually held, so verify the judge used none rather t
 Dependencies are installed in the local-brain-search venv:
 
 ```bash
+(
 cd resources/local-brain-search
 source venv/bin/activate
 pip install pandas tqdm  # no anthropic SDK and no API key needed on either channel
+)
 ```
 
 ## Sub-Commands
@@ -114,9 +116,11 @@ pip install pandas tqdm  # no anthropic SDK and no API key needed on either chan
 Create a frozen Brain snapshot and build its index.
 
 ```bash
+(
 cd .claude/skills/benchmark-memory/scripts
 ./run_benchmark.sh --list-snapshots  # Check existing
 python3 create_snapshot.py           # Create new snapshot
+)
 ```
 
 **What it does:**
@@ -130,8 +134,10 @@ python3 create_snapshot.py           # Create new snapshot
 Generate or manage test query sets.
 
 ```bash
+(
 cd .claude/skills/benchmark-memory/scripts
 python build_query_set.py --count 50 --output ../query-sets/core-50.json
+)
 ```
 
 **Query Categories (50 total):**
@@ -149,10 +155,12 @@ python build_query_set.py --count 50 --output ../query-sets/core-50.json
 Execute benchmark with specified configuration.
 
 ```bash
+(
 cd .claude/skills/benchmark-memory/scripts
 ./run_benchmark.sh --config focused --snapshot brain-snapshot-2026-02-18
 ./run_benchmark.sh --dry-run --config focused  # Preview without execution
 ./run_benchmark.sh --list-configs              # List available configs
+)
 ```
 
 **Configurations:**
@@ -170,8 +178,10 @@ cd .claude/skills/benchmark-memory/scripts
 Generate analysis summary from benchmark results.
 
 ```bash
+(
 cd .claude/skills/benchmark-memory/scripts
 python analyze_results.py --results ../results/benchmark-*.csv
+)
 ```
 
 **Outputs:**

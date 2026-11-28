@@ -73,6 +73,7 @@ from config import (
 from intent import QueryIntent, classify_intent
 from learning import adjust_scores_with_q_values, log_retrieval
 from memory_config import MEMORY_CONFIG, empty_vault_hint, label_sources
+from record_match import q_adjust_chunks, record_word_hits
 from scope import build_scope_selector
 from spreading import SpreadingConfig, get_top_activated, spreading_activation
 
@@ -260,13 +261,18 @@ def _static_search(query, query_embedding, limit, threshold, track_usage, read_s
         if len(results) >= limit:
             break
 
-    # Q-value adjustment
+    # Records in scope that carry the question's words - lockstep with search.static_search
+    results += record_word_hits(
+        query, store.metadata, read_scope, threshold, limit,
+        cosine_of=lambda i: float(np.dot(store.index.reconstruct(int(i)), query_embedding[0])),
+        taken={(r["note_id"], r["heading"]) for r in results})
+
+    # Q-value adjustment, per note, applied to each chunk's own score
     if MEMORY_CONFIG["learning"]["enabled"] and results:
-        scores = {r["note_id"]: r["similarity"] for r in results}
-        adjusted = adjust_scores_with_q_values(scores, read_scope=read_scope)
-        for r in results:
-            r["similarity"] = adjusted.get(r["note_id"], r["similarity"])
+        q_adjust_chunks(results, adjust_scores_with_q_values, read_scope)
+    else:
         results.sort(key=lambda x: x["similarity"], reverse=True)
+    results = results[:limit]
 
     # Log retrieval
     if track_usage and results:

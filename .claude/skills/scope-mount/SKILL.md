@@ -46,7 +46,7 @@ This file is the **policy of record for what a read mounts** (`ARCHITECTURE.md` 
 |---|---|---|---|
 | **voice** | the user's fingerprint IS the product; the answer must be attributable to him | `BRAIN_READ_SCOPE=core` (declared explicitly, never inherited) | `/get-perspective-on`, `/create-article` (source pass), `/synthesize-insights` in "my thoughts on X" mode |
 | **reasoning** | the best-grounded answer, every source attributed | `BRAIN_READ_SCOPE=@reasoning` - the **reasoning mount** (default `core,Books,document-insights`, adjusted by the switch) | `/advise`, `/decide`, `/think-about-it`, `/dialectic` (monk grounding), `/abstraction-ladder` (rungs), `/synthesize-insights` (pattern mode), `/talk` → `thinking-partner`, incubation-loop evidence pass |
-| **lookup** | "what do I have on X" | `BRAIN_READ_SCOPE=@lookup` - the reasoning mount, output **grouped by scope** | `/recall`, `/search-vault`, `/quick-search`, `/find-connections` (anchor + neighbourhood) |
+| **lookup** | "what do I have on X" | `BRAIN_READ_SCOPE=@lookup` - the reasoning mount **plus `company`** (a question to the Brain about a decision, a person or a client must find the record without naming it), output **grouped by scope** | `/recall`, `/search-vault`, `/quick-search`, `/find-connections` (anchor + neighbourhood) |
 | **perception / ingestion / maintenance** | see everything new · dedup against the write target · measure the fingerprint | unchanged and already declared: wide (`core,Books,document-insights,meta,inbox,output`) / the write target / `core` | domain-watch, auto-discovery, worldview-refresh, integrate-recent-notes, the extractors, `/ingest-source`, analyze-kb, coherence, lifecycle |
 
 **Lookup semantics.** "What do I *think* about X" is answered by the core group; "what do I *know* about X" by all groups. The user narrows on demand: `--scope core` (or "only my notes") pins the read to `core`; `--scope <token>` mounts exactly that.
@@ -80,7 +80,7 @@ python3 resources/local-brain-search/scope_toggles.py reset           # back to 
 
 | Trigger in the question | Add | Detect |
 |---|---|---|
-| a person / org / product / deal name | `company` | a Company record title appears in the question |
+| a person / org / product / deal name | `company` (reasoning only - lookup mounts it standing) | a Company record title appears in the question |
 | a named external thinker | `thinkers` | a roster name from `THINKERS-INDEX.md` appears |
 | a book title or author already on the shelf | an **extra precision pass** at `core,Books/<slug>` - the wide pass keeps the whole shelf | a `Brain/Books/` slug matches |
 | direction / strategy / "should we" about the org | `canon` - but the *route* is `/canon-advise`; inside `/advise` mount Canon only to surface disagreement **as dissent, never as direction** | the `canon-advise` trigger vocabulary |

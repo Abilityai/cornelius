@@ -54,6 +54,7 @@ from learning import (
     log_retrieval,
 )
 from memory_config import MEMORY_CONFIG, empty_vault_hint, label_sources
+from record_match import q_adjust_chunks, record_word_hits
 from scope import build_scope_selector
 from spreading import (
     SpreadingConfig,
@@ -183,16 +184,19 @@ def static_search(
         if len(formatted_results) >= limit:
             break
 
-    # Apply Q-value adjustment if learning is enabled
-    if MEMORY_CONFIG["learning"]["enabled"] and formatted_results:
-        # Build score dict
-        scores = {r['note_id']: r['similarity'] for r in formatted_results}
-        adjusted = adjust_scores_with_q_values(scores, read_scope=read_scope)
+    # Records in scope that carry the question's words (record_match.py)
+    formatted_results += record_word_hits(
+        query, metadata, read_scope, threshold, limit,
+        cosine_of=lambda i: float(np.dot(index.reconstruct(int(i)), query_embedding[0])),
+        taken={(r['note_id'], r['heading']) for r in formatted_results})
 
-        # Update similarities and re-sort
-        for r in formatted_results:
-            r['similarity'] = adjusted.get(r['note_id'], r['similarity'])
+    # Apply Q-value adjustment if learning is enabled: the per-note boost is applied
+    # to each chunk's own score (record_match.q_adjust_chunks)
+    if MEMORY_CONFIG["learning"]["enabled"] and formatted_results:
+        q_adjust_chunks(formatted_results, adjust_scores_with_q_values, read_scope)
+    else:
         formatted_results.sort(key=lambda x: x['similarity'], reverse=True)
+    formatted_results = formatted_results[:limit]
 
     # Log retrieval for learning
     if track_usage and formatted_results:

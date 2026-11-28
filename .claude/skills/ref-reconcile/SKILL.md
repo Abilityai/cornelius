@@ -47,6 +47,7 @@ Detection has two sources — don't attribute to `ref-audit` what it doesn't com
 - **Conflicts** — two notes asserting contradictory facts about one entity. Read the duplicate/near-name clusters `ref-audit` flags and compare their bodies.
 - **Bidirectional-link asymmetry** — but **only for *relation* links, never *reference* links.** A `## Relations` entry that names a mutual tie (`client: [[B]]`, `Partner of: [[B]]`, `Engagement: [[B]]`) should reciprocate; a directional *reference* (`built on [[Trinity]]`, `competitor of [[X]]`, `runs on [[Y]]`) must **not** be forced to back-link. `ref-audit` reports the family CLEAN despite dozens of such directional links precisely because a blanket A→B⇒B→A check would be almost all false positives — so scope the reciprocity check to relation verbs only:
   ```bash
+  (
   cd Brain/Company
   # Mutual-tie relation links whose reciprocal is worth checking.
   # Case-insensitive (-i) and connector-agnostic: matches BOTH "Client of [[..]]" and the colon
@@ -54,6 +55,7 @@ Detection has two sources — don't attribute to `ref-audit` what it doesn't com
   # so prose bullets that merely contain a verb word (e.g. "…problem owners…") aren't flagged.
   # No \b — BSD/macOS grep does not support it. TUNE THE VERB SET to the scope's real vocabulary.
   grep -rniE '^- [^[]{0,12}(client|partner|vendor|counsel|owner|owns|engagement|collaborat|advis)[^[]*\[\[' */*.md
+  )
   ```
   (The old space-only, capitalized set — `Client of|Vendor to|…` — matched only 4 of the family's ~28 mutual relations; the family is predominantly lowercase colon-form.) For each match, confirm the named target carries the reciprocal relation; if not, it's a repair candidate (Step 2).
 
@@ -74,7 +76,7 @@ For each issue, **propose the concrete edit, show the before/after, and get expl
 ### Step 3 — Reindex after any write
 
 ```bash
-cd resources/local-brain-search && ./run_index.sh && ./run_daemon.sh restart   # :7437, RESTART not reload
+(cd resources/local-brain-search && ./run_index.sh && ./run_daemon.sh restart)   # :7437, RESTART not reload
 ```
 (No BDG bootstrap — reference notes are BDG-excluded.) If nothing was written (all issues declined), skip.
 

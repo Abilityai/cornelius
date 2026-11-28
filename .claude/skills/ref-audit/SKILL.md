@@ -54,6 +54,7 @@ ls Brain/$SCOPE/*/*.md | wc -l          # total entity notes
 
 Scan every `Brain/$SCOPE/*/*.md`. Use grep sweeps as the fast path, then Read the flagged notes to confirm:
 ```bash
+(
 cd Brain/Company
 # provenance violations
 for f in */*.md; do grep -qE '^provenance: reference$' "$f" || echo "PROVENANCE  $f"; done
@@ -65,6 +66,7 @@ for f in */*.md; do grep -qE '^as_of: [0-9]{4}-[0-9]{2}-[0-9]{2}$' "$f" || echo 
 for f in */*.md; do grep -qE '^status: superseded' "$f" && ! grep -qE '^superseded_by:' "$f" && echo "SUPERSEDED  $f"; done
 # competitor sitting outside market/
 grep -rlE '^relationship: competitor' */*.md | grep -v '^market/' | sed 's/^/PARTITION   /'
+)
 ```
 For **dangling links** and **orphans**, extract `[[...]]` targets across the family, resolve each against existing note basenames, and list unresolved targets + notes with zero in/out links:
 ```bash
