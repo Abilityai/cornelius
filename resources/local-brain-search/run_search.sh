@@ -45,6 +45,22 @@ daemon_fresh() {
     case "$SCOPE" in *@*) printf '%s' "$health" | grep -q '"role_aliases": *true' || return 1 ;; esac
 }
 
+# Daemon miss (down, stale after a reindex, or old code): ask for a (re)start, and
+# while a start is in progress wait for it (<= BRAIN_DAEMON_WAIT s, default 30)
+# instead of loading a second copy of torch and the model in a cold CLI process
+# next to the daemon that is loading the same model - the two together were the
+# memory peak right after every reindex (verify_searchable.sh fires one read per
+# note). The cold path below still serves the read if the daemon does not come up.
+ENSURE_LOCK="$SCRIPT_DIR/.daemon-ensure.lock"
+if ! daemon_fresh; then
+    "$SCRIPT_DIR/run_daemon.sh" ensure > /dev/null 2>&1
+    waited=0
+    while [ -d "$ENSURE_LOCK" ] && [ "$waited" -lt "$(( ${BRAIN_DAEMON_WAIT:-30} * 2 ))" ]; do
+        sleep 0.5; waited=$((waited + 1))
+        daemon_fresh && break
+    done
+fi
+
 # Try daemon first (fast path)
 if daemon_fresh; then
     # Parse args into URL params
@@ -136,10 +152,10 @@ print(f\"Mode: {mode.upper()} (via daemon)\")
     exit 0
 fi
 
-# Daemon miss (down, stale after a reindex, or old code): start/restart it in the
-# background so the NEXT read is warm, then serve THIS read from the cold CLI path.
-# One starter at a time (lock in run_daemon.sh); BRAIN_DAEMON_AUTOSTART=0 disables.
-"$SCRIPT_DIR/run_daemon.sh" ensure > /dev/null 2>&1
+# Still a miss (the daemon could not start, or autostart is off): the start was
+# already requested above, so the NEXT read is warm; serve THIS one from the cold
+# CLI path. One starter at a time (lock in run_daemon.sh); BRAIN_DAEMON_AUTOSTART=0
+# disables both the start and the wait.
 
 # Fallback: direct Python (original behavior)
 "$SCRIPT_DIR/venv/bin/python" "$SCRIPT_DIR/search.py" "$@"

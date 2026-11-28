@@ -15,6 +15,7 @@ Usage:
     python search.py "your query" --threshold 0.7
     python search.py "your query" --full  # Show full content
 """
+import allocator  # noqa: F401  - must stay the first import (glibc mmap threshold)
 import argparse
 import json
 import pickle

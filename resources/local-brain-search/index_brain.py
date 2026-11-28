@@ -7,8 +7,20 @@ Usage:
 
 Options:
     --force    Re-index everything, ignoring existing index
+
+MEMORY: when the search daemon is up, new chunks are embedded by the daemon's
+already-loaded model (POST /embed) and this process never imports torch - a
+reindex no longer holds a second copy of the model and torch next to the
+daemon's. With no daemon (or an older one without /embed) it loads the model
+itself, as before. Same model, same encode() arguments, same 512-chunk calls:
+the vectors are identical either way (BRAIN_INDEX_EMBED=local forces in-process).
 """
+import allocator  # noqa: F401  - must stay the first import (glibc mmap threshold)
 import argparse
+import base64
+import os
+import urllib.error
+import urllib.request
 import hashlib
 import json
 import pickle
@@ -21,7 +33,6 @@ from pathlib import Path
 import faiss
 import networkx as nx
 import numpy as np
-from sentence_transformers import SentenceTransformer
 
 from config import (
     BRAIN_PATH,
@@ -312,6 +323,69 @@ def add_semantic_edges(
                 )
 
 
+class Embedder:
+    """Embeds chunk texts through the running search daemon when it offers /embed
+    for the same model, else with a model loaded in this process (lazily - an
+    all-reused run never loads one). Either path calls
+    SentenceTransformer.encode(texts, show_progress_bar=False,
+    normalize_embeddings=True) on the same slices, so the vectors match."""
+
+    def __init__(self):
+        self.port = int(os.environ.get("BRAIN_DAEMON_PORT", "7437"))
+        self.model = None
+        self.via = None
+        if os.environ.get("BRAIN_INDEX_EMBED", "auto") != "local" and self._daemon_ok(wait=True):
+            self.via = "daemon"
+
+    def _health(self):
+        try:
+            with urllib.request.urlopen(f"http://127.0.0.1:{self.port}/health", timeout=2) as r:
+                return json.loads(r.read())
+        except Exception:
+            return None
+
+    def _daemon_ok(self, wait=False):
+        h = self._health()
+        # The previous run's `run_daemon.sh ensure` may be restarting the daemon right
+        # now (the library build is several back-to-back runs). While that start is in
+        # progress, wait for it rather than load a second model next to it.
+        lock = Path(__file__).resolve().parent / ".daemon-ensure.lock"
+        deadline = time.time() + float(os.environ.get("BRAIN_DAEMON_WAIT", "90"))
+        while h is None and wait and lock.is_dir() and time.time() < deadline:
+            time.sleep(0.5)
+            h = self._health()
+        return bool(h and h.get("embed") and h.get("model") == EMBEDDING_MODEL)
+
+    def _local(self):
+        if self.model is None:
+            print(f"Loading embedding model: {EMBEDDING_MODEL}...", flush=True)
+            t0 = time.time()
+            from sentence_transformers import SentenceTransformer
+            self.model = SentenceTransformer(EMBEDDING_MODEL)
+            print(f"  Model loaded in {time.time() - t0:.1f}s", flush=True)
+        self.via = "local"
+        return self.model
+
+    def encode(self, texts):
+        if self.via == "daemon":
+            try:
+                req = urllib.request.Request(
+                    f"http://127.0.0.1:{self.port}/embed",
+                    data=json.dumps({"texts": texts, "model": EMBEDDING_MODEL}).encode(),
+                    headers={"Content-Type": "application/json"}, method="POST")
+                with urllib.request.urlopen(req, timeout=900) as r:
+                    d = json.loads(r.read())
+                if d.get("model") != EMBEDDING_MODEL or d.get("n") != len(texts):
+                    raise ValueError(f"unexpected /embed reply (model={d.get('model')}, n={d.get('n')})")
+                v = np.frombuffer(base64.b64decode(d["b64"]), dtype="<f4")
+                return v.reshape(len(texts), EMBEDDING_DIM).astype("float32")
+            except Exception as e:  # daemon went away mid-run: finish in-process
+                print(f"  (daemon /embed failed: {e}; embedding in this process)", flush=True)
+        model = self._local()
+        return np.asarray(model.encode(texts, show_progress_bar=False, normalize_embeddings=True),
+                          dtype="float32")
+
+
 def load_previous(force):
     """Per-note metadata + reconstructed embedding vectors from the persisted
     index, so an incremental run can REUSE the embedding of any note whose
@@ -356,11 +430,6 @@ def main():
 
     # Ensure data directory exists
     DATA_DIR.mkdir(parents=True, exist_ok=True)
-
-    print(f"Loading embedding model: {EMBEDDING_MODEL}...", flush=True)
-    start_time = time.time()
-    model = SentenceTransformer(EMBEDDING_MODEL)
-    print(f"  Model loaded in {time.time() - start_time:.1f}s", flush=True)
 
     print(f"\nCollecting notes from {BRAIN_PATH}...", flush=True)
     notes = collect_notes()
@@ -422,11 +491,12 @@ def main():
     if embed_texts:
         t0 = time.time()
         HEARTBEAT_BATCH = 512
+        embedder = Embedder()
+        if embedder.via == "daemon":
+            print(f"Embedding with the search daemon's model ({EMBEDDING_MODEL}, "
+                  f"port {embedder.port}) - no second copy loaded", flush=True)
         for i in range(0, len(embed_texts), HEARTBEAT_BATCH):
-            part = np.asarray(
-                model.encode(embed_texts[i:i + HEARTBEAT_BATCH],
-                             show_progress_bar=False, normalize_embeddings=True),
-                dtype='float32')
+            part = embedder.encode(embed_texts[i:i + HEARTBEAT_BATCH])
             for k in range(len(part)):
                 all_vectors[embed_slots[i + k]] = part[k]
             done = min(i + HEARTBEAT_BATCH, len(embed_texts))

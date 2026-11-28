@@ -26,7 +26,15 @@ Endpoints:
     GET  /connections/bridges
     GET  /health
     POST /reload
+    POST /embed      {"texts": [...]} -> float32 vectors (used by index_brain.py so a
+                     reindex does not load a second copy of the model; see allocator.py)
+
+MEMORY: the daemon binds its port BEFORE loading anything heavy, so a second start
+that loses the bind race exits in about a second instead of loading torch and the
+model first. allocator (first import) keeps freed embedding buffers from piling up.
 """
+import allocator  # noqa: F401  - must stay the first import (glibc mmap threshold)
+import base64
 import json
 import os
 import pickle
@@ -40,9 +48,10 @@ from typing import Optional
 import faiss
 import networkx as nx
 import numpy as np
-from fastapi import FastAPI, Query
+from fastapi import Body, FastAPI, Query
 from fastapi.responses import JSONResponse
-from sentence_transformers import SentenceTransformer
+# sentence_transformers (and torch under it) is imported in BrainStore.load(), after
+# the port is bound - see __main__.
 
 # Add project dir to path so we can import local modules
 PROJECT_DIR = Path(__file__).parent
@@ -103,7 +112,13 @@ class BrainStore:
             self.graph = pickle.load(f)
 
         print("Loading embedding model...", flush=True)
-        self.model = SentenceTransformer(EMBEDDING_MODEL)
+        if self.model is None:
+            # Loaded once per process. A reload (SIGHUP, /reload) re-reads the index,
+            # metadata and graph only: the model files do not change on a reindex,
+            # and loading a second copy next to the first would double its memory.
+            from sentence_transformers import SentenceTransformer
+            self.model = SentenceTransformer(EMBEDDING_MODEL)
+        allocator.trim()
 
         self.loaded_at = time.time()
         elapsed = self.loaded_at - t0
@@ -586,7 +601,32 @@ def health():
         "chunks": store.index.ntotal if store.index else 0,
         "nodes": store.graph.number_of_nodes() if store.graph else 0,
         "edges": store.graph.number_of_edges() if store.graph else 0,
+        "model": EMBEDDING_MODEL,
+        "embed": True,          # POST /embed available (index_brain.py checks this)
     }
+
+
+@app.post("/embed")
+def embed(payload: dict = Body(...)):
+    """Embed texts with the daemon's model, for index_brain.py.
+
+    Same call the indexer makes in-process (normalize_embeddings=True, default
+    batch_size), so the vectors are the ones a local model would produce. Returned
+    as raw little-endian float32, base64-encoded: exact, no JSON float rounding.
+    """
+    texts = payload.get("texts") or []
+    if payload.get("model") not in (None, EMBEDDING_MODEL):
+        return JSONResponse(status_code=409, content={"error": "model mismatch", "model": EMBEDDING_MODEL})
+    if not isinstance(texts, list) or not all(isinstance(t, str) for t in texts):
+        return JSONResponse(status_code=400, content={"error": "texts must be a list of strings"})
+    vecs = np.asarray(
+        store.model.encode(texts, show_progress_bar=False, normalize_embeddings=True),
+        dtype="<f4").reshape(len(texts), -1)
+    out = {"model": EMBEDDING_MODEL, "n": int(vecs.shape[0]), "dim": int(vecs.shape[1]) if len(texts) else 0,
+           "b64": base64.b64encode(vecs.tobytes()).decode("ascii")}
+    del vecs
+    allocator.trim()
+    return out
 
 
 @app.post("/reload")
@@ -605,13 +645,31 @@ PID_FILE = PROJECT_DIR / "daemon.pid"
 
 
 if __name__ == "__main__":
+    import socket
+
     import uvicorn
 
-    # Write PID file
+    # Bind first, load second. uvicorn runs the lifespan (store.load: torch, the
+    # model, the index) before it binds, so two starts racing for the port each
+    # loaded everything and the loser only then died on "address in use" - a
+    # transient second daemon's worth of memory (~0.5 GB) on every such race.
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    try:
+        sock.bind(("127.0.0.1", PORT))
+        # listen() now, not after loading: on Linux two SO_REUSEADDR sockets may
+        # bind the same port as long as neither is listening yet. Requests that
+        # arrive while loading wait in the backlog.
+        sock.listen(2048)
+    except OSError as e:
+        print(f"Port {PORT} already in use ({e}); another daemon is serving - exiting.", flush=True)
+        sys.exit(0)
+
+    # Write PID file (only the daemon that owns the port)
     PID_FILE.write_text(str(os.getpid()))
 
     try:
-        uvicorn.run(app, host="127.0.0.1", port=PORT, log_level="warning")
+        uvicorn.Server(uvicorn.Config(app, log_level="warning")).run(sockets=[sock])
     finally:
-        if PID_FILE.exists():
+        if PID_FILE.exists() and PID_FILE.read_text().strip() == str(os.getpid()):
             PID_FILE.unlink()
